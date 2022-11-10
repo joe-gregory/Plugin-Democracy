@@ -1,7 +1,15 @@
 const express = require('express');
+const mongoose = require('mongoose');
+
 
 //express app 
 const DDapp = express();
+
+//connect to mongoDB
+const dbURI = 'mongodb+srv://joedd:jegm1986@cluster0.hbch2i1.mongodb.net/DD?retryWrites=true&w=majority'
+mongoose.connect(dbURI)
+    .then((result) => console.log(`Connected to Data Base: ${result}`))
+    .catch((error) => console.log(`Error connecting to DB: ${error}`));
 
 //register view engine
 DDapp.set('view engine', 'ejs');
