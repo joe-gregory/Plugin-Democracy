@@ -30,7 +30,7 @@ DDapp.set('view engine', 'ejs');
 DDapp.use(express.static('public'));
 
 //mongoose and mongo sandbox routes
-DDapp.get('/add', (request, response) => {
+/*DDapp.get('/add', (request, response) => {
     const citizen = new Community.Citizen({
         firstName: 'Pepe',
         lastName: 'Grillo'
@@ -43,11 +43,12 @@ DDapp.get('/add', (request, response) => {
             console.log(err);
         })
 
-})
+})*/
 
 //routes
 DDapp.get('/', (request, response) => {
-    console.log('get request for index');
+    console.log('"get" request for index');
+    response.cookie('visited', true);
     response.status(200).render('index',{title: 'Democracia Directa'});
 });
 
