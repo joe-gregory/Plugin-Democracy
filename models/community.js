@@ -1,7 +1,7 @@
  const mongoose = require('mongoose');
- const mongooseSchema = mongoose.Schema; 
+ const Schema = mongoose.Schema; 
 
- const communitySchema = new mongooseSchema({
+ const communitySchema = new Schema({
    
     name : {
         type: String,
@@ -14,24 +14,24 @@
     },
     
     innerHomes : [{ 
-         type: mongooseSchema.Types.ObjectId, ref: 'home'
+         type: Schema.Types.ObjectId, ref: 'Home'
     }],
 
-    president : { type: mongooseSchema.Types.ObjectId, ref: 'citizen'},
+    president : { type: Schema.Types.ObjectId, ref: 'Citizen'},
 
-    treasurer : { type: mongooseSchema.Types.ObjectId, ref: 'citizen' },
+    treasurer : { type: Schema.Types.ObjectId, ref: 'Citizen' },
 });
 
-const homeSchema = new mongooseSchema({
+const homeSchema = new Schema({
     
     innerNumber : Number,
     
     citizen: {
-        type: mongooseSchema.Types.ObjectId, ref: 'citizen'
+        type: Schema.Types.ObjectId, ref: 'Citizen'
     }
 })
 
-const citizenSchema = new mongooseSchema({
+const citizenSchema = new Schema({
     
     firstName: {
         type: String,
@@ -49,6 +49,16 @@ const citizenSchema = new mongooseSchema({
 
     cellPhone: String, 
 
-    home: { type: mongooseSchema.Types.ObjectId, ref : 'home' }
+    home: { type: Schema.Types.ObjectId, ref : 'Home' }
 
 }, {timestamps: true});
+
+const Community = mongoose.model('Community', communitySchema);
+const Home = mongoose.model('Home', homeSchema);
+const Citizen = mongoose.model('Citizen', citizenSchema);
+
+module.exports = {
+    Community,
+    Home,
+    Citizen
+}

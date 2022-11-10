@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 
+const Community = require('./models/community');
+
 
 //express app 
 const DDapp = express();
@@ -27,6 +29,23 @@ DDapp.set('view engine', 'ejs');
 //static files
 DDapp.use(express.static('public'));
 
+//mongoose and mongo sandbox routes
+DDapp.get('/add', (request, response) => {
+    const citizen = new Community.Citizen({
+        firstName: 'Pepe',
+        lastName: 'Grillo'
+    });
+    citizen.save()
+        .then( (result) => {
+            response.send(result)
+        })
+        .catch((err) => {
+            console.log(err);
+        })
+
+})
+
+//routes
 DDapp.get('/', (request, response) => {
     console.log('get request for index');
     response.status(200).render('index',{title: 'Democracia Directa'});
