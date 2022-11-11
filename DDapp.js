@@ -3,9 +3,14 @@ const mongoose = require('mongoose');
 
 const Community = require('./models/community');
 
+const cookieParser = require('cookie-parser');
+const { application } = require('express');
 
 //express app 
 const DDapp = express();
+
+//middleware
+DDapp.use(cookieParser());
 
 //connect to mongoDB
 const dbURI = 'mongodb+srv://joedd:jegm1986@cluster0.hbch2i1.mongodb.net/DD?retryWrites=true&w=majority'
