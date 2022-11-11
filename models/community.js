@@ -45,7 +45,10 @@ const citizenSchema = new Schema({
     
     secondLastName: String,
     
-    email: String,
+    email: {
+        type: String,
+        required: true
+    },
 
     cellPhone: String, 
 
