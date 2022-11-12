@@ -53,10 +53,29 @@ DDapp.use(express.static('public'));
 //routes
 DDapp.get('/', (request, response) => {
     console.log('"get" request for index');
-    response.cookie('visited', true);
     response.status(200).render('index',{title: 'Democracia Directa'});
+});
+
+DDapp.get('/signup', (request, response) => {
+    console.log('"get" request for /signup');
+    response.render('signup',{}, function (err, html) {
+        if(err){
+            console.log('500 Error');
+            console.log(err);
+            response.redirect('/500');
+        }
+        else{
+            response.render('signup');
+        }
+    });
+});
+
+DDapp.get('/500', (request, response) => {
+    console.log('500 Error, rerouting...');
+    response.status(500).render('500');
 });
 
 DDapp.use((request, response) => {
     response.status(404).render('404', {title: '404'});
 });
+

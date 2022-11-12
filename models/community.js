@@ -50,6 +50,11 @@ const citizenSchema = new Schema({
         required: true
     },
 
+    password: {
+        type: String,
+        required: true
+    },
+
     cellPhone: String, 
 
     home: { type: Schema.Types.ObjectId, ref : 'Home' }
