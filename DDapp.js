@@ -1,15 +1,18 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
 
 const Community = require('./models/community');
 
-const cookieParser = require('cookie-parser');
 const { application } = require('express');
 
 //express app 
 const DDapp = express();
 
 //middleware
+DDapp.use(express.json()); //parse request body as JSON
+DDapp.set('view engine', 'ejs'); //register view engine
+DDapp.use(express.static('public')); //static files
 DDapp.use(cookieParser());
 
 //connect to mongoDB
@@ -27,12 +30,6 @@ mongoose.connect(dbURI)
         console.log(`Error Object [key, value] pairs:`);
         console.log(Object.entries(error));
     });
-
-//register view engine
-DDapp.set('view engine', 'ejs');
-
-//static files
-DDapp.use(express.static('public'));
 
 //mongoose and mongo sandbox routes
 /*DDapp.get('/add', (request, response) => {
@@ -68,6 +65,19 @@ DDapp.get('/signup', (request, response) => {
             response.render('signup');
         }
     });
+});
+
+DDapp.post('/signup', (request, response) => {
+    console.log('Received "post" request on /signup');
+    console.log(request.body.firstName);
+    /* const citizen = new Community.Citizen({
+        firstName: request.body.firstName,
+        lastName: request.body.lastName,
+        secondLastName: request.body.secondLastName,
+        email: request.body.email,
+        password: request.body.password,
+        cellphone: request.body.cellphone,
+    });*/
 });
 
 DDapp.get('/500', (request, response) => {
