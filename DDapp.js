@@ -1,18 +1,19 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
-
 const Community = require('./models/community');
 
-const { application } = require('express');
+// const { application } = require('express');
 
 //express app 
 const DDapp = express();
 
+
+DDapp.set('view engine', 'ejs'); //register view engine
+
 //middleware
 DDapp.use(express.json()); //parse request body as JSON
-DDapp.use(express.urlencoded({extended: true}));
-DDapp.set('view engine', 'ejs'); //register view engine
+DDapp.use(express.urlencoded({extended: false}));
 DDapp.use(express.static('public')); //static files
 DDapp.use(cookieParser());
 
@@ -32,6 +33,10 @@ mongoose.connect(dbURI)
         console.log(Object.entries(error));
     });
 
+DDapp.use((request, respond, next) => {
+    console.log(`${request.method} : ${request.url}`);
+    next();
+});
 //mongoose and mongo sandbox routes
 /*DDapp.get('/add', (request, response) => {
     const citizen = new Community.Citizen({
@@ -50,12 +55,10 @@ mongoose.connect(dbURI)
 
 //routes
 DDapp.get('/', (request, response) => {
-    console.log('"get" request for index');
     response.status(200).render('index',{title: 'Democracia Directa'});
 });
 
 DDapp.get('/signup', (request, response) => {
-    console.log('"get" request for /signup');
     response.render('signup',{}, function (err, html) {
         if(err){
             console.log('500 Error');
@@ -69,17 +72,17 @@ DDapp.get('/signup', (request, response) => {
 });
 
 DDapp.post('/signup', (request, response) => {
-    console.log('Received "post" request on /signup');
-    console.log(request.body.firstName);
-    response.render('signup', {message: 'redirected back'});
-    /* const citizen = new Community.Citizen({
+    //console.log(request.body.firstName);
+     const citizen = new Community.Citizen({
         firstName: request.body.firstName,
         lastName: request.body.lastName,
         secondLastName: request.body.secondLastName,
         email: request.body.email,
         password: request.body.password,
         cellphone: request.body.cellphone,
-    });*/
+    });
+    citizen.save();
+    response.render('signup', {message: 'redirected back'});
 });
 
 DDapp.get('/500', (request, response) => {
