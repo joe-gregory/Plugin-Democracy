@@ -2,28 +2,28 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const Community = require('./models/community');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+//const passportLocalStrategy = require('passport-local');
+const session = require('express-session');
+//const MongoStore = require('connect-mongo');
 
 // const { application } = require('express');
 
 //express app 
 const DDapp = express();
 
+const dbURI = 'mongodb+srv://joedd:jegm1986@cluster0.hbch2i1.mongodb.net/DD?retryWrites=true&w=majority'
 
-DDapp.set('view engine', 'ejs'); //register view engine
-
-//middleware
-DDapp.use(express.json()); //parse request body as JSON
-DDapp.use(express.urlencoded({extended: false}));
-DDapp.use(express.static('public')); //static files
-DDapp.use(cookieParser());
+//register view engine
+DDapp.set('view engine', 'ejs'); 
 
 //connect to mongoDB
-const dbURI = 'mongodb+srv://joedd:jegm1986@cluster0.hbch2i1.mongodb.net/DD?retryWrites=true&w=majority'
-mongoose.connect(dbURI)
+const db = mongoose.connect(dbURI)
     .then((result) => {
-        console.log(`Connected to Data Base`);
-        console.log('Result Object [key, value] pairs: ');
-        console.log(Object.entries(result));
+        //console.log(`Connected to Data Base`);
+        //console.log('Result Object [key, value] pairs: ');
+        //console.log(Object.entries(result));
         DDapp.listen(8080); //listen for requests
         console.log('listening on port 8080...');
     })
@@ -34,24 +34,60 @@ mongoose.connect(dbURI)
     });
 
 DDapp.use((request, respond, next) => {
-    console.log(`${request.method} : ${request.url}`);
+    console.log(`Request Method: "${request.method}" => Request URL: "${request.url}"`);
     next();
 });
-//mongoose and mongo sandbox routes
-/*DDapp.get('/add', (request, response) => {
-    const citizen = new Community.Citizen({
-        firstName: 'Pepe',
-        lastName: 'Grillo'
-    });
-    citizen.save()
-        .then( (result) => {
-            response.send(result)
-        })
-        .catch((err) => {
-            console.log(err);
-        })
 
-})*/
+//middleware
+DDapp.use(express.json()); //parse request body as JSON
+DDapp.use(express.urlencoded({extended:true}));
+DDapp.use(express.static('public')); //static files
+//DDapp.use(cookieParser());
+DDapp.use(session ({
+    secret: 'directdemocracy',
+    resave: false,
+    saveUninitialized: false, 
+    })
+);
+//DDapp.use(passport.authenticate('session'));
+//------------------
+DDapp.use(passport.initialize());
+DDapp.use(passport.session());
+
+//serializeUser function
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+//deserializeUser function
+passport.deserializeUser((id, done) => {
+    db.users.findById(id, function(err, user) {
+        if(err) return done(err);
+        done(null, user);
+    })
+});
+
+//local Strategy
+passport.use(new LocalStrategy(
+    function (email, password, done) {
+    //look up user in DB
+        db.citizens.find(email, (err, citizen) => {
+            //if there's an error in db lookup, return err callback
+            if(err) return done(err);
+            //if user not found, return null and false in callback
+            if(!citizen) return done(null, false);
+            //if user found, but password not valid, return err and false in callback
+            if(citizen.password != password) return done(null, false);
+            //if user found and password valid, return user object in callback
+            if(citizen.password == password) return done(null, user);
+        });
+    })
+);
+
+
+//passport.use(new passportLocalStrategy( function verify(email, password, cb) {
+
+//}))
 
 //routes
 DDapp.get('/', (request, response) => {
@@ -81,8 +117,20 @@ DDapp.post('/signup', (request, response) => {
         password: request.body.password,
         cellphone: request.body.cellphone,
     });
-    citizen.save();
-    response.render('signup', {message: 'redirected back'});
+    citizen.save()
+        .then((result) => response.send(result))
+        .catch((error) => response.send(error));
+    //response.render('signup', {message: 'redirected back'});
+});
+
+DDapp.get('/login', (request, response) => {
+    response.render('login', (err, html) =>{
+        if(err){
+            response.redirect('/404', {'message': [err,html]});
+        }else{
+            response.render('login');
+        }
+    });
 });
 
 DDapp.get('/500', (request, response) => {
