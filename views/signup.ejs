@@ -2,7 +2,7 @@
 <%- include('./partials/navigation.ejs') %>
 
     <h1> Signup Page </h1>
-
+    <h2> <%= (locals.message != undefined) ? message : '' ;%> </h2>
     <form action = '/signup' method = 'post'>
         <%#Questions regarding the citizen %>
         <section>

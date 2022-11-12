@@ -11,6 +11,7 @@ const DDapp = express();
 
 //middleware
 DDapp.use(express.json()); //parse request body as JSON
+DDapp.use(express.urlencoded({extended: true}));
 DDapp.set('view engine', 'ejs'); //register view engine
 DDapp.use(express.static('public')); //static files
 DDapp.use(cookieParser());
@@ -70,6 +71,7 @@ DDapp.get('/signup', (request, response) => {
 DDapp.post('/signup', (request, response) => {
     console.log('Received "post" request on /signup');
     console.log(request.body.firstName);
+    response.render('signup', {message: 'redirected back'});
     /* const citizen = new Community.Citizen({
         firstName: request.body.firstName,
         lastName: request.body.lastName,
