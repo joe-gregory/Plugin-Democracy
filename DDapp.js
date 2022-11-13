@@ -1,14 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cookieParser = require('cookie-parser');
 const Community = require('./models/community');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-//const passportLocalStrategy = require('passport-local');
 const session = require('express-session');
-//const MongoStore = require('connect-mongo');
-
-// const { application } = require('express');
 
 //express app 
 const DDapp = express();
@@ -19,7 +14,7 @@ const dbURI = 'mongodb+srv://joedd:jegm1986@cluster0.hbch2i1.mongodb.net/DD?retr
 DDapp.set('view engine', 'ejs'); 
 
 //connect to mongoDB
-const db = mongoose.connect(dbURI)
+mongoose.connect(dbURI)
     .then((result) => {
         console.log(`Connected to Data Base`);
         //console.log('Result Object [key, value] pairs: ');
@@ -33,10 +28,6 @@ const db = mongoose.connect(dbURI)
         console.log(Object.entries(error));
     });
 
-DDapp.use((request, respond, next) => {
-    console.log(`Request Method: "${request.method}" => Request URL: "${request.url}"`);
-    next();
-});
 
 //middleware
 DDapp.use(express.json()); //parse request body as JSON
@@ -49,8 +40,7 @@ DDapp.use(session ({
     saveUninitialized: false, 
     })
 );
-//DDapp.use(passport.authenticate('session'));
-//------------------
+
 DDapp.use(passport.initialize());
 DDapp.use(passport.session());
 
@@ -101,24 +91,25 @@ passport.use(new LocalStrategy(
     })
 );
 
-//passport.use(new passportLocalStrategy( function verify(email, password, cb) {
-
-//}))
-
 //routes
+DDapp.use((request, respond, next) => {
+    console.log(`Request Method: "${request.method}" => Request URL: "${request.url}"`);
+    next();
+});
+
 DDapp.get('/', (request, response) => {
-    response.status(200).render('index',request.user);
+    response.render('index', request.user);
 });
 
 DDapp.get('/signup', (request, response) => {
-    response.render('signup',{}, function (err, html) {
+    response.render('signup', function (err, html) {
         if(err){
             console.log('500 Error');
             console.log(err);
             response.redirect('/500');
         }
         else{
-            response.render('signup');
+            response.render('signup', request.user);
         }
     });
 });
@@ -138,14 +129,11 @@ DDapp.post('/signup', (request, response) => {
         .catch((error) => response.send(error));
     //response.render('signup', {message: 'redirected back'});
 });
-/*
-app.get("/profile", (req, res) => {
-  // Pass user object stored in session to the view page:
-  res.render("profile", {user: req.user});
-});
-*/
+//login
 DDapp.get('/login', (request, response) => {
     response.render('login', (err, html) =>{
+        console.log('req.user before:');
+        console.log(request.user);
         if(err){
             response.redirect('/404', {'message': [err,html]});
         }else{
@@ -155,14 +143,39 @@ DDapp.get('/login', (request, response) => {
 });
 
 DDapp.post('/login', passport.authenticate('local', {failureRedirect: '/login', failureMessage: true}),
-    (request, response) => {
-        response.redirect('/profile');
+    (request, response) => {        
+        if(request.Url){
+            response.redirect(request.url)
+        }else{
+            console.log(request.user);
+            response.redirect('profile');
+        }
     }
 );
 
-DDapp.get('/profile', (request, response) => {
-    response.render('profile', request.user)
+DDapp.post('/logout', function(request, response, next) {
+    request.logout(function(error) {
+        if(error) {return next(error);}
+        response.redirect('/');
     });
+});
+
+DDapp.get('/profile', (request, response) => {
+    if (!request.user){
+        request.url = '/profile';
+        response.redirect('/login');
+    } else{
+        response.render('profile', request.user);
+    }
+    });
+
+DDapp.get('/community', (request, response) => {
+    if(!request.user){
+        response.redirect('/login');
+    } else{
+        response.render('mycommunity', request.user)
+    }
+});
 
 DDapp.get('/500', (request, response) => {
     console.log('500 Error, rerouting...');
