@@ -62,9 +62,9 @@ passport.serializeUser((citizen, done) => {
 
 //deserializeUser function
 passport.deserializeUser((id, done) => {
-    Community.Citizen.findById(id, function(err, user) {
+    Community.Citizen.findById(id, function(err, citizen) {
         if(err) return done(err);
-        done(null, user);
+        done(null, citizen);
     })
 });
 
@@ -163,9 +163,9 @@ DDapp.post('/login', passport.authenticate('local', {failureRedirect: '/login', 
 
 DDapp.get('/profile', (request, response) => {
     response.render('profile', {
-        //firstName: request.user.firstName,
-        //lastName: request.user.lastName,
-        //email: request.user.email,
+        firstName: request.user.firstName,
+        lastName: request.user.lastName,
+        email: request.user.email,
     })
 })
 
