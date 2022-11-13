@@ -101,14 +101,13 @@ passport.use(new LocalStrategy(
     })
 );
 
-
 //passport.use(new passportLocalStrategy( function verify(email, password, cb) {
 
 //}))
 
 //routes
 DDapp.get('/', (request, response) => {
-    response.status(200).render('index',{title: 'Democracia Directa'});
+    response.status(200).render('index',request.user);
 });
 
 DDapp.get('/signup', (request, response) => {
@@ -150,7 +149,7 @@ DDapp.get('/login', (request, response) => {
         if(err){
             response.redirect('/404', {'message': [err,html]});
         }else{
-            response.render('login');
+            response.render('login', request.user);
         }
     });
 });
@@ -162,12 +161,8 @@ DDapp.post('/login', passport.authenticate('local', {failureRedirect: '/login', 
 );
 
 DDapp.get('/profile', (request, response) => {
-    response.render('profile', {
-        firstName: request.user.firstName,
-        lastName: request.user.lastName,
-        email: request.user.email,
-    })
-})
+    response.render('profile', request.user)
+    });
 
 DDapp.get('/500', (request, response) => {
     console.log('500 Error, rerouting...');
