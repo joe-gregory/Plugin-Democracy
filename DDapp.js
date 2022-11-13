@@ -21,7 +21,7 @@ DDapp.set('view engine', 'ejs');
 //connect to mongoDB
 const db = mongoose.connect(dbURI)
     .then((result) => {
-        //console.log(`Connected to Data Base`);
+        console.log(`Connected to Data Base`);
         //console.log('Result Object [key, value] pairs: ');
         //console.log(Object.entries(result));
         DDapp.listen(8080); //listen for requests
@@ -55,13 +55,14 @@ DDapp.use(passport.initialize());
 DDapp.use(passport.session());
 
 //serializeUser function
-passport.serializeUser((user, done) => {
-    done(null, user.id);
+passport.serializeUser((citizen, done) => {
+    console.log(citizen);
+    done(null, citizen._id);
 });
 
 //deserializeUser function
 passport.deserializeUser((id, done) => {
-    db.users.findById(id, function(err, user) {
+    Community.Citizen.findById(id, function(err, user) {
         if(err) return done(err);
         done(null, user);
     })
@@ -69,17 +70,33 @@ passport.deserializeUser((id, done) => {
 
 //local Strategy
 passport.use(new LocalStrategy(
-    function (email, password, done) {
-    //look up user in DB
-        db.citizens.find(email, (err, citizen) => {
+    {
+        usernameField: 'email',
+        passwordField: 'password',
+    },
+    function verify (email, password, done) {
+        //look up user in DB
+        Community.Citizen.findOne({'email': email}, (err, citizen) => {
             //if there's an error in db lookup, return err callback
-            if(err) return done(err);
+            if(err) {
+                console.log(err);
+                return done(err); 
+            }
             //if user not found, return null and false in callback
-            if(!citizen) return done(null, false);
+            if(!citizen){
+                console.log('!citizen');
+                return done(null, false);
+            } 
             //if user found, but password not valid, return err and false in callback
-            if(citizen.password != password) return done(null, false);
+            if(citizen.password != citizen.password){
+                console.log('wrong password');
+                return done(null, false);
+            } 
             //if user found and password valid, return user object in callback
-            if(citizen.password == password) return done(null, user);
+            if(citizen.password == citizen.password){
+                console.log('all good');
+                return done(null, citizen);
+            } 
         });
     })
 );
@@ -108,7 +125,7 @@ DDapp.get('/signup', (request, response) => {
 });
 
 DDapp.post('/signup', (request, response) => {
-    //console.log(request.body.firstName);
+    console.log(request.body.firstName);
      const citizen = new Community.Citizen({
         firstName: request.body.firstName,
         lastName: request.body.lastName,
@@ -122,7 +139,12 @@ DDapp.post('/signup', (request, response) => {
         .catch((error) => response.send(error));
     //response.render('signup', {message: 'redirected back'});
 });
-
+/*
+app.get("/profile", (req, res) => {
+  // Pass user object stored in session to the view page:
+  res.render("profile", {user: req.user});
+});
+*/
 DDapp.get('/login', (request, response) => {
     response.render('login', (err, html) =>{
         if(err){
@@ -132,6 +154,20 @@ DDapp.get('/login', (request, response) => {
         }
     });
 });
+
+DDapp.post('/login', passport.authenticate('local', {failureRedirect: '/login', failureMessage: true}),
+    (request, response) => {
+        response.redirect('/profile');
+    }
+);
+
+DDapp.get('/profile', (request, response) => {
+    response.render('profile', {
+        //firstName: request.user.firstName,
+        //lastName: request.user.lastName,
+        //email: request.user.email,
+    })
+})
 
 DDapp.get('/500', (request, response) => {
     console.log('500 Error, rerouting...');

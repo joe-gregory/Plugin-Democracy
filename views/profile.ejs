@@ -1,0 +1,9 @@
+<%- include('./partials/head.ejs') %>
+<%- include('./partials/navigation.ejs') %>
+<h1>PROFILE PAGE</h1>
+<h2> <%= (locals.message != undefined) ? message : '' ;%> </h2>
+<p> <%= (locals.firstName != undefined) ? firstName : '' ;%> </p> 
+<p> <%= (locals.lastName != undefined) ? lastName : '' ;%> </p>
+<p> <%= (locals.email != undefined) ? email : '' ;%> </p>
+
+<%- include('./partials/footer.ejs') %>
