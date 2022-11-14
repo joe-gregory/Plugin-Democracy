@@ -6,35 +6,24 @@
     <div class="div-back">
         <div class = 'div-center'>
             <div class = 'content'>
-                <form action = '/signup' method = 'post'>
+                <form action = '/createCommunity' method = 'post'>
                     <div class = 'mb-3'>
-                        <label class = 'form-label' for = 'firstName'>Nombre</label>
-                        <input class = 'form-control' id = 'firstName' name = 'firstName' type = 'text' required>
+                        <label class = 'form-label' for = 'communityName'>Nombre de la Comunidad</label>
+                        <input class = 'form-control' id = 'communityname' name = 'communityName' type = 'text' required>
                     </div>
                     <div class = 'mb-3'>
-                        <label class = 'form-label' for = 'lastName'>Apellido Paterno</label>
-                        <input class = 'form-control' id = 'lastName' name = 'lastName' type = 'text' required>
+                        <label class = 'form-label' for = 'communityAddress'>Direccion de la Comunidad</label>
+                        <input class = 'form-control' id = 'communityAddress' name = 'communityAddress' type = 'text' required>
                     </div>
                     <div class = 'mb-3'>
-                        <label class = 'form-label' for = 'secondLastName'>Apellido Materno</label>
-                        <input class = 'form-control' id = 'secondLastName' name = 'secondLastName' type = 'text'>
+                        <label class = 'form-label' for = 'communityStartingNumbers'>Numero interno inicial</label>
+                        <input class = 'form-control' id = 'communityStartingNumbers' name = 'communityStartingNumbers' type = 'number' min = '1'>
+                        <div class="form-text">Con que numero empiezan las direcciones internas de la comunidad</div>
                     </div>
                     <div class = 'mb-3'>
-                        <label class = 'form-label' for = 'email'>E-mail</label>
-                        <input class="form-control" id = 'email' name = 'email' type = 'email' required aria-describedby="emailHelp">
-                        <div id="emailHelp" class="form-text">Tu correo esta asegurado en la bases de datos de la comunidad</div>
-                    </div>
-                    <div class = 'mb-3'> 
-                        <label class = 'form-label' for = 'password'>Contraseña</label>
-                        <input id = 'password' class = 'form-control' name = 'password' type = 'password' required>
-                    </div>
-                    <div class = 'mb-3'>
-                        <label class = 'form-label' for = 'password'>Confirmar contraseña</label>
-                        <input class = 'form-control' id = 'confirm_password' name = 'confirm_password' type = 'password' required>
-                    </div>
-                    <div class = 'mb-3'>
-                        <label class = 'form-label' for = 'cellphone'>cellphone</label>
-                        <input class = 'form-control' id = 'cellphone' name = 'cellphone' type = 'text'>
+                        <label class = 'form-label' for = 'communityStartingNumbers'>Numero interno final</label>
+                        <input class = 'form-control' id = 'communityStartingNumbers' name = 'communityStartingNumbers' type = 'number' min="1">
+                        <div class="form-text">Con que numero terminan las direcciones internas de la comunidad</div>
                     </div>
                     <button class = 'btn' id='loginButton' type = 'submit'>Registrarse</button>
                 </form>
