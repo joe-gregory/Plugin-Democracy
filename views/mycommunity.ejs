@@ -1,6 +1,14 @@
 <%- include('./partials/head.ejs') %>
 <%- include('./partials/navigation.ejs') %>
 
-    <h1> My Community </h1>
+    <h1 class = 'pageTitle'> Mi Comunidad </h1>
+    <div>
+        <%if (locals.community == undefined) { %>
+            <%- "<div class = 'container'>" %>
+            <%- '<p>No estas registrado en ninguna comunidad.</p>' %>
+            <%- "<p><a href='/createCommunity'>Registrar una Comunidad</a></p>" %>
+            <%- "</div>" %>
+        <% } %>
+    </div>
 
 <%- include('./partials/footer.ejs') %>

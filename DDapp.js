@@ -8,6 +8,7 @@ const session = require('express-session');
 //routes
 const authRoutes = require('./routes/auth');
 const errorsRoutes = require('./routes/errors');
+const createCommunityRoutes = require('./routes/createCommunity');
 
 //express app 
 const DDapp = express();
@@ -79,12 +80,12 @@ passport.use(new LocalStrategy(
                 return done(null, false);
             } 
             //if user found, but password not valid, return err and false in callback
-            if(citizen.password != citizen.password){
+            if(password != citizen.password){
                 console.log('wrong password');
                 return done(null, false);
             } 
             //if user found and password valid, return user object in callback
-            if(citizen.password == citizen.password){
+            if(password == citizen.password){
                 console.log('all good');
                 return done(null, citizen);
             } 
@@ -92,7 +93,7 @@ passport.use(new LocalStrategy(
     })
 );
 
-//routes
+//console log incoming requests
 DDapp.use((request, respond, next) => {
     console.log(`Request Method: "${request.method}" => Request URL: "${request.url}"`);
     next();
@@ -101,14 +102,9 @@ DDapp.use((request, respond, next) => {
 DDapp.get('/', (request, response) => {
     response.render('index', request.user);
 });
-
-DDapp.use(authRoutes);
-
-DDapp.get('/community', (request, response) => {
-    if(!request.user){
-        response.redirect('/login');
-    } else{
-        response.render('mycommunity', request.user)
-    }
+DDapp.get('/mycommunity', (request, response) => {
+    response.render('mycommunity', request.user);
 });
+DDapp.use(authRoutes);
+DDapp.use(createCommunityRoutes);
 DDapp.use(errorsRoutes);

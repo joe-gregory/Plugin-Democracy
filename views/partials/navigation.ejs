@@ -7,14 +7,19 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="/">Home</a>
+                    <a class="nav-link active" aria-current="page" href="/">Inicio</a>
                 </li>
-                <%- (locals.firstName == undefined) ? `<li class = 'nav-item'> <a class="nav-link" href='/signup'>Sign up</a></li>`:'' ;%>
-                <%- (locals.firstName == undefined) ? `<li class = 'nav-item'> <a class="nav-link" href='/login'>Login</a></li>`:'' ;%>
-                <%- (locals.firstName != undefined) ? `<li class = 'nav-item'> <a class="nav-link" href='/profile'>Profile</a></li>`:'' ;%> 
-                <%- (locals.firstName != undefined) ? `<li class = 'nav-item'> <a class="nav-link" href='/community'>My Community</a></li>`:'' ;%> 
-                <%- (locals.firstName != undefined) ? `<li class = 'nav-item navbar-brand> Welcome ${firstName}!</li>`:'' ;%> 
-                <%- (locals.firstName != undefined) ? "<li class = 'nav-item'><form class = 'd-flex' action = '/logout' method = 'post'><button class='btn btn-light' type='submit'>Sign out</button></form></li>":'';%>
+                <%- (locals.firstName == undefined) ? `<li class = 'nav-item'> <a class="nav-link" href='/signup'>Registrarse</a></li>`:'' ;%>
+                <%- (locals.firstName == undefined) ? `<li class = 'nav-item'> <a class="nav-link" href='/login'>Acceder</a></li>`:'' ;%>
+            <%- (locals.firstName == undefined) ? `</ul>`:'' ;%>
+                <%- (locals.firstName != undefined) ? `</ul><div class = 'collapse navbar-collapse flex-grow-0'>`:'' ;%> 
+                    <%- (locals.firstName != undefined) ? `<ul class = 'navbar-nav text-right'>`:'' ;%> 
+                        <%- (locals.firstName != undefined) ? `<li class = 'navbar-brand' id='welcome-nav'>Bienvenido ${firstName}!</li>`:'' ;%> 
+                        <%- (locals.firstName != undefined) ? `<li class = 'nav-item'> <a class="nav-link" href='/profile'>Cuenta</a></li>`:'' ;%> 
+                        <%- (locals.firstName != undefined) ? `<li class = 'nav-item'> <a class="nav-link" href='/mycommunity'>Mi Comunidad</a></li>`:'' ;%> 
+                        <%- (locals.firstName != undefined) ? "<li class = 'nav-item ml-auto mr-1'><form class = 'd-flex' action = '/logout' method = 'post'><button class='btn btn-light' type='submit'>Salir</button></form></li>":'';%>
+                <%- (locals.firstName != undefined) ? `</ul>`:'' ;%> 
+            <%- (locals.firstName != undefined) ? `</div>`:'' ;%> 
         </div>
             </ul>
             

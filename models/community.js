@@ -24,7 +24,10 @@
 
 const homeSchema = new Schema({
     
-    innerNumber : Number,
+    innerNumber : {
+        type: Number,
+        required: true,
+    },
     
     citizen: {
         type: Schema.Types.ObjectId, ref: 'Citizen'

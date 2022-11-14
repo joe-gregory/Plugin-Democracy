@@ -143,6 +143,12 @@
     background-color: #ffd700;
   }
 
+/*My Nav Bar styling*/
+#welcome-nav {
+  color: #ffd700;
+  text-decoration-line: underline ;
+}
+
 /*Nav Bar Ends*/
 
 /*Error Titles Begins*/
@@ -151,3 +157,43 @@
   font-size: 200px;
 }
 /*Error Titles Ends*/
+
+/*Page Title Begins, el top de todas las paginas*/
+.pageTitle{
+  padding: 10px;
+  color:  #358856;
+  /*-webkit-text-stroke: 1px black;*/
+  text-align: center;
+}
+/*Page Title Ends*/
+
+/*Login form begins*/
+.div-back{
+  padding-top:25px;
+}
+.div-center {
+  width: 400px;
+  background-color: #fff;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: auto;
+  padding: 1em 2em;
+  border: 2px solid #ccc;
+  display: table;
+}
+.div-content {
+  display: table-cell;
+  vertical-align: middle;
+}
+#loginButton{
+  background-color:  #358856;
+  color:white;
+  box-shadow: none;
+  outline: none;
+}
+/*Login form ends*/

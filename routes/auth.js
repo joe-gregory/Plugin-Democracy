@@ -17,7 +17,6 @@ router.get('/signup', (request, response) => {
 });
 
 router.post('/signup', (request, response) => {
-    console.log(request.body.firstName);
      const citizen = new Community.Citizen({
         firstName: request.body.firstName,
         lastName: request.body.lastName,
@@ -33,8 +32,6 @@ router.post('/signup', (request, response) => {
 
 router.get('/login', (request, response) => {
     response.render('login', (err, html) =>{
-        console.log('req.user before:');
-        console.log(request.user);
         if(err){
             response.redirect('/404', {'message': [err,html]});
         }else{
@@ -43,14 +40,9 @@ router.get('/login', (request, response) => {
     });
 });
 
-router.post('/login', passport.authenticate('local', {failureRedirect: '/login', failureMessage: true}),
+router.post('/login', passport.authenticate('local', {failureRedirect: '/404', failureMessage: true}),
     (request, response) => {        
-        if(request.Url){
-            response.redirect(request.url)
-        }else{
-            console.log(request.user);
             response.redirect('profile');
-        }
     }
 );
 

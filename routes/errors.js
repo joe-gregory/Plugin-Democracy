@@ -7,7 +7,7 @@ router.get('/500', (request, response) => {
 });
 
 router.use((request, response) => {
-    response.status(404).render('404', {title: '404'});
+    response.status(404).render('404', request.user);
 });
 
 module.exports = router;

@@ -1,19 +1,26 @@
 <%- include('./partials/head.ejs') %>
 <%- include('./partials/navigation.ejs') %>
 
-<h1> Login Page </h1>
-<h2> <%= (locals.message != undefined) ? message : '' ;%> </h2>
+<h1 class ="pageTitle">Acceder</h1>
+<h2> <%- (locals.message != undefined) ? message : '' ;%> </h2>
+<div class="div-back">
+    <div class = 'div-center'>
+        <div class = 'content'>
+            <form action = '/login' method = 'post'>
+                <div class = 'mb-3'>
+                    <label class = 'form-label' for = 'email'>Email</label>
+                    <input class="form-control" id = 'email' name = 'email' type = 'email' required aria-describedby="emailHelp">
+                    <div id="emailHelp" class="form-text">Tu correo esta asegurado en la bases de datos de la comunidad</div>
+                </div>
+                <div class = 'mb-3'>
+                    <label class = 'form-label' for = 'password'>Contraseña</label>
+                    <input class = 'form-control' name = 'password' type = 'password' required>
+                </div>
+                <button class = 'btn' id='loginButton' type = 'submit'>Acceder</button>
+            </form>
+        </div>
+    </div>
+</div>
 
-<form action = '/login' method = 'post'>
-    <section>
-        <label for = 'email'>email</label>
-        <input id = 'email' name = 'email' type = 'email' required>
-    </section>
-    <section>
-        <label for = 'password'>password</label>
-        <input id = 'password' name = 'password' type = 'password' required>
-    </section>
-    <button type = 'submit'>Sign in</button>
-</form>
 
 <%- include('./partials/footer.ejs') %>
