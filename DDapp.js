@@ -5,6 +5,10 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
 
+//routes
+const authRoutes = require('./routes/auth');
+const errorsRoutes = require('./routes/errors');
+
 //express app 
 const DDapp = express();
 
@@ -17,8 +21,6 @@ DDapp.set('view engine', 'ejs');
 mongoose.connect(dbURI)
     .then((result) => {
         console.log(`Connected to Data Base`);
-        //console.log('Result Object [key, value] pairs: ');
-        //console.log(Object.entries(result));
         DDapp.listen(8080); //listen for requests
         console.log('listening on port 8080...');
     })
@@ -27,7 +29,6 @@ mongoose.connect(dbURI)
         console.log(`Error Object [key, value] pairs:`);
         console.log(Object.entries(error));
     });
-
 
 //middleware
 DDapp.use(express.json()); //parse request body as JSON
@@ -101,73 +102,7 @@ DDapp.get('/', (request, response) => {
     response.render('index', request.user);
 });
 
-DDapp.get('/signup', (request, response) => {
-    response.render('signup', function (err, html) {
-        if(err){
-            console.log('500 Error');
-            console.log(err);
-            response.redirect('/500');
-        }
-        else{
-            response.render('signup', request.user);
-        }
-    });
-});
-
-DDapp.post('/signup', (request, response) => {
-    console.log(request.body.firstName);
-     const citizen = new Community.Citizen({
-        firstName: request.body.firstName,
-        lastName: request.body.lastName,
-        secondLastName: request.body.secondLastName,
-        email: request.body.email,
-        password: request.body.password,
-        cellphone: request.body.cellphone,
-    });
-    citizen.save()
-        .then((result) => response.send(result))
-        .catch((error) => response.send(error));
-    //response.render('signup', {message: 'redirected back'});
-});
-//login
-DDapp.get('/login', (request, response) => {
-    response.render('login', (err, html) =>{
-        console.log('req.user before:');
-        console.log(request.user);
-        if(err){
-            response.redirect('/404', {'message': [err,html]});
-        }else{
-            response.render('login', request.user);
-        }
-    });
-});
-
-DDapp.post('/login', passport.authenticate('local', {failureRedirect: '/login', failureMessage: true}),
-    (request, response) => {        
-        if(request.Url){
-            response.redirect(request.url)
-        }else{
-            console.log(request.user);
-            response.redirect('profile');
-        }
-    }
-);
-
-DDapp.post('/logout', function(request, response, next) {
-    request.logout(function(error) {
-        if(error) {return next(error);}
-        response.redirect('/');
-    });
-});
-
-DDapp.get('/profile', (request, response) => {
-    if (!request.user){
-        request.url = '/profile';
-        response.redirect('/login');
-    } else{
-        response.render('profile', request.user);
-    }
-    });
+DDapp.use(authRoutes);
 
 DDapp.get('/community', (request, response) => {
     if(!request.user){
@@ -176,13 +111,4 @@ DDapp.get('/community', (request, response) => {
         response.render('mycommunity', request.user)
     }
 });
-
-DDapp.get('/500', (request, response) => {
-    console.log('500 Error, rerouting...');
-    response.status(500).render('500');
-});
-
-DDapp.use((request, response) => {
-    response.status(404).render('404', {title: '404'});
-});
-
+DDapp.use(errorsRoutes);

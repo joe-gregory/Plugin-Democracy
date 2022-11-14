@@ -144,3 +144,10 @@
   }
 
 /*Nav Bar Ends*/
+
+/*Error Titles Begins*/
+.errorTitle{
+  text-align:center;
+  font-size: 200px;
+}
+/*Error Titles Ends*/

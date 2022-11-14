@@ -1,2 +1,8 @@
-<h1>404 Page</h1>
+<%- include('./partials/head.ejs') %>
+<%- include('./partials/navigation.ejs') %>
+
+<h1 class = 'errorTitle'>404</h1>
+<h2 style="text-align: center;">Page not found...</h2>
 <h2> <%= (locals.message != undefined) ? message : '' ;%> </h2>
+
+<%- include('./partials/footer.ejs') %>
