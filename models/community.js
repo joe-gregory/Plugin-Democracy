@@ -5,12 +5,14 @@
    
     name : {
         type: String,
-        required: true
+        required: true,
+        unique: true,
     },
     
     communityAddress : {
         type: String,
         required: true,
+        unique: true,
     },
     
     innerHomes : [{ 
@@ -38,12 +40,12 @@ const citizenSchema = new Schema({
     
     firstName: {
         type: String,
-        //required: true
+        required: true
     },
     
     lastName: {
         type: String,
-        //required: true
+        required: true
     },
     
     secondLastName: String,

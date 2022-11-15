@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 const passport = require('passport');
+const Community = require('../models/community');
+
 
 router.get('/signup', (request, response) => {
     response.render('signup', function (err, html) {
@@ -26,7 +28,7 @@ router.post('/signup', (request, response) => {
         cellphone: request.body.cellphone,
     });
     citizen.save()
-        .then((result) => response.send(result))
+        .then((result) => response.redirect('/profile'))
         .catch((error) => response.send(error));
 });
 
@@ -42,7 +44,7 @@ router.get('/login', (request, response) => {
 
 router.post('/login', passport.authenticate('local', {failureRedirect: '/404', failureMessage: true}),
     (request, response) => {        
-            response.redirect('profile');
+            response.redirect('/profile');
     }
 );
 
