@@ -4,6 +4,7 @@ const Community = require('./models/community');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
+const key = require('./keys');
 
 //routes
 const authRoutes = require('./routes/auth');
@@ -12,8 +13,7 @@ const createCommunityRoutes = require('./routes/createCommunity');
 
 //express app 
 const DDapp = express();
-
-const dbURI = 'mongodb+srv://joedd:jegm1986@cluster0.hbch2i1.mongodb.net/DD?retryWrites=true&w=majority'
+const dbURI = 'mongodb+srv://'+key+'@ddcluster.z8oz5ye.mongodb.net/?retryWrites=true&w=majority';
 
 //register view engine
 DDapp.set('view engine', 'ejs'); 
