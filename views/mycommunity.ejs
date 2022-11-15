@@ -3,12 +3,7 @@
 
     <h1 class = 'pageTitle'> Mi Comunidad </h1>
     <div>
-        <%if (locals.community == undefined) { %>
-            <%- "<div class = 'container'>" %>
-            <%- '<p>No estas registrado en ninguna comunidad.</p>' %>
-            <%- "<p><a href='/createCommunity'>Registrar una Comunidad</a></p>" %>
-            <%- "</div>" %>
-        <% } %>
+        <%-(locals.community == undefined) ? include('./partials/noCommunity.ejs'):''%>
     </div>
 
 <%- include('./partials/footer.ejs') %>

@@ -164,6 +164,7 @@
   color:  #358856;
   /*-webkit-text-stroke: 1px black;*/
   text-align: center;
+  text-decoration: underline 4px;
 }
 /*Page Title Ends*/
 
@@ -197,3 +198,8 @@
   outline: none;
 }
 /*Login form ends*/
+
+.noCommunities{
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
