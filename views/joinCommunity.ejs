@@ -1,0 +1,46 @@
+<%- include('./partials/head.ejs') %>
+<%- include('./partials/navigation.ejs') %>
+
+<h1 class="pageTitle">Unete a una comunidad</h1>
+
+<div class="div-back">
+    <div class = 'div-center'>
+        <div class = 'content'>
+            <form method = "post" action = '/joincommunity'>
+                <div class = 'mb-3'>
+                     <select name="communities" class="form-select" id = 'communities'>
+                        <option disabled selected>Selecciona una comunidad existente</option>
+                        <% for(let i = 0; i < locals.communities.length; i++) { %>
+                        <%- `<option value = '${i}'>${locals.communities[i].name}</option>`%>
+                        <% } %>
+                    </select>
+                </div>
+                <div class = 'mb-3'>
+                    <select  names = 'homes' class="form-select" id='homes'>
+                        <option disabled selected>Selecciona una casa interna</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    <% %>
+    let communitiesList = document.getElementById('communities');
+    let homesList = document.getElementById('homes');
+        
+    communitiesList.onchange = function(){
+        //select community chosen in dropdown:
+        homeOptionsArray = locals.communities[communitiesList.selectedIndex.value]
+            
+        for (let i = 0; i < homeOptionsArray.length; i++) {
+            let opt = document.createElement('option');
+            opt.value = homeOptionsArray[i].innerNumber;
+            opt.innerHTML = homeOptionsArray[i].innerNumber;
+            homesList.appendChild(opt);
+        }
+    }
+</script>
+
+<%- include('./partials/footer.ejs') %>

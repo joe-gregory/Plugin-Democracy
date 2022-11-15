@@ -3,12 +3,21 @@ const router = express.Router();
 
 const Community = require('../models/community');
 
-router.get('/createCommunity', (request, response) =>{
-    if(!request.isAuthenticated()) response.redirect('/login');
-    response.render('createCommunity', request.user);
-})
+router.get('/mycommunity*', (request, response, next) => {
+    if(!request.isAuthenticated()){
+        response.redirect('/login');
+    }else{next();} 
+});
 
-router.post('/createCommunity', (request, response) => {
+router.get('/mycommunity', (request, response) => {
+    response.render('mycommunity', request.user);
+});
+
+router.get('/mycommunity/create', (request, response) =>{
+    response.render('createCommunity', request.user);
+});
+
+router.post('/mycommunity/create', (request, response) => {
     
     const community = new Community.Community({
         name:  request.body.communityName,
@@ -22,6 +31,18 @@ router.post('/createCommunity', (request, response) => {
     community.save()
         .then((result) => response.redirect('/mycommunity'))
         .catch((err) => response.send(err));
+});
+
+router.get('/mycommunity/join', (request, response) => {
+    Community.Community.find({}, function(err, communities) {
+        response.locals.communities = [];
+
+        communities.forEach(function(community) {
+            response.locals.communities.push(community);
+        });
+
+        response.render('joinCommunity', request.user);
+    });
 });
 
 module.exports = router;

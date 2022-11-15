@@ -9,7 +9,7 @@ const key = require('./keys');
 //routes
 const authRoutes = require('./routes/auth');
 const errorsRoutes = require('./routes/errors');
-const createCommunityRoutes = require('./routes/createCommunity');
+const createCommunityRoutes = require('./routes/mycommunity');
 
 //express app 
 const DDapp = express();
@@ -102,9 +102,7 @@ DDapp.use((request, respond, next) => {
 DDapp.get('/', (request, response) => {
     response.render('index', request.user);
 });
-DDapp.get('/mycommunity', (request, response) => {
-    response.render('mycommunity', request.user);
-});
+
 DDapp.use(authRoutes);
 DDapp.use(createCommunityRoutes);
 DDapp.use(errorsRoutes);
