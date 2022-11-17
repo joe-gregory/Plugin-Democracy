@@ -8,20 +8,24 @@
         <div class = 'content'>
             <form method = "post" action = '/mycommunity/join'>
                 <div class = 'mb-3'>
-                     <select name="communities" class="form-select" id = 'communities'>
+                     <select name="community" class="form-select" id = 'communities'>
                         <option disabled selected>Selecciona una comunidad existente</option>
                         <% for(let i = 0; i < locals.communities.length; i++) { %>
-                        <%- `<option value = '${locals.communities[i].id}'>${locals.communities[i].name}</option>`%>
+                        <%- `<option value = '${locals.communities[i].id}' data-address = '${locals.communities[i].communityAddress}'>${locals.communities[i].name}</option>`%>
                         <% } %>
                     </select>
                 </div>
                 <div class = 'mb-3'>
-                    <select  names = 'homes' class="form-select" id='homes' disabled>
+                    <select  name = 'home' class="form-select" id='homes' disabled>
                         <option disabled selected>Selecciona una casa interna</option>
                     </select>
                 </div>
                 <div class = 'mb-3'>
                     <p id = 'selection'></p>
+                    <p id = 'address'></p>
+                </div>
+                <div class = 'mb-3'>
+                    <button class = 'btn' id='loginButton' type = 'submit'>Unirse</button>
                 </div>
             </form>
         </div>
@@ -42,7 +46,7 @@
             success: function(data) {
                 if(data.homes){
                     for (let i = 0; i < data.homes.length; i++) {
-                        $('#homes').append($('<option></option>').val(data.homes[i].id).html(data.homes[i].innerNumber));
+                        $('#homes').append($('<option></option>').val(data.homes[i]._id).html(data.homes[i].innerNumber));
                     }
                 }
             },
@@ -54,9 +58,12 @@
 
     $('#homes').on('change', function() {
         let community = $('#communities option:selected').text();
+        let communityAddress = $('#communities option:selected').data('address')
         let home = $("#homes option:selected").text();
         let message = `Has seleccionado ${community} #${home}`; 
         $('#selection').html(message);
+        let location = `Localizada en: ${communityAddress}`;
+        $('#address').html(location);
     })
 </script>
 

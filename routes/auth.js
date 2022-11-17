@@ -44,7 +44,7 @@ router.get('/login', (request, response) => {
 
 router.post('/login', passport.authenticate('local', {failureRedirect: '/404', failureMessage: true}),
     (request, response) => {        
-            response.redirect('/profile');
+            response.redirect('/mycommunity');
     }
 );
 
@@ -53,9 +53,15 @@ router.get('/profile', (request, response) => {
         request.url = '/profile';
         response.redirect('/login');
     } else{
-        response.render('profile', request.user);
+        Community.Community.findById(request.user.community, function(err, community) {
+            Community.Home.findById(request.user.home, function(err, home){
+                request.user.community = community;
+                request.user.home = home;
+                response.render('profile', request.user)
+            })
+        })
     }
-    });
+});
 
 router.post('/logout', function(request, response, next) {
     request.logout(function(error) {

@@ -19,6 +19,10 @@
          type: Schema.Types.ObjectId, ref: 'Home'
     }],
 
+    citizens: [{ 
+        type: Schema.Types.ObjectId, ref: 'Citizen'
+    }],
+
     president : { type: Schema.Types.ObjectId, ref: 'Citizen'},
 
     treasurer : { type: Schema.Types.ObjectId, ref: 'Citizen' },
@@ -64,6 +68,8 @@ const citizenSchema = new Schema({
     },
 
     cellPhone: String, 
+    
+    community: { type: Schema.Types.ObjectId, ref : 'Community' },
 
     home: { type: Schema.Types.ObjectId, ref : 'Home' }
 

@@ -49,6 +49,31 @@ router.get('/mycommunity/join', (request, response) => {
     });
 });
 
+router.post('/mycommunity/join', (request, response) => {
+    console.log('community id: ' + request.body.community);
+    console.log('inner home id: ' + request.body.home);
+    console.log('user id: ' + request.user.id);
+    Community.Citizen.findById(request.user.id, function(err, citizen) {
+        Community.Community.findById(request.body.community, function(err, community) {
+            Community.Home.findById(request.body.home, async function(err, home) {
+                console.log(citizen);
+                citizen.community = community;
+                citizen.home = home;
+
+                community.citizens.push(citizen);
+
+                home.citizen = citizen;
+
+                await citizen.save();
+                await community.save();
+                await home.save();
+                response.redirect('/mycommunity');
+
+            });
+        });
+    });
+});
+
 //AJAX request
 router.get('/mycommunity/join/homes', (request,response) => {
     //check wether request is ajax and if accepts json
