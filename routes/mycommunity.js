@@ -53,38 +53,19 @@ router.get('/mycommunity/join', (request, response) => {
 router.get('/mycommunity/join/homes', (request,response) => {
     //check wether request is ajax and if accepts json
     console.log('entered the ajax');
+    
     if(request.xhr || request.accepts('json,html') ==='json') {
         Community.Community.findById(request.query.id, function(err, community) {
-            console.log(community.innerHomes[1].innerNumber);
-        })/*
-            then((community) => {
-                console.log(community.innerHomes[0].innerNumber);
-                response.send({homes: community.innerHomes});
-            })
-        /*Community.Community.findById(request.query.id, function(err, community) {
             
-            let homes = [];
-
-            for(let i = 0; i < community.innerHomes.length; i++) {
-                
-                let homeid = community.innerHomes[i];
-                console.log('new search: '+community.innerHomes[i].innerNumber);
-
-                Community.Home.findById(homeid, function (err, home) {
-                        if (err)
-                            console.log(err);
-                        //homes.push(home);
-                        //console.log(home);
-                    }).then((home) => {homes.push(home)});
-
-
-            }
-            
-        }).then(console.log(homes);
-            response.send({homes:homes}));//'innerhomes': innerhomes});)
-
-    } //else { console.log('ajax did not work')};*/
-    }
+            Community.Home.find(
+                {'_id' : { $in: community.innerHomes}}, 
+                function(err, homes) {
+                    if(err) console.log(err);
+                    response.send({homes:homes});
+                });
+        })
+    };
 });
+
 
 module.exports = router;

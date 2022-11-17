@@ -20,6 +20,9 @@
                         <option disabled selected>Selecciona una casa interna</option>
                     </select>
                 </div>
+                <div class = 'mb-3'>
+                    <p id = 'selection'></p>
+                </div>
             </form>
         </div>
     </div>
@@ -27,8 +30,7 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 <script>
     $('#communities').on('change', function() {
-        //$('#homes').removeAttr('disabled');
-        //$( "h1.pageTitle" ).html($('#communities').val());
+        $('#homes').removeAttr('disabled');
         $.ajax({
             url: '/mycommunity/join/homes',
             data: {
@@ -39,7 +41,9 @@
             cache: false,
             success: function(data) {
                 if(data.homes){
-                    $('h1.pageTitle').html(data.homes[0].innerNumber);
+                    for (let i = 0; i < data.homes.length; i++) {
+                        $('#homes').append($('<option></option>').val(data.homes[i].id).html(data.homes[i].innerNumber));
+                    }
                 }
             },
             error: function(){
@@ -47,6 +51,13 @@
             }
         })
     });
+
+    $('#homes').on('change', function() {
+        let community = $('#communities option:selected').text();
+        let home = $("#homes option:selected").text();
+        let message = `Has seleccionado ${community} #${home}`; 
+        $('#selection').html(message);
+    })
 </script>
 
 <%- include('./partials/footer.ejs') %>
