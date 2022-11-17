@@ -24,9 +24,13 @@ router.post('/mycommunity/create', (request, response) => {
         communityAddress: request.body.communityAddress, 
     });
     for(let i = request.body.communityStartingNumber; i <= request.body.communityEndingNumber; i++){
-        home = new Community.Home({innerNumber: i});
+        let home = new Community.Home({
+            innerNumber: i, 
+            community:community,
+        });
         home.save();
-        community.innerHomes.push(new Community.Home({innerNumber: i}));
+        //community.innerHomes.push(new Community.Home({innerNumber: i}));
+        community.innerHomes.push(home);
     }
     community.save()
         .then((result) => response.redirect('/mycommunity'))
@@ -43,6 +47,44 @@ router.get('/mycommunity/join', (request, response) => {
 
         response.render('joinCommunity', request.user);
     });
+});
+
+//AJAX request
+router.get('/mycommunity/join/homes', (request,response) => {
+    //check wether request is ajax and if accepts json
+    console.log('entered the ajax');
+    if(request.xhr || request.accepts('json,html') ==='json') {
+        Community.Community.findById(request.query.id, function(err, community) {
+            console.log(community.innerHomes[1].innerNumber);
+        })/*
+            then((community) => {
+                console.log(community.innerHomes[0].innerNumber);
+                response.send({homes: community.innerHomes});
+            })
+        /*Community.Community.findById(request.query.id, function(err, community) {
+            
+            let homes = [];
+
+            for(let i = 0; i < community.innerHomes.length; i++) {
+                
+                let homeid = community.innerHomes[i];
+                console.log('new search: '+community.innerHomes[i].innerNumber);
+
+                Community.Home.findById(homeid, function (err, home) {
+                        if (err)
+                            console.log(err);
+                        //homes.push(home);
+                        //console.log(home);
+                    }).then((home) => {homes.push(home)});
+
+
+            }
+            
+        }).then(console.log(homes);
+            response.send({homes:homes}));//'innerhomes': innerhomes});)
+
+    } //else { console.log('ajax did not work')};*/
+    }
 });
 
 module.exports = router;

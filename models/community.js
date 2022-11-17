@@ -30,6 +30,8 @@ const homeSchema = new Schema({
         type: Number,
         required: true,
     },
+
+    community: { type: Schema.Types.ObjectId, ref: 'Community'},
     
     citizen: {
         type: Schema.Types.ObjectId, ref: 'Citizen'
@@ -65,7 +67,9 @@ const citizenSchema = new Schema({
 
     home: { type: Schema.Types.ObjectId, ref : 'Home' }
 
-}, {timestamps: true});
+}, 
+    {timestamps: true}
+);
 
 const Community = mongoose.model('Community', communitySchema);
 const Home = mongoose.model('Home', homeSchema);
@@ -75,4 +79,4 @@ module.exports = {
     Community,
     Home,
     Citizen
-}
+};
