@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
+const communityController = require('../controllers/communityController');
 const Community = require('../models/community');
 
 router.get('/mycommunity*', (request, response, next) => {
@@ -10,8 +11,14 @@ router.get('/mycommunity*', (request, response, next) => {
 });
 
 router.get('/mycommunity', (request, response) => {
+    if (!request.user.community) response.redirect('/mycommunity/nocommunity')
     response.render('mycommunity', request.user);
 });
+router.get('/mycommunity/nocommunity', (request, response) => {
+    response.locals.firstName = request.user.firstName;
+    response.render('noCommunity');
+})
+router.get('/mycommunity/about',communityController.communityAbout);
 
 router.get('/mycommunity/create', (request, response) =>{
     response.render('createCommunity', request.user);
@@ -50,9 +57,6 @@ router.get('/mycommunity/join', (request, response) => {
 });
 
 router.post('/mycommunity/join', (request, response) => {
-    console.log('community id: ' + request.body.community);
-    console.log('inner home id: ' + request.body.home);
-    console.log('user id: ' + request.user.id);
     Community.Citizen.findById(request.user.id, function(err, citizen) {
         Community.Community.findById(request.body.community, function(err, community) {
             Community.Home.findById(request.body.home, async function(err, home) {

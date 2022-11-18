@@ -1,12 +1,10 @@
 <%- include('./partials/head.ejs') %>
 <%- include('./partials/navigation.ejs') %>
 
-    <h1 class = 'pageTitle'> Mi Comunidad </h1>
-    <div>
-        <%-(locals.community == undefined) ? include('./partials/noCommunity.ejs'):''%>
-    </div>
+<h1 class = 'pageTitle'> Mi Comunidad </h1>
+<div class = 'container'>
+    <h3 class = 'h3'><a href='/mycommunity/about'>Informacion sobre la comunidad</a></h3>
+</div>
 
-    <div class = 'mb-3'>
-    </div>
 
 <%- include('./partials/footer.ejs') %>

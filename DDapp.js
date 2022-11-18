@@ -86,7 +86,7 @@ passport.use(new LocalStrategy(
             } 
             //if user found and password valid, return user object in callback
             if(password == citizen.password){
-                console.log('all good');
+                console.log('User authenticated');
                 return done(null, citizen);
             } 
         });

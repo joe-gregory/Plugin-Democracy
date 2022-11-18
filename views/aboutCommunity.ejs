@@ -1,8 +1,33 @@
 <%- include('./partials/head.ejs') %>
 <%- include('./partials/navigation.ejs') %>
 
-<h1 class="pageTitle">Sobre Comunidad</h1>
-//los headers bootstrap como
+<div class = 'container'>
+    <h1 class="h1 pageTitle">Sobre Comunidad</h1>
+</div>
+
+<div class = 'container'>
+    <h2 class = 'h2'>Informacion sobre la comunidad</h2>
+    <p><b>Nombre de la comunidad:</b> <%=locals.community.name%></p>
+    <p><b>Direccion: </b><%=locals.community.communityAddress%></p>
+    <p><b>Cantidad de casas internas: </b><%=locals.community.innerHomes.length%></p>
+    <p><b>Cantidad de ciudadanos registrados: </b><%=locals.community.citizens.length%></p>
+    <div class = 'container'>
+        <h3 class = 'h3'>Ciudadanos</h3>
+        <div class = 'row'>
+            <ul class = 'list-group'>
+                <%for(let i = 0; i < locals.citizens.length; i++) { %>
+                    <%-`<li class = 'list-group-item'><b>Nombre: </b>${locals.citizens[i].firstName} <b>Casa #</b>${locals.citizens[i].innerNumber}</li>`%>
+                <%}%>
+            </ul>
+        </div>
+        
+    </div>
+</div>
+
+<div class = 'container'>
+    <h2 class = 'h2'>Leyes</h2>
+</div>
+
 
 
 <%- include('./partials/footer.ejs') %>
