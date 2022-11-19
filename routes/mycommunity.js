@@ -4,8 +4,6 @@ const router = express.Router();
 const communityController = require('../controllers/communityController');
 const communityFeedController = require('../controllers/communityFeedController');
 
-const Community = require('../models/community');
-
 router.get('/mycommunity*', communityController.getCheckIsAuthenticated);
 
 router.get('/mycommunity', communityFeedController.getCommunityFeed);
