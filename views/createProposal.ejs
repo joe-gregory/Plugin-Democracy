@@ -1,0 +1,19 @@
+<%- include('./partials/head.ejs') %>
+<%- include('./partials/navigation.ejs') %>
+<h1 class = 'pageTitle'>Crear nueva propuesta</h1>
+
+<div class = 'container'>
+
+<form method = 'post' action = '/mycommunity/createproposal'>
+    <div class = 'mb-3'>
+        <select name = 'citizenAction' class = 'form-select' id = 'citizenActions'>
+            <option disabled selected>Elige tipo de propuesta</option>
+            <option value = 'create'>Propuesta para crear una ley nueva</option>
+            <option value = 'delete'>Propuesta para eliminar una ley existente</option>
+        </select>
+    </div>
+</form>
+
+</div>
+
+<%- include('./partials/footer.ejs') %>

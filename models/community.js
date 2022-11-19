@@ -1,7 +1,8 @@
- const mongoose = require('mongoose');
- const Schema = mongoose.Schema; 
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema; 
+const Laws = require('./laws');
 
- const communitySchema = new Schema({
+const communitySchema = new Schema({
    
     name : {
         type: String,
@@ -26,6 +27,14 @@
     president : { type: Schema.Types.ObjectId, ref: 'Citizen'},
 
     treasurer : { type: Schema.Types.ObjectId, ref: 'Citizen' },
+
+    proposals: [{
+        type: Schema.Types.ObjectId, ref: 'Laws.Proposal'
+    }],
+
+    laws: [{
+        type: Schema.Types.ObjectId, ref: 'Laws.Law'
+    }],
 });
 
 const homeSchema = new Schema({
