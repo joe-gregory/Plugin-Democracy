@@ -93,5 +93,5 @@ const Citizen = mongoose.model('Citizen', citizenSchema);
 module.exports = {
     Community,
     Home,
-    Citizen
+    Citizen,
 };
