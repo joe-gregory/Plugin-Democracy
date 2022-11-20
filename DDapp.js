@@ -48,7 +48,6 @@ DDapp.use(passport.session());
 
 //serializeUser function
 passport.serializeUser((citizen, done) => {
-    console.log(citizen);
     done(null, citizen._id);
 });
 

@@ -8,8 +8,6 @@ router.get('/mycommunity*', communityController.getCheckIsAuthenticated);
 
 router.get('/mycommunity', communityFeedController.getCommunityFeed);
 
-router.get('/mycommunity/createproposal', communityController.getCommunityProposal);
-
 router.get('/mycommunity/nocommunity', (request, response) => {
     response.locals.firstName = request.user.firstName;
     response.render('noCommunity');
@@ -28,5 +26,9 @@ router.post('/mycommunity/join', communityController.postCommunityJoin);
 
 //AJAX request
 router.get('/mycommunity/join/homes', communityController.getCommunityJoinHomesAjax);
+
+router.get('/mycommunity/createproposal', communityController.getCommunityProposal);
+
+router.post('/mycommunity/createproposal', communityFeedController.postCreateProposal);
 
 module.exports = router;

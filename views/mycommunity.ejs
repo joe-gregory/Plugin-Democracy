@@ -1,10 +1,38 @@
 <%- include('./partials/head.ejs') %>
 <%- include('./partials/navigation.ejs') %>
 <h1 class = 'pageTitle'> Mi Comunidad </h1>
+
 <div class = 'container'>
-    <h3 class = 'h3'><a href='/mycommunity/about'>Informacion sobre tu comunidad</a></h3>
-    <h3 class = 'h3'><a href = '/mycommunity/createproposal'>Crear nueva propuesta</a></h3>
+    <div class ='mb-3'>
+        <h5 class = 'h5'><a href='/mycommunity/about'>Informacion sobre tu comunidad</a></h3>
+        <h5 class = 'h5'><a href = '/mycommunity/createproposal'>Crear nueva propuesta</a></h3>
+    </div>
 </div>
+
+<div class="container">
+    
+    <div class = 'mb-3 pt-3'>
+        <h2>Actividad de la comunidad</h2>
+    </div>
+
+    <% for(let i = 0; i < locals.proposals.length ;i++) { %>
+        <%-'<div class = "mb-3 feed-unit">'%>
+        <%-`<p> ${locals.proposals[i].authorName} de la casa #${locals.proposals[i].houseNumber} ha propuesto: </p>`%>
+        <%- (locals.proposals[i].type == 'create') ? `<p><b>La creacion de una nueva ley:</b></p>` : `<p>La eliminacion de la ley #</p>` %>
+        <%- (locals.proposals[i].type == 'create') ? `<p><i>${locals.proposals[i].proposal}</i></p>` : `need to fill with law to delete`%>
+        <%- `<p>Fecha de creacion de propuesta: ${locals.proposals[i].createdAt}</p>` %>
+        <%- `<p><b>Votos a favor:</b> <b>Votos en contra:</b> <b>Sin Votar: </b></p>`%> 
+        <%- '</div>' %>
+    <%} %>
+   
+
+    
+
+</div>
+    
+
+
+
 
 
 <%- include('./partials/footer.ejs') %>

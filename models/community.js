@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema; 
-const Laws = require('./laws');
+const Laws = require('./law');
 
 const communitySchema = new Schema({
    

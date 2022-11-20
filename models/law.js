@@ -5,7 +5,6 @@ const Community = require('./community');
 const proposalSchema = new Schema ({
     proposal: {
         type: String,
-        required: true,
     }, 
 
     type: {
@@ -14,7 +13,8 @@ const proposalSchema = new Schema ({
     }, 
 
     author:  {
-        type: Schema.Types.ObjectId, ref: 'Community.Citizen'
+        type: Schema.Types.ObjectId, ref: 'Community.Citizen',
+        required: true,
     },
 
     votes: [{
@@ -29,6 +29,10 @@ const proposalSchema = new Schema ({
         type: Schema.Types.ObjectId, ref: 'Community.Community',
         required: true,
     },
+
+    approvedDate: {
+        type: Date,
+    }
     
     },
 
@@ -85,6 +89,7 @@ const Law = mongoose.model('Law', lawSchema);
 const Vote = mongoose.model('Vote', voteSchema);
 
 module.exports = {
+    Proposal,
     Law,
     Vote,
 };

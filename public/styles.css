@@ -203,3 +203,14 @@
   padding-top: 10px;
   padding-bottom: 10px;
 }
+
+#lawProposalText {
+  min-height: 200px;
+}
+
+.feed-unit{
+  padding: 20px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #358856;
+}

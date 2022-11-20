@@ -6,18 +6,24 @@
 
     <form method = 'post' action = '/mycommunity/createproposal'>
         <div class = 'mb-3'>
-            <select name = 'citizenAction' class = 'form-select' id = 'citizenActions'>
+            <select name = 'typeProposal' class = 'form-select' id = 'citizenActions'>
                 <option disabled selected>Elige tipo de propuesta</option>
                 <option value = 'create'>Propuesta para crear una ley nueva</option>
                 <option value = 'delete'>Propuesta para eliminar una ley existente</option>
             </select>
         </div>
         
-        <div id = 'law' class = 'mb-3 d-none'>
+        <div id = 'createLawInput' class = 'mb-3 d-none'>
             <p>Escribe tu propuesta de ley ...</p>
-            <textarea class = 'form-control' name = 'crearLey' type = 'text'>
-            </textarea>
-            
+            <textarea id = 'lawProposalText' class = 'form-control' name = 'proposalText' type = 'text'></textarea>
+        </div>
+
+        <div id = 'removeLawInput' class = 'mb-3 d-none'>
+
+        </div>
+
+        <div class = 'mb-3'>
+            <button class = 'btn' id='loginButton' type = 'submit' disabled>Crear Propuesta</button>
         </div>
     
     </form>
@@ -25,9 +31,20 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 <script>
     $('#citizenActions').on('change', function() {
-        //if first option, then create fields for law which are... the law and a description. 
-        
-        
+        //Show options based on selection. #1 show  
+        if($('#citizenActions option:selected').val() == 'create') {
+            $('#createLawInput').removeClass('d-none');
+            $('#removeLawInput').addClass('d-none');
+            $('#loginButton').removeAttr('disabled');
+
+        } else if($('#citizenActions option:selected').val() == 'delete') {
+            $('#createLawInput').addClass('d-none');
+            $('#removeLawInput').removeClass('d-none');
+            $('#loginButton').removeAttr('disabled');
+
+        }
+    });
+        /*
         $('#homes').removeAttr('disabled');
         $.ajax({
             url: '/mycommunity/join/homes',
@@ -58,6 +75,6 @@
         $('#selection').html(message);
         let location = `Localizada en: ${communityAddress}`;
         $('#address').html(location);
-    })
+    })*/
 </script>
 <%- include('./partials/footer.ejs') %>
