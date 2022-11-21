@@ -15,7 +15,7 @@
         <h2>Actividad de la comunidad</h2>
     </div>
 
-    <% for(let i = 0; i < locals.proposals.length ;i++) { %>
+    <% for(let i = locals.proposals.length - 1; i >= 0 ; i--) { %>
         <%-`<form action = "/mycommunity/vote/${locals.proposals[i].id}" method = "post">` %>
             <%-'<div class = "mb-3 feed-unit">'%>
                 <%-`<p class = "greenParagraphs"> ${locals.proposals[i].authorName} de la casa #${locals.proposals[i].houseNumber} ha propuesto: </p>`%>

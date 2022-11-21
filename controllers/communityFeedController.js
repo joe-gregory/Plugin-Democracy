@@ -14,22 +14,25 @@ const getCommunityFeed = (request, response) => {
         //Despues buscar la lista de propuestas en el modelo de comunidad
         Law.Proposal.find({'_id' : { $in: community.proposals}}, function(err, proposals) {
             
-            //Guardar la lista de propuestas por orden de fecha en un array de locals para usar en render
-            response.locals.proposals = proposals.sort(function(a,b) {return new b.createdAt - a.createdAt});
+            response.locals.proposals = proposals;
             if(response.locals.proposals.length == 0) response.render('mycommunity');
             for (let j = 0; j < response.locals.proposals.length; j++) {
-                //Encontrar el autor de cada propuesta y su numero de casa y agregar a locals.proposals
-                Community.Citizen.findById(response.locals.proposals[j].author, function(err, citizen) {
-
-                    Community.Home.findById(citizen.home, function(err, home) {
-                        (request.user.id == response.locals.proposals[j].author) ? response.locals.proposals.alreadyVoted = true : response.locals.proposals.alreadyVoted = false;
+                //I need to find the array of votes.citizens so I can check it against req.user.id to see if already voted on this proposal
+                Law.Vote.find({'_id' : { $in: response.locals.proposals[j].votes}}, function(err, votes) {
+                    let matchingVotes = votes.find(vote => vote.citizen == request.user.id);
+                    (matchingVotes != undefined) ? response.locals.proposals[j].alreadyVoted = true : response.locals.proposals[j].alreadyVoted = false;
+                        //Encontrar el autor de cada propuesta y su numero de casa y agregar a locals.proposals
+                    Community.Citizen.findById(response.locals.proposals[j].author, function(err, citizen) {
                         response.locals.proposals[j].authorName = `${citizen.firstName} ${citizen.lastName} ${citizen.secondLastName}`;
-                        response.locals.proposals[j].houseNumber = home.innerNumber;
-                        if(j == response.locals.proposals.length-1){
-                            response.render('mycommunity');
-                        }
+                        Community.Home.findById(citizen.home, function(err, home) {
+                            
+                            response.locals.proposals[j].houseNumber = home.innerNumber;
+                            if(j == response.locals.proposals.length-1){
+                                response.render('mycommunity');
+                            }
+                        })
                     })
-                })
+                });
             }
         });
     });
@@ -79,12 +82,21 @@ const postFeedVote = (request, response) =>{
                     //[^]add vote to list of votes in proposal
                     proposal.votes.push(vote);
                     proposal.save();
-                    response.redirect('/mycommunity');
-                    //[]Check to see if this vote gave the proposal majority
-
+                    
+                    //[]Check to see if this vote gave the proposal majority.
+                    ////How many homes in this community?
+                    Community.Community.findById(proposal.community, function(err, community) {
+                        amountHomes = community.innerHomes.length;
+                        votesInFavor = votes.find(vote => vote.inFavor == true).length;
+                        console.log(votedinFavor);
+                        response.redirect('/mycommunity');
+                    });
+                    
                     //[]count votes in favor, count votes against, 
                     //[]if votes in favor/amountHouses > .5 => proposal passes, give it date it passed & create law
                     //[]Add law to the community's laws. 
+                    //Redirect back to /mycommunity
+                    
                 };
             });
     });
