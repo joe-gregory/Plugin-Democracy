@@ -16,23 +16,23 @@
     </div>
 
     <% for(let i = 0; i < locals.proposals.length ;i++) { %>
-        <%-'<div class = "mb-3 feed-unit">'%>
-        <%-`<p> ${locals.proposals[i].authorName} de la casa #${locals.proposals[i].houseNumber} ha propuesto: </p>`%>
-        <%- (locals.proposals[i].type == 'create') ? `<p><b>La creacion de una nueva ley:</b></p>` : `<p>La eliminacion de la ley #</p>` %>
-        <%- (locals.proposals[i].type == 'create') ? `<p><i>${locals.proposals[i].proposal}</i></p>` : `need to fill with law to delete`%>
-        <%- `<p>Fecha de creacion de propuesta: ${locals.proposals[i].createdAt}</p>` %>
-        <%- `<p><b>Votos a favor:</b> <b>Votos en contra:</b> <b>Sin Votar: </b></p>`%> 
-        <%- '</div>' %>
+        <%-`<form action = "/mycommunity/vote/${locals.proposals[i].id}" method = "post">` %>
+            <%-'<div class = "mb-3 feed-unit">'%>
+                <%-`<p class = "greenParagraphs"> ${locals.proposals[i].authorName} de la casa #${locals.proposals[i].houseNumber} ha propuesto: </p>`%>
+                <%- (locals.proposals[i].type == 'create') ? `<p><b>La creacion de una nueva ley:</b></p>` : `<p>La eliminacion de la ley #</p>` %>
+                <%- (locals.proposals[i].type == 'create') ? `<p><i>${locals.proposals[i].proposal}</i></p>` : `need to fill with law to delete`%>
+                <%- `<p><b>Fecha de creacion de propuesta: </b>${locals.proposals[i].createdAt}</p>` %>
+                <%- `<p><b>Votos a favor:</b> <b>Votos en contra:</b> <b>Sin Votar: </b></p>`%>
+                <% if (locals.proposals[i].alreadyVoted == false) { %>
+                    <%- '<button class = "btn btn-success" name = "voteButton" value = "accept" type = "submit" data-proposalID = ${locals.proposals[i].id}>Aprovar</button>'%>
+                    <%- '<button class = "btn btn-danger" name = "voteButton" value = "reject" type = "submit">Rechazar</button>'%>
+                <% }else { %>
+                    <%-`<p class = "greenParagraphs"><b><i><u>Gracias por participar!</u></i></b>` %>
+                <% } %>
+            <%- '</div>' %>
+        <%-'</form>' %>
     <%} %>
-   
-
-    
 
 </div>
     
-
-
-
-
-
 <%- include('./partials/footer.ejs') %>

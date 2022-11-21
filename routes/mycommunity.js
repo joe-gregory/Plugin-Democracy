@@ -31,4 +31,6 @@ router.get('/mycommunity/createproposal', communityController.getCommunityPropos
 
 router.post('/mycommunity/createproposal', communityFeedController.postCreateProposal);
 
+router.post('/mycommunity/vote/:proposalId', communityFeedController.postFeedVote);
+
 module.exports = router;

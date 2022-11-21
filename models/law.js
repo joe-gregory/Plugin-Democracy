@@ -75,7 +75,7 @@ voteSchema = new Schema({
         type: Boolean
     },
 
-    law: {
+    proposal: {
         type: Schema.Types.ObjectId, ref: 'Law'
     }
 },
