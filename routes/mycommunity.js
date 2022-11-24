@@ -6,6 +6,8 @@ const communityFeedController = require('../controllers/communityFeedController'
 
 router.get('/mycommunity*', communityController.getCheckIsAuthenticated);
 
+router.post('/mycommunity*', communityController.getCheckIsAuthenticated);
+
 router.get('/mycommunity', communityFeedController.getCommunityFeed);
 
 router.get('/mycommunity/nocommunity', (request, response) => {

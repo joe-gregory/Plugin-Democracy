@@ -46,7 +46,7 @@ const postCreateProposal = (request, response) => {
                 proposal: request.body.proposalText,
                 type: request.body.typeProposal,
                 author: request.user.id,
-                votesInfavor: 0,
+                votesInFavor: 0,
                 votesAgainst: 0,
                 law: request.body.law, //for when deleting law
                 community: request.user.community
@@ -76,14 +76,13 @@ const postFeedVote = (request, response) =>{
                         inFavor: inFavor,
                         proposal: request.params.proposalId 
                     });
-                    
+                    prevVotesInFavor = proposal.votesInFavor;
+                    prevVotesAgainst = proposal.votesAgainst;
 
                     if (vote.inFavor == true){
-                        console.log(proposal.votesInFavor);
-                        //proposal.votesInFavor = proposal.votesInFavor + 1;
+                        proposal.votesInFavor = prevVotesInFavor + 1;
                     } else if(vote.inFavor == false) {
-                        console.log('false ' + proposal.votesAgainst);
-                        //proposal.votesAgainst = proposal.votesagainst + 1;
+                        proposal.votesAgainst = prevVotesAgainst + 1;
                     } else{
                         throw 'Unexpected value for proposals.votesInFavor';
                     }
@@ -101,8 +100,9 @@ const postFeedVote = (request, response) =>{
                     ////How many homes in this community?
                     Community.Community.findById(proposal.community, function(err, community) {
                         amountHomes = community.innerHomes.length;
-                        votesInFavor = votes.find(vote => vote.inFavor == true).length;
-                        console.log(votedinFavor);
+                        console.log('amount of homes: ', amountHomes);
+                        //votesInFavor = votes.find(vote => vote.inFavor == true).length;
+                        //console.log(votedinFavor);
                         response.redirect('/mycommunity');
                     });
                     

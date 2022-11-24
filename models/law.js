@@ -23,7 +23,7 @@ const proposalSchema = new Schema ({
 
     votesInFavor: {
         type: Number
-    },
+    }, 
 
     votesAgainst: {
         type: Number
