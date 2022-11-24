@@ -46,6 +46,8 @@ const postCreateProposal = (request, response) => {
                 proposal: request.body.proposalText,
                 type: request.body.typeProposal,
                 author: request.user.id,
+                votesInfavor: 0,
+                votesAgainst: 0,
                 law: request.body.law, //for when deleting law
                 community: request.user.community
             });
@@ -74,6 +76,18 @@ const postFeedVote = (request, response) =>{
                         inFavor: inFavor,
                         proposal: request.params.proposalId 
                     });
+                    
+
+                    if (vote.inFavor == true){
+                        console.log(proposal.votesInFavor);
+                        //proposal.votesInFavor = proposal.votesInFavor + 1;
+                    } else if(vote.inFavor == false) {
+                        console.log('false ' + proposal.votesAgainst);
+                        //proposal.votesAgainst = proposal.votesagainst + 1;
+                    } else{
+                        throw 'Unexpected value for proposals.votesInFavor';
+                    }
+                    
                     //[^]save the vote
                     vote.save();
                     //[^] add vote to proposals.votes & save

@@ -21,6 +21,14 @@ const proposalSchema = new Schema ({
         type: Schema.Types.ObjectId, ref: 'Vote'
     }],
 
+    votesInFavor: {
+        type: Number
+    },
+
+    votesAgainst: {
+        type: Number
+    },
+    
     law: {
         type: Schema.Types.ObjectId, ref: 'Law',
     },
