@@ -1,41 +1,46 @@
 const Community = require('../models/community');
 const Law = require('../models/law');
 
-const getCommunityFeed = (request, response) => {
+const getCommunityFeed = async (request, response) => {
     if (!request.user.community) response.redirect('/mycommunity/nocommunity');
-
+    ///***///
     response.locals.firstName = request.user.firstName;
-    //Primero buscar la comunidad asociada con el usuario
-    Community.Community.findById(request.user.community, function(err, community) {
+    
+    //Search for the community associated with the user
+    let community = await Community.Community.findById(request.user.community); 
+    response.locals.community = community; //Save the community's information on locals to render on page
 
-        //Guardar la informacion de la comunidad en locals para poder render en pagina
-        response.locals.community = community;
-        
-        //Despues buscar la lista de propuestas en el modelo de comunidad
-        Law.Proposal.find({'_id' : { $in: community.proposals}}, function(err, proposals) {
-            
-            response.locals.proposals = proposals;
-            if(response.locals.proposals.length == 0) response.render('mycommunity');
-            for (let j = 0; j < response.locals.proposals.length; j++) {
-                //I need to find the array of votes.citizens so I can check it against req.user.id to see if already voted on this proposal
-                Law.Vote.find({'_id' : { $in: response.locals.proposals[j].votes}}, function(err, votes) {
-                    let matchingVotes = votes.find(vote => vote.citizen == request.user.id);
-                    (matchingVotes != undefined) ? response.locals.proposals[j].alreadyVoted = true : response.locals.proposals[j].alreadyVoted = false;
-                        //Encontrar el autor de cada propuesta y su numero de casa y agregar a locals.proposals
-                    Community.Citizen.findById(response.locals.proposals[j].author, function(err, citizen) {
-                        response.locals.proposals[j].authorName = `${citizen.firstName} ${citizen.lastName} ${citizen.secondLastName}`;
-                        Community.Home.findById(citizen.home, function(err, home) {
-                            
-                            response.locals.proposals[j].houseNumber = home.innerNumber;
-                            if(j == response.locals.proposals.length-1){
-                                response.render('mycommunity');
-                            }
-                        })
-                    })
-                });
-            }
-        });
-    });
+    //Search for the array of proposal IDs stored in the community model
+    let proposals = await Law.Proposal.find({'_id' : { $in: community.proposals}});
+    //IS THIS NECESSARY? 
+    if(proposals.length === 0) response.render('mycommunity');
+    response.locals.proposals = proposals;
+    //I need to find the array of votes.citizens in each proposal inside proposals
+    //so I can check it against req.user.id to see if the current user
+    //already voted on this proposal[j]
+    
+    for (let j = 0; j < response.locals.proposals.length; j++) {
+        //obtain an array of votes that match the ID of the proposal.votes array 
+        votes = await Law.Vote.find({'_id' : { $in: response.locals.proposals[j].votes}});
+
+        //Search to see if any vote.citizen id match the current user's id
+        let matchingVote = votes.find(vote => vote.citizen == request.user.id);
+
+        if(matchingVote != undefined){
+            response.locals.proposals[j].alreadyVoted = true;
+            response.locals.proposals[j].votedValue = matchingVote.inFavor;
+        } else{
+            response.locals.proposals[j].alreadyVoted = false;
+        }
+
+        //get proposal's authors full name
+        let citizen = await Community.Citizen.findById(response.locals.proposals[j].author);
+        response.locals.proposals[j].authorName = `${citizen.firstName} ${citizen.lastName} ${citizen.secondLastName}`;
+        //get proposal's author house number
+        home = await Community.Home.findById(citizen.home);
+        response.locals.proposals[j].houseNumber = home.innerNumber;
+    }
+    response.render('mycommunity');
 };
 
 const postCreateProposal = (request, response) => {
@@ -54,9 +59,8 @@ const postCreateProposal = (request, response) => {
             proposal.save();
             community.proposals.push(proposal);
             community.save();
-            
+        response.redirect('/mycommunity');    
     });
-    response.redirect('/mycommunity');
 };
 
 //dealing with voting on feed proposals:
@@ -100,7 +104,6 @@ const postFeedVote = (request, response) =>{
                     ////How many homes in this community?
                     Community.Community.findById(proposal.community, function(err, community) {
                         amountHomes = community.innerHomes.length;
-                        console.log('amount of homes: ', amountHomes);
                         //votesInFavor = votes.find(vote => vote.inFavor == true).length;
                         //console.log(votedinFavor);
                         response.redirect('/mycommunity');

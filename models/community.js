@@ -35,7 +35,11 @@ const communitySchema = new Schema({
     laws: [{
         type: Schema.Types.ObjectId, ref: 'Laws.Law'
     }],
-});
+}, 
+
+{timestamps:true}
+
+);
 
 const homeSchema = new Schema({
     
@@ -49,7 +53,10 @@ const homeSchema = new Schema({
     citizen: {
         type: Schema.Types.ObjectId, ref: 'Citizen'
     }
-})
+}, 
+{timestamps:true}
+
+);
 
 const citizenSchema = new Schema({
     

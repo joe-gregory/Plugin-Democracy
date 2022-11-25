@@ -44,7 +44,7 @@ const proposalSchema = new Schema ({
     
     },
 
-    {timestamp: true}
+    {timestamps: true}
 
 );
 
@@ -71,7 +71,7 @@ const lawSchema = new Schema ({
     
     },
 
-    {timestamp: true}
+    {timestamps: true}
 );
 
 voteSchema = new Schema({
@@ -88,7 +88,7 @@ voteSchema = new Schema({
     }
 },
 
-{ timestamp: true}
+{ timestamps: true}
 
 );
 
