@@ -2,12 +2,8 @@ const Community = require('../models/community');
 const Law = require('../models/law');
 
 const getCommunityFeed = async (request, response) => {
-    if (!request.user.community){
-        console.log('im in');
-        response.redirect('/mycommunity/nocommunity');
-    } 
-    console.log('request.user.community', request.user.community);
-    ///***///
+    if (!request.user.community) return response.redirect('/mycommunity/nocommunity');
+     
     response.locals.firstName = request.user.firstName;
     
     //Search for the community associated with the user
