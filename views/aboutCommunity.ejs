@@ -11,8 +11,9 @@
     <p><b>Direccion: </b><%=locals.community.communityAddress%></p>
     <p><b>Cantidad de casas internas: </b><%=locals.community.innerHomes.length%></p>
     <p><b>Cantidad de ciudadanos registrados: </b><%=locals.community.citizens.length%></p>
+    <p><b>Rango de casas internas: </b><%=locals.homes[0].innerNumber%> - <%=locals.homes[locals.homes.length - 1].innerNumber %></p>
     <div class = 'container'>
-        <h3 class = 'h3'>Ciudadanos</h3>
+        <h3 class = 'h3'>Ciudadanos Registrados</h3>
         <div class = 'row'>
             <ul class = 'list-group'>
                 <%for(let i = 0; i < locals.citizens.length; i++) { %>

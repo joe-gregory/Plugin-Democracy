@@ -25,7 +25,7 @@
                     <p id = 'address'></p>
                 </div>
                 <div class = 'mb-3'>
-                    <button class = 'btn' id='loginButton' type = 'submit'>Unirse</button>
+                    <button class = 'btn' id='loginButton' type = 'submit' disabled>Unirse</button>
                 </div>
             </form>
         </div>
@@ -65,6 +65,7 @@
         $('#selection').html(message);
         let location = `Localizada en: ${communityAddress}`;
         $('#address').html(location);
+        $('#loginButton').removeAttr('disabled');
     })
 </script>
 

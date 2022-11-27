@@ -40,7 +40,11 @@ const proposalSchema = new Schema ({
 
     approvedDate: {
         type: Date,
-    }
+    }, 
+
+    passed: Boolean, 
+
+    passedDate: Date,
     
     },
 
