@@ -33,6 +33,7 @@
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 <script>
+    //AJAX obtains list of homes associated with community selection
     $('#communities').on('change', function() {
         $('#homes').removeAttr('disabled');
         $.ajax({
@@ -55,7 +56,7 @@
             }
         })
     });
-
+    //Displays message of your selection
     $('#homes').on('change', function() {
         let community = $('#communities option:selected').text();
         let communityAddress = $('#communities option:selected').data('address')
