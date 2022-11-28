@@ -164,7 +164,7 @@
   color:  #358856;
   /*-webkit-text-stroke: 1px black;*/
   text-align: center;
-  text-decoration: underline 4px;
+  /*text-decoration: underline 4px;*/
 }
 /*Page Title Ends*/
 
@@ -217,5 +217,11 @@
 
 .greenParagraphs{
   color: #358856;
+}
+
+.passedMessage{
+  color:darkgoldenrod;
+  font-weight: bold;
+  text-decoration: underline;
 }
 

@@ -118,6 +118,9 @@ const postFeedVote = async (request, response) =>{
             community.laws.push(newLaw);
             community.save();
         }
+    } else if(proposal.votesAgainst > amountHomes/2){
+        proposal.passed = false;
+        proposal.passedDate = Date.now();
     }
 
     //save the vote
