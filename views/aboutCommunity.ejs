@@ -26,6 +26,10 @@
 
 <div class = 'container'>
     <h2 class = 'h2'>Leyes</h2>
+    <% for(let i = 0; i < locals.laws.length; i++) { %>
+        <%- `<h3 class = 'h3'>Ley #${i+1}</h3>` %>
+        <%- `<p>${locals.laws[i].law}</p>` %>
+    <% } %>
 </div>
 
 

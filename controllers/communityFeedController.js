@@ -94,7 +94,6 @@ const postFeedVote = async (request, response) =>{
         throw 'Unexpected value for proposals.votesInFavor';
     }
     
-    
     //Check to see if this vote gave the proposal majority.
     //How many homes in this community?
     //first determine which community this proposal belongs to
@@ -114,6 +113,10 @@ const postFeedVote = async (request, response) =>{
             proposal.passedDate = Date.now();
             proposal.law = newLaw.id;
             newLaw.save();
+            //add new law to community model
+            let community = await Community.Community.findById(proposal.community);
+            community.laws.push(newLaw);
+            community.save();
         }
     }
 
@@ -121,6 +124,7 @@ const postFeedVote = async (request, response) =>{
     vote.save();
     //push vote to proposals.votes array & save
     proposal.votes.push(vote);
+
     proposal.save();
     response.redirect('/mycommunity');
     /*

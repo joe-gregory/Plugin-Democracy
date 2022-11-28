@@ -1,4 +1,5 @@
 const Community = require('../models/community');
+const Law = require('../models/law');
 
 const getCheckIsAuthenticated = (request, response, next) => {
     if(!request.isAuthenticated()){
@@ -15,13 +16,18 @@ const getCommunityAbout = async (request, response) => {
     response.locals.homes = homes; 
 
     let citizens = await Community.Citizen.find({'_id' : { $in: community.citizens}});
+    
     for(let i = 0; i < citizens.length; i++){
         relatedHome = homes.find( home => home.citizen == citizens[i].id);
         citizens[i].innerNumber = relatedHome.innerNumber;
     }
+
     response.locals.citizens = citizens;
-                response.locals.firstName = request.user.firstName; //this is to show nav bar. This is sloppy. Address in future. 
-                response.render('aboutCommunity'); 
+    response.locals.firstName = request.user.firstName; //this is to show nav bar. This is sloppy. Address in future. 
+    let laws = await Law.Law.find({'_id' : {$in: community.laws}});
+    response.locals.laws = laws;
+
+    response.render('aboutCommunity');
 };
 
 const getCommunityProposal = (request, response) => {
