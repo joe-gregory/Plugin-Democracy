@@ -106,8 +106,11 @@ const getCommunityJoinHomesAjax = (request,response) => {
 const getCreateProposalAjax = async (request, response) => {
     //check whether request is ajax and if accepts json
     if(request.xhr || request.accepts('jason, html') == 'json') {
+        console.log('entered the AJAX');
         let community = await Community.Community.findById(request.user.community);
+        console.log('ajax community: ', community);
         let laws = await Law.Law.find({'_id' : {$in: community.laws}});
+        console.log('ajax laws: ', laws);
         response.send({laws:laws});
     }
 }

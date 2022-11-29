@@ -44,7 +44,7 @@
             $.ajax({
                 url: '/mycommunity/createproposal/delete',
                 type: 'GET',
-                dataType: 'jason',
+                dataType: 'json',
                 cache: false,
                 success: function(data) {
                     console.log('ajax success');
@@ -52,13 +52,37 @@
                         console.log('laws passed ', data.laws);
                         $('#removeLawInput').empty();
                         for(let i = 0; i < data.laws.length; i++) {
-                            $('#removeLawInput').append('<input></input>').type('radio').id(data.laws[i].id).name(data.laws[i].id).val(data.laws[i].id);
-                            $('#removeLawInput').append('<label></label>').for(data.laws[i].id).html(`Ley #${i+1}: ${data.laws[i].law}`);
+                            $('#removeLawInput').append($('<input></input>').val(data.laws[i].id).attr('type','radio').attr('name',data.laws[i].id));
+                            //$('#homes').append($('<option></option>').val(data.homes[i]._id).html(data.homes[i].innerNumber));
+                            $('#removeLawInput').append($('<label></label>').attr('for', data.laws[i].id).html(`Ley #${i+1}: ${data.laws[i].law}`));
                         }
                     }
                 }, 
-                error: (error) => {$('h1.pageTitle').html(error);}
+                error: (error) => {alert(error);}
             });
+            /////////////////////////////
+            /*
+            $.ajax({
+            url: '/mycommunity/join/homes',
+            data: {
+                id: $('#communities').val()
+            },
+            type: "GET",
+            dataType : "json",
+            cache: false,
+            success: function(data) {
+                if(data.homes){
+                    for (let i = 0; i < data.homes.length; i++) {
+                        $('#homes').append($('<option></option>').val(data.homes[i]._id).html(data.homes[i].innerNumber));
+                    }
+                }
+            },
+            error: function(){
+                $('h1.pageTitle').html('error');
+            }
+        })
+            ////////////////////////////
+            */
         }
     });
 </script>
