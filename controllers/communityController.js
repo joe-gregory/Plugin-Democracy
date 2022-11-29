@@ -90,8 +90,6 @@ const postCommunityCreate = (request, response) => {
 
 const getCommunityJoinHomesAjax = (request,response) => {
     //check wether request is ajax and if accepts json
-    console.log('entered the ajax');
-    
     if(request.xhr || request.accepts('json,html') ==='json') {
         Community.Community.findById(request.query.id, function(err, community) {
             
@@ -105,6 +103,14 @@ const getCommunityJoinHomesAjax = (request,response) => {
     };
 }
 
+const getCreateProposalAjax = async (request, response) => {
+    //check whether request is ajax and if accepts json
+    if(request.xhr || request.accepts('jason, html') == 'json') {
+        let community = await Community.Community.findById(request.user.community);
+        let laws = await Law.Law.find({'_id' : {$in: community.laws}});
+        response.send({laws:laws});
+    }
+}
 module.exports = {
     getCheckIsAuthenticated,
     getCommunityAbout,
@@ -113,4 +119,5 @@ module.exports = {
     postCommunityJoin,
     postCommunityCreate,
     getCommunityJoinHomesAjax,
+    getCreateProposalAjax,
 }

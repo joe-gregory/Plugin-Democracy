@@ -35,4 +35,6 @@ router.post('/mycommunity/createproposal', communityFeedController.postCreatePro
 
 router.post('/mycommunity/vote/:proposalId', communityFeedController.postFeedVote);
 
+router.get('/mycommunity/createproposal/delete', communityController.getCreateProposalAjax);
+
 module.exports = router;

@@ -130,57 +130,6 @@ const postFeedVote = async (request, response) =>{
 
     proposal.save();
     response.redirect('/mycommunity');
-    /*
-    ///////////////
-    //Check if user has voted on this proposal: check list of votes in proposal and see if any of them has a citizen.id that matches the current user
-    Law.Proposal.findById(request.params.proposalId, function(err, proposal) {
-        //[^]Make sure there isn't double voting search for votes and if any matches request.user.id in proposal.votes[i].id
-        Law.Vote.find({'_id' : { $in: proposal.votes}}, function(err, votes) {
-                if(votes.find(vote => vote.citizen == request.user.id)){
-                    console.log('already voted');
-                    response.redirect('/profile');
-                }else{
-                    //[^]If no double voting create a new Vote object with proposal & user information and append it to the proposal
-                    const inFavor = (request.body.voteButton === 'accept') ? true : false;
-                    const vote = new Law.Vote({
-                        citizen: request.user.id,
-                        inFavor: inFavor,
-                        proposal: request.params.proposalId 
-                    });
-                    prevVotesInFavor = proposal.votesInFavor;
-                    prevVotesAgainst = proposal.votesAgainst;
-
-                    if (vote.inFavor == true){
-                        proposal.votesInFavor = prevVotesInFavor + 1;
-                    } else if(vote.inFavor == false) {
-                        proposal.votesAgainst = prevVotesAgainst + 1;
-                    } else{
-                        throw 'Unexpected value for proposals.votesInFavor';
-                    }
-                    
-                    //[^]save the vote
-                    vote.save();
-                    //[^] add vote to proposals.votes & save
-                    proposal.votes.push(vote);
-                    proposal.save();
-                    
-                    //[]Check to see if this vote gave the proposal majority.
-                    ////How many homes in this community?
-                    Community.Community.findById(proposal.community, function(err, community) {
-                        amountHomes = community.innerHomes.length;
-                        //votesInFavor = votes.find(vote => vote.inFavor == true).length;
-                        //console.log(votedinFavor);
-                        response.redirect('/mycommunity');
-                    });
-                    
-                    //[]count votes in favor, count votes against, 
-                    //[]if votes in favor/amountHouses > .5 => proposal passes, give it date it passed & create law
-                    //[]Add law to the community's laws. 
-                    //Redirect back to /mycommunity
-                    
-                };
-            });
-    });*/
 };
 
 module.exports = {

@@ -19,7 +19,6 @@
         </div>
 
         <div id = 'removeLawInput' class = 'mb-3 d-none'>
-
         </div>
 
         <div class = 'mb-3'>
@@ -40,41 +39,28 @@
         } else if($('#citizenActions option:selected').val() == 'delete') {
             $('#createLawInput').addClass('d-none');
             $('#removeLawInput').removeClass('d-none');
-            $('#loginButton').removeAttr('disabled');
-
+            $('#loginButton').removeAttr('disabled'); //move
+            
+            $.ajax({
+                url: '/mycommunity/createproposal/delete',
+                type: 'GET',
+                dataType: 'jason',
+                cache: false,
+                success: function(data) {
+                    console.log('ajax success');
+                    if(data.laws){
+                        console.log('laws passed ', data.laws);
+                        $('#removeLawInput').empty();
+                        for(let i = 0; i < data.laws.length; i++) {
+                            $('#removeLawInput').append('<input></input>').type('radio').id(data.laws[i].id).name(data.laws[i].id).val(data.laws[i].id);
+                            $('#removeLawInput').append('<label></label>').for(data.laws[i].id).html(`Ley #${i+1}: ${data.laws[i].law}`);
+                        }
+                    }
+                }, 
+                error: (error) => {$('h1.pageTitle').html(error);}
+            });
         }
     });
-        /*
-        $('#homes').removeAttr('disabled');
-        $.ajax({
-            url: '/mycommunity/join/homes',
-            data: {
-                id: $('#communities').val()
-            },
-            type: "GET",
-            dataType : "json",
-            cache: false,
-            success: function(data) {
-                if(data.homes){
-                    for (let i = 0; i < data.homes.length; i++) {
-                        $('#homes').append($('<option></option>').val(data.homes[i]._id).html(data.homes[i].innerNumber));
-                    }
-                }
-            },
-            error: function(){
-                $('h1.pageTitle').html('error');
-            }
-        })
-    });
-
-    $('#homes').on('change', function() {
-        let community = $('#communities option:selected').text();
-        let communityAddress = $('#communities option:selected').data('address')
-        let home = $("#homes option:selected").text();
-        let message = `Has seleccionado ${community} #${home}`; 
-        $('#selection').html(message);
-        let location = `Localizada en: ${communityAddress}`;
-        $('#address').html(location);
-    })*/
 </script>
+
 <%- include('./partials/footer.ejs') %>
