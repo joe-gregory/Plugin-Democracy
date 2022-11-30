@@ -67,7 +67,26 @@ const postCommunityJoin = (request, response) => {
         });
     });
 };
-
+//FUNCTION I WANT TO IMPLEMENT FOR CODE REUSABILITY
+function createCommunity(data) {
+    const community = new Community.Community({
+        name: data.communityName,
+        communityAddress: data.communityAddress,
+    });
+    for(let i = request.body.communityStartingNumber; i <= request.body.communityEndingNumber; i++){
+        let home = new Community.Home({
+            innerNumber: i, 
+            community:community,
+        });
+        home.save();
+        //community.innerHomes.push(new Community.Home({innerNumber: i}));
+        community.innerHomes.push(home);
+    }
+    community.save()
+        .then((result) => console.log('Community saved'))
+        .catch((err) => console.log('Error community creation', err));
+};
+//THE FUNCTION WOULD GO IN HERE
 const postCommunityCreate = (request, response) => {
     
     const community = new Community.Community({

@@ -225,3 +225,33 @@
   text-decoration: underline;
 }
 
+#nav-logo{
+  max-width: 70px;
+  border-radius: 50%;
+}
+
+.bottomFooter{
+  background-color: #358856;
+  color: white;
+  padding-top: 60px;
+}
+
+.mainImageDiv{
+  text-align: center;
+}
+
+#mainImage{
+  padding-top: 30px;
+  padding-bottom: 30px;
+}
+
+.mainTitle{
+  color:#1D8A47;
+}
+.secondMainImage{
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+.explanation{
+  padding-bottom: 30px;
+}
