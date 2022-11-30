@@ -106,15 +106,20 @@ const getCommunityJoinHomesAjax = (request,response) => {
 const postCreateProposal = (request, response) => {
     //create proposal and populate it
 
-    Community.Community.findById(request.user.community, function(err,community) {
-        console.log(request.body.law);
+    Community.Community.findById(request.user.community, async function(err,community) {
+        if(request.body.law){
+            let originalLawNumber = await Community.laws.indexOf(request.body.law);
+            originalLawNumber++;
+        };
+        index = community.laws.indexOf(proposal.law);
         const proposal = new Law.Proposal({
                 proposal: request.body.proposalText,
                 type: request.body.typeProposal,
                 author: request.user.id,
                 votesInFavor: 0,
                 votesAgainst: 0,
-                law: request.body.law, //for when deleting law
+                law: request.body.law,  //for when deleting law
+                originalLawNumber: originalLawNumber,
                 community: request.user.community
             });
 

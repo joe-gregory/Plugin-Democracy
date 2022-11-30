@@ -45,6 +45,8 @@ const proposalSchema = new Schema ({
     passed: Boolean, 
 
     passedDate: Date,
+
+    originalLawNumber: Number,
     
     },
 

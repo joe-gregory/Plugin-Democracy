@@ -51,9 +51,9 @@ const getCommunityFeed = async (request, response) => {
             let law = await Law.Law.findById(response.locals.proposals[j].law);
             let lawText = law.law;
             let lawNumber = community.laws.indexOf(response.locals.proposals[j].law);
-            console.log(lawNumber);
+            if (lawNumber) lawNumber++;
+            console.log('law number: ', lawNumber);
             response.locals.proposals[j].lawText = lawText;
-            response.locals.proposals[j].lawNumber = lawNumber + 1;
         }
     }
     response.render('mycommunity');
@@ -116,14 +116,12 @@ const postFeedVote = async (request, response) =>{
             community.laws.push(newLaw);
             community.save();
         }else if(proposal.type === 'delete' && proposal.passed !== true && proposal.passed !== false) { //if proposal of type to delete law
-            console.log('entered delete law');
             //delete law object & splice law from community laws array
-            console.log('entered the delete');
             //find law object & delete
             let law = await Law.Law.findById(proposal.law);
             law.deleteOne;
 
-            index = community.laws.indexOf(proposal.law);
+            let index = community.laws.indexOf(proposal.law);
             community.laws.splice(index, 1);
 
             //law.save();
