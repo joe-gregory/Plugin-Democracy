@@ -103,14 +103,35 @@ const getCommunityJoinHomesAjax = (request,response) => {
     };
 }
 
+const postCreateProposal = (request, response) => {
+    //create proposal and populate it
+
+    Community.Community.findById(request.user.community, function(err,community) {
+        console.log(request.body.law);
+        const proposal = new Law.Proposal({
+                proposal: request.body.proposalText,
+                type: request.body.typeProposal,
+                author: request.user.id,
+                votesInFavor: 0,
+                votesAgainst: 0,
+                law: request.body.law, //for when deleting law
+                community: request.user.community
+            });
+
+        community.proposals.push(proposal);
+        
+        proposal.save();
+        community.save();
+        
+        response.redirect('/mycommunity');    
+    });
+};
+
 const getCreateProposalAjax = async (request, response) => {
     //check whether request is ajax and if accepts json
     if(request.xhr || request.accepts('jason, html') == 'json') {
-        console.log('entered the AJAX');
         let community = await Community.Community.findById(request.user.community);
-        console.log('ajax community: ', community);
         let laws = await Law.Law.find({'_id' : {$in: community.laws}});
-        console.log('ajax laws: ', laws);
         response.send({laws:laws});
     }
 }
@@ -123,4 +144,5 @@ module.exports = {
     postCommunityCreate,
     getCommunityJoinHomesAjax,
     getCreateProposalAjax,
+    postCreateProposal,
 }

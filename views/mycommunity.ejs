@@ -19,7 +19,7 @@
             <%-`<form action = "/mycommunity/vote/${locals.proposals[i].id}" method = "post">` %>
                 <%-'<div class = "mb-3 feed-unit">'%>
                     <%-`<p class = "greenParagraphs"> ${locals.proposals[i].authorName} de la casa #${locals.proposals[i].houseNumber} ha propuesto: </p>`%>
-                    <%- (locals.proposals[i].type == 'create') ? `<p><b>La creacion de una nueva ley:</b></p>` : `<p>La eliminacion de la ley #</p>` %>
+                    <%- (locals.proposals[i].type == 'create') ? `<p>La <b><u>creacion</u></b> de una nueva ley:</p>` : `<p>La <b><u>eliminacion</u></b> de la ley #${locals.proposals[i].lawNumber}</p>` %>
                     
                     <% if(locals.proposals[i].passed == true){ %>
                         <%-`<p class = 'passedMessage'><b>PROPUESTA APROBADA POR LA COMUNIDAD EN ${locals.proposals[i].passedDate.toLocaleDateString("en-US")}</b></p>` %>
@@ -27,7 +27,7 @@
                         <%- `<p class = 'passedMessage'><b>PROPUESTA RECHAZADA POR LA COMUNIDAD EN ${locals.proposals[i].passedDate.toLocaleDateString("en-US")}</b></p>`%>
                     <% } %>
 
-                    <%- (locals.proposals[i].type == 'create') ? `<p><i>${locals.proposals[i].proposal}</i></p>` : `need to fill with law to delete`%>
+                    <%- (locals.proposals[i].type == 'create') ? `<p><i>${locals.proposals[i].proposal}</i></p>` : `<p><i>${locals.proposals[i].lawText}</i></p>`%>
                     <%- `<p><b>Fecha de creacion de propuesta: </b>${(locals.proposals[i].createdAt != undefined) ? locals.proposals[i].createdAt.toLocaleDateString("en-US") : ''}</p>` %>
                     <%- `<p><b>Votos a favor:</b> ${locals.proposals[i].votesInFavor} <b>Votos en contra:</b> ${locals.proposals[i].votesAgainst} <b>Sin Votar:</b> ${locals.community.innerHomes.length - locals.proposals[i].votesInFavor - locals.proposals[i].votesAgainst}</p>`%>
                     <% if (locals.proposals[i].alreadyVoted == false) { %>

@@ -31,7 +31,7 @@ router.get('/mycommunity/join/homes', communityController.getCommunityJoinHomesA
 
 router.get('/mycommunity/createproposal', communityController.getCommunityProposal);
 
-router.post('/mycommunity/createproposal', communityFeedController.postCreateProposal);
+router.post('/mycommunity/createproposal', communityController.postCreateProposal);
 
 router.post('/mycommunity/vote/:proposalId', communityFeedController.postFeedVote);
 

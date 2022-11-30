@@ -35,54 +35,30 @@
             $('#createLawInput').removeClass('d-none');
             $('#removeLawInput').addClass('d-none');
             $('#loginButton').removeAttr('disabled');
-
         } else if($('#citizenActions option:selected').val() == 'delete') {
             $('#createLawInput').addClass('d-none');
             $('#removeLawInput').removeClass('d-none');
-            $('#loginButton').removeAttr('disabled'); //move
-            
+            $('#loginButton').removeAttr('disabled');
             $.ajax({
                 url: '/mycommunity/createproposal/delete',
                 type: 'GET',
                 dataType: 'json',
                 cache: false,
                 success: function(data) {
-                    console.log('ajax success');
                     if(data.laws){
                         console.log('laws passed ', data.laws);
                         $('#removeLawInput').empty();
                         for(let i = 0; i < data.laws.length; i++) {
-                            $('#removeLawInput').append($('<input></input>').val(data.laws[i].id).attr('type','radio').attr('name',data.laws[i].id));
-                            //$('#homes').append($('<option></option>').val(data.homes[i]._id).html(data.homes[i].innerNumber));
-                            $('#removeLawInput').append($('<label></label>').attr('for', data.laws[i].id).html(`Ley #${i+1}: ${data.laws[i].law}`));
+                            let section = $('<div></div>').attr('class', 'container mb-3');
+                            section.append($('<input></input>').val(data.laws[i]._id).attr('type','radio').attr('name','law'));
+                            section.append($('<label></label>').attr('for', data.laws[i]._id).html(`Ley #${i+1}:`));
+                            section.append($('<p></p>').text(`${data.laws[i].law}`));
+                            $('#removeLawInput').append(section);
                         }
                     }
                 }, 
                 error: (error) => {alert(error);}
             });
-            /////////////////////////////
-            /*
-            $.ajax({
-            url: '/mycommunity/join/homes',
-            data: {
-                id: $('#communities').val()
-            },
-            type: "GET",
-            dataType : "json",
-            cache: false,
-            success: function(data) {
-                if(data.homes){
-                    for (let i = 0; i < data.homes.length; i++) {
-                        $('#homes').append($('<option></option>').val(data.homes[i]._id).html(data.homes[i].innerNumber));
-                    }
-                }
-            },
-            error: function(){
-                $('h1.pageTitle').html('error');
-            }
-        })
-            ////////////////////////////
-            */
         }
     });
 </script>

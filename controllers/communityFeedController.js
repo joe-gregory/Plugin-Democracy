@@ -17,10 +17,12 @@ const getCommunityFeed = async (request, response) => {
     let proposals = await Law.Proposal.find({'_id' : { $in: community.proposals}});
     
     response.locals.proposals = proposals;
+
     //I need to find the array of votes.citizens in each proposal inside proposals
     //so I can check it against req.user.id to see if the current user
     //already voted on this proposal[j]
-    
+    //taking advantage of the fact that I am looping through the list of proposals, I am going to add
+    //Law text to proposals about deleting existing laws so I can display it in its unit feed
     for (let j = 0; j < response.locals.proposals.length; j++) {
         //obtain an array of votes that match the ID of the proposal.votes array 
         votes = await Law.Vote.find({'_id' : { $in: response.locals.proposals[j].votes}});
@@ -34,35 +36,27 @@ const getCommunityFeed = async (request, response) => {
         } else{
             response.locals.proposals[j].alreadyVoted = false;
         }
-
+        
         //get proposal's authors full name
         let citizen = await Community.Citizen.findById(response.locals.proposals[j].author);
         response.locals.proposals[j].authorName = `${citizen.firstName} ${citizen.lastName} ${citizen.secondLastName}`;
+        
         //get proposal's author house number
         home = await Community.Home.findById(citizen.home);
         response.locals.proposals[j].houseNumber = home.innerNumber;
+
+        //Taking advantage that I am looping through proposals to add law text to delete proposals
+        if(response.locals.proposals[j].type === 'delete') {
+            
+            let law = await Law.Law.findById(response.locals.proposals[j].law);
+            let lawText = law.law;
+            let lawNumber = community.laws.indexOf(response.locals.proposals[j].law);
+            console.log(lawNumber);
+            response.locals.proposals[j].lawText = lawText;
+            response.locals.proposals[j].lawNumber = lawNumber + 1;
+        }
     }
     response.render('mycommunity');
-};
-
-const postCreateProposal = (request, response) => {
-    //create proposal and populate it
-
-    Community.Community.findById(request.user.community, function(err,community) {
-        const proposal = new Law.Proposal({
-                proposal: request.body.proposalText,
-                type: request.body.typeProposal,
-                author: request.user.id,
-                votesInFavor: 0,
-                votesAgainst: 0,
-                law: request.body.law, //for when deleting law
-                community: request.user.community
-            });
-            proposal.save();
-            community.proposals.push(proposal);
-            community.save();
-        response.redirect('/mycommunity');    
-    });
 };
 
 //dealing with voting on feed proposals:
@@ -102,22 +96,40 @@ const postFeedVote = async (request, response) =>{
     amountHomes = community.innerHomes.length;
     //Is the votes in favor the majority? 
     if (proposal.votesInFavor > amountHomes/2){
-        if(proposal.type === 'create' && proposal.passed !== true){
+        //proposal passed
+        
+        proposal.passedDate = Date.now();
+        //if proposal of type to create law
+        if(proposal.type === 'create' && proposal.passed !== true && proposal.passed !== false){
+
             const newLaw = new Law.Law({
             law: proposal.proposal,
             author: proposal.author,
             proposal: proposal.id,
             community: proposal.community,
             });
-            proposal.passed = true;
-            proposal.passedDate = Date.now();
+            
             proposal.law = newLaw.id;
             newLaw.save();
             //add new law to community model
             let community = await Community.Community.findById(proposal.community);
             community.laws.push(newLaw);
             community.save();
+        }else if(proposal.type === 'delete' && proposal.passed !== true && proposal.passed !== false) { //if proposal of type to delete law
+            console.log('entered delete law');
+            //delete law object & splice law from community laws array
+            console.log('entered the delete');
+            //find law object & delete
+            let law = await Law.Law.findById(proposal.law);
+            law.deleteOne;
+
+            index = community.laws.indexOf(proposal.law);
+            community.laws.splice(index, 1);
+
+            //law.save();
+            community.save();
         }
+        proposal.passed = true;
     } else if(proposal.votesAgainst > amountHomes/2){
         proposal.passed = false;
         proposal.passedDate = Date.now();
@@ -127,14 +139,12 @@ const postFeedVote = async (request, response) =>{
     vote.save();
     //push vote to proposals.votes array & save
     proposal.votes.push(vote);
-
     proposal.save();
     response.redirect('/mycommunity');
 };
 
 module.exports = {
     getCommunityFeed,
-    postCreateProposal,
     postFeedVote,
 }
 
