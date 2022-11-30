@@ -19,7 +19,7 @@
             <%-`<form action = "/mycommunity/vote/${locals.proposals[i].id}" method = "post">` %>
                 <%-'<div class = "mb-3 feed-unit">'%>
                     <%-`<p class = "greenParagraphs"> ${locals.proposals[i].authorName} de la casa #${locals.proposals[i].houseNumber} ha propuesto: </p>`%>
-                    <%- (locals.proposals[i].type == 'create') ? `<p>La <b><u>creacion</u></b> de una nueva ley:</p>` : `<p>La <b><u>eliminacion</u></b> de la ley #${locals.proposals[i].lawNumber}</p>` %>
+                    <%- (locals.proposals[i].type == 'create') ? `<p>La <b><u>creacion</u></b> de una nueva ley:</p>` : `<p>La <b><u>eliminacion</u></b> de la ley #${locals.proposals[i].lawNumber || locals.proposals[i].originalLawNumber}</p>` %>
                     
                     <% if(locals.proposals[i].passed == true){ %>
                         <%-`<p class = 'passedMessage'><b>PROPUESTA APROBADA POR LA COMUNIDAD EN ${locals.proposals[i].passedDate.toLocaleDateString("en-US")}</b></p>` %>

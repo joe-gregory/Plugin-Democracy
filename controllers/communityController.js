@@ -106,12 +106,12 @@ const getCommunityJoinHomesAjax = (request,response) => {
 const postCreateProposal = (request, response) => {
     //create proposal and populate it
 
-    Community.Community.findById(request.user.community, async function(err,community) {
+    Community.Community.findById(request.user.community, function(err,community) {
+        let originalLawNumber;
         if(request.body.law){
-            let originalLawNumber = await Community.laws.indexOf(request.body.law);
+            originalLawNumber = community.laws.indexOf(request.body.law);
             originalLawNumber++;
         };
-        index = community.laws.indexOf(proposal.law);
         const proposal = new Law.Proposal({
                 proposal: request.body.proposalText,
                 type: request.body.typeProposal,

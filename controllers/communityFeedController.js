@@ -52,7 +52,6 @@ const getCommunityFeed = async (request, response) => {
             let lawText = law.law;
             let lawNumber = community.laws.indexOf(response.locals.proposals[j].law);
             if (lawNumber) lawNumber++;
-            console.log('law number: ', lawNumber);
             response.locals.proposals[j].lawText = lawText;
         }
     }
