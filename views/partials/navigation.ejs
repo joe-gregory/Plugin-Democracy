@@ -7,21 +7,20 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="/">Inicio</a>
+                    <!--<a class="nav-link active" aria-current="page" href="/">Inicio</a> -->
                 </li>
-                <%- (locals.firstName == undefined) ? `<li class = 'nav-item'> <a class="nav-link" href='/signup'>Registrarse</a></li>`:'' ;%>
-                <%- (locals.firstName == undefined) ? `<li class = 'nav-item'> <a class="nav-link" href='/login'>Acceder</a></li>`:'' ;%>
-            <%- (locals.firstName == undefined) ? `</ul>`:'' ;%>
-                <%- (locals.firstName != undefined) ? `</ul><div class = 'collapse navbar-collapse flex-grow-0'>`:'' ;%> 
-                    <%- (locals.firstName != undefined) ? `<ul class = 'navbar-nav text-right'>`:'' ;%> 
-                        <%- (locals.firstName != undefined) ? `<li class = 'navbar-brand' id='welcome-nav'>Bienvenido ${firstName}!</li>`:'' ;%> 
-                        <%- (locals.firstName != undefined) ? `<li class = 'nav-item'> <a class="nav-link" href='/profile'>Cuenta</a></li>`:'' ;%> 
-                        <%- (locals.firstName != undefined) ? `<li class = 'nav-item'> <a class="nav-link" href='/mycommunity'>Mi Comunidad</a></li>`:'' ;%> 
-                        <%- (locals.firstName != undefined) ? "<li class = 'nav-item ml-auto mr-1'><form class = 'd-flex' action = '/logout' method = 'post'><button class='btn btn-light' type='submit'>Salir</button></form></li>":'';%>
-                <%- (locals.firstName != undefined) ? `</ul>`:'' ;%> 
-            <%- (locals.firstName != undefined) ? `</div>`:'' ;%> 
-        </div>
+                <% if(locals.firstName == undefined){ %>
+                    <%- `<li class = 'nav-item'> <a class="nav-link" href='/signup'>Registrarse</a></li>` %>
+                    <%- `<li class = 'nav-item'> <a class="nav-link" href='/login'>Acceder</a></li>` %>
+                <% } else if (locals.firstName != undefined) {%>
+                <%- `<ul class = 'navbar-nav text-right'>` %>
+                <%- `<li class = 'navbar-brand' id='welcome-nav'>Bienvenido ${firstName}!</li>` %>
+                <%- `<li class = 'nav-item'> <a class="nav-link" href='/profile'>Cuenta</a></li>` %>
+                <%- `<li class = 'nav-item'> <a class="nav-link" href='/mycommunity'>Mi Comunidad</a></li>` %>
+                <%-  "<li class = 'nav-item ml-auto mr-1'><form class = 'd-flex' action = '/logout' method = 'post'><button class='btn btn-light' type='submit'>Salir</button></form></li>"%>
+                <%- '</ul>'%>
+                <% } %> 
             </ul>
-            
+        </div>
     </div>
 </nav> 
