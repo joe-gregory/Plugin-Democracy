@@ -12,6 +12,8 @@ const proposalSchema = new Schema ({
         enum: ['create','delete'],
     }, 
 
+    title: String,
+
     author:  {
         type: Schema.Types.ObjectId, ref: 'Community.Citizen',
         required: true,
@@ -56,6 +58,8 @@ const proposalSchema = new Schema ({
 
 const lawSchema = new Schema ({
 
+    title: String, 
+
     law: {
         type: String,
         required: true,
@@ -73,7 +77,9 @@ const lawSchema = new Schema ({
     community: {
         type: Schema.Types.ObjectId, ref: 'Community.Community',
         required: true,
-    }
+    },
+
+    description: String,
     
     },
 
