@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema; 
-const Community = require('./community');
+const Community = require('./communityModels');
 
 const proposalSchema = new Schema ({
     title: {

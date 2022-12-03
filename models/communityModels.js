@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema; 
-const CitizenActions = require('./citizenActions');
+const CitizenActions = require('./citizenActionsModels');
 
 const communitySchema = new Schema({
    
@@ -35,6 +35,12 @@ const communitySchema = new Schema({
     laws: [{
         type: Schema.Types.ObjectId, ref: 'CitizenActions.Law'
     }],
+
+    roles: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.role'}],
+
+    projects: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.project'}],
+
+    permits: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.permit'}],
 }, 
 
 {timestamps:true}
@@ -87,7 +93,9 @@ const citizenSchema = new Schema({
     
     community: { type: Schema.Types.ObjectId, ref : 'Community' },
 
-    home: { type: Schema.Types.ObjectId, ref : 'Home' }
+    home: { type: Schema.Types.ObjectId, ref : 'Home' },
+
+    badges: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.badge'}],
 
 }, 
     {timestamps: true}

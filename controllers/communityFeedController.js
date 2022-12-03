@@ -1,4 +1,4 @@
-const Community = require('../models/community');
+const Community = require('../models/communityModels');
 const Law = require('../models/law');
 
 const getCommunityFeed = async (request, response) => {
