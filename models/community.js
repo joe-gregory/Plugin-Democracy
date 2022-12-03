@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema; 
-const Laws = require('./law');
+const CitizenActions = require('./citizenActions');
 
 const communitySchema = new Schema({
    
@@ -29,11 +29,11 @@ const communitySchema = new Schema({
     treasurer : { type: Schema.Types.ObjectId, ref: 'Citizen' },
 
     proposals: [{
-        type: Schema.Types.ObjectId, ref: 'Laws.Proposal'
+        type: Schema.Types.ObjectId, ref: 'CitizenActions.Proposal'
     }],
 
     laws: [{
-        type: Schema.Types.ObjectId, ref: 'Laws.Law'
+        type: Schema.Types.ObjectId, ref: 'CitizenActions.Law'
     }],
 }, 
 
