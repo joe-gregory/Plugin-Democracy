@@ -1,5 +1,5 @@
 const Community = require('../models/communityModels');
-const Law = require('../models/law');
+const Law = require('../models/citizenActionsModels');
 
 const getCommunityFeed = async (request, response) => {
     if (!request.user.community) return response.redirect('/mycommunity/nocommunity');

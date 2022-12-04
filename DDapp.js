@@ -1,15 +1,15 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const Community = require('./models/community');
+const Community = require('./models/communityModels');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
 const key = require('./keys');
 
 //routes
-const authRoutes = require('./routes/auth');
-const errorsRoutes = require('./routes/errors');
-const createCommunityRoutes = require('./routes/mycommunity');
+const authRoutes = require('./routes/authRoute');
+const errorsRoutes = require('./routes/errorsRoute');
+const createCommunityRoutes = require('./routes/myCommunityRoute');
 
 //express app 
 const DDapp = express();

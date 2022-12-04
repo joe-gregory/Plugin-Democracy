@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const passport = require('passport');
-const Community = require('../models/community');
+const Community = require('../models/communityModels');
 
 
 router.get('/signup', (request, response) => {
