@@ -1,5 +1,5 @@
-const Community = require('../models/community');
-const Law = require('../models/law');
+const Community = require('../models/communityModels');
+const CitizenActions = require('../models/citizenActionsModels');
 
 const getCheckIsAuthenticated = (request, response, next) => {
     if(!request.isAuthenticated()){
@@ -24,7 +24,7 @@ const getCommunityAbout = async (request, response) => {
 
     response.locals.citizens = citizens;
     response.locals.firstName = request.user.firstName; //this is to show nav bar. This is sloppy. Address in future. 
-    let laws = await Law.Law.find({'_id' : {$in: community.laws}});
+    let laws = await CitizenActions.Law.find({'_id' : {$in: community.laws}});
     response.locals.laws = laws;
 
     response.render('aboutCommunity');
@@ -131,7 +131,7 @@ const postCreateProposal = (request, response) => {
             originalLawNumber = community.laws.indexOf(request.body.law);
             originalLawNumber++;
         };
-        const proposal = new Law.Proposal({
+        const proposal = new CitizenActions.Proposal({
                 proposal: request.body.proposalText,
                 type: request.body.typeProposal,
                 author: request.user.id,
@@ -155,7 +155,7 @@ const getCreateProposalAjax = async (request, response) => {
     //check whether request is ajax and if accepts json
     if(request.xhr || request.accepts('jason, html') == 'json') {
         let community = await Community.Community.findById(request.user.community);
-        let laws = await Law.Law.find({'_id' : {$in: community.laws}});
+        let laws = await CitizenActions.Law.find({'_id' : {$in: community.laws}});
         response.send({laws:laws});
     }
 }
