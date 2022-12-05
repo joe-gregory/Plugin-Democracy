@@ -35,7 +35,7 @@ router.post('/signup', (request, response) => {
 router.get('/login', (request, response) => {
     response.render('login', (err, html) =>{
         if(err){
-            response.redirect('/404', {'message': [err,html]});
+            response.redirect(404, '/404', {'message': [err,html]});
         }else{
             response.render('login', request.user);
         }
@@ -49,21 +49,21 @@ router.post('/login', passport.authenticate('local', {failureRedirect: '/404', f
 );
 
 router.get('/profile', (request, response) => {
+    
     if (!request.user){
-        request.url = '/profile';
         response.redirect('/login');
-    } else{
-        Community.Community.findById(request.user.community, function(err, community) {
-            Community.Home.findById(request.user.home, function(err, home){
-                response.locals.community = community;
-                response.locals.home = home;
-                response.locals.firstName = request.user.firstName;
-                response.locals.lastName = request.user.lastName;
-                response.locals.secondLastName = request.user.secondLastName;
-                response.render('profile')
-            })
+        return;
+    } 
+    Community.Community.findById(request.user.community, function(err, community) {
+        Community.Home.findById(request.user.home, function(err, home){
+            response.locals.community = community;
+            response.locals.home = home;
+            response.locals.firstName = request.user.firstName;
+            response.locals.lastName = request.user.lastName;
+            response.locals.secondLastName = request.user.secondLastName;
+            response.render('profile')
         })
-    }
+    })
 });
 
 router.post('/logout', function(request, response, next) {

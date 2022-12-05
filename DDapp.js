@@ -4,6 +4,7 @@ const Community = require('./models/communityModels');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
+const flash = require('flash');
 const key = require('./keys');
 
 //routes
@@ -42,6 +43,7 @@ DDapp.use(session ({
     saveUninitialized: false, 
     })
 );
+DDapp.use(flash);
 
 DDapp.use(passport.initialize());
 DDapp.use(passport.session());
@@ -93,8 +95,9 @@ passport.use(new LocalStrategy(
 );
 
 //console log incoming requests
-DDapp.use((request, respond, next) => {
+DDapp.use((request, response, next) => {
     console.log(`Request Method: "${request.method}" => Request URL: "${request.url}"`);
+    response.locals.user = request.user;
     next();
 });
 

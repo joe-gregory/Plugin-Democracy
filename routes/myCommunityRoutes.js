@@ -4,20 +4,19 @@ const router = express.Router();
 const communityController = require('../controllers/communityController');
 const communityFeedController = require('../controllers/communityFeedController');
 
-router.get('/mycommunity*', communityController.getCheckIsAuthenticated);
+router.get('/mycommunity*', communityController.RouteIfUserNoAuthenticated);
 
-router.post('/mycommunity*', communityController.getCheckIsAuthenticated);
+router.post('/mycommunity*', communityController.RouteIfUserNoAuthenticated);
 
 router.get('/mycommunity', communityFeedController.getCommunityFeed);
 
 router.get('/mycommunity/nocommunity', (request, response) => {
-    response.locals.firstName = request.user.firstName;
     response.render('noCommunity');
 })
 router.get('/mycommunity/about',communityController.getCommunityAbout);
 
 router.get('/mycommunity/create', (request, response) =>{
-    response.render('createCommunity', request.user);
+    response.render('createCommunity');
 });
 
 router.post('/mycommunity/create', communityController.postCommunityCreate);

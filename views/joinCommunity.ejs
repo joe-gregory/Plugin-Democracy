@@ -37,6 +37,9 @@
     $('#communities').on('change', function() {
         $('#homes').removeAttr('disabled');
         $('#homes').empty();
+        $('#selection').empty();
+        $('#address').empty();
+        $('#homes').append('<option disabled selected>Selecciona una casa interna</option>');
         $.ajax({
             url: '/mycommunity/join/homes',
             data: {

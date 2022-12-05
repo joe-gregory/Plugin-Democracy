@@ -9,12 +9,12 @@
                 <li class="nav-item">
                     <!--<a class="nav-link active" aria-current="page" href="/">Inicio</a> -->
                 </li>
-                <% if(locals.firstName == undefined){ %>
+                <% if(locals.user == undefined){ %>
                     <%- `<li class = 'nav-item'> <a class="nav-link" href='/signup'>Registrarse</a></li>` %>
                     <%- `<li class = 'nav-item'> <a class="nav-link" href='/login'>Acceder</a></li>` %>
-                <% } else if (locals.firstName != undefined) {%>
+                <% } else if (locals.user != undefined) {%>
                 <%- `<ul class = 'navbar-nav text-right'>` %>
-                <%- `<li class = 'navbar-brand' id='welcome-nav'>Bienvenido ${firstName}!</li>` %>
+                <%- `<li class = 'navbar-brand' id='welcome-nav'>Bienvenido ${locals.user.firstName}!</li>` %>
                 <%- `<li class = 'nav-item'> <a class="nav-link" href='/profile'>Cuenta</a></li>` %>
                 <%- `<li class = 'nav-item'> <a class="nav-link" href='/mycommunity'>Mi Comunidad</a></li>` %>
                 <%-  "<li class = 'nav-item ml-auto mr-1'><form class = 'd-flex' action = '/logout' method = 'post'><button class='btn btn-light' type='submit'>Salir</button></form></li>"%>
@@ -24,3 +24,4 @@
         </div>
     </div>
 </nav> 
+<% if(locals.message) "<p class = 'message'></p>"%>

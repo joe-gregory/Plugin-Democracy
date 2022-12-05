@@ -4,7 +4,7 @@ const CitizenActionsModels = require('../models/citizenActionsModels');
 const citizenActions = require('./_citizenActionsController');
 const dbController = require('./_dbController');
 
-const getCheckIsAuthenticated = (request, response, next) => {
+const RouteIfUserNoAuthenticated = (request, response, next) => {
     if(!request.isAuthenticated()){
         response.redirect('/login');
     }else{next();} 
@@ -45,25 +45,27 @@ const getCommunityJoin = async (request, response) => {
     response.render('joinCommunity');
 };
 
-const postCommunityJoin = (request, response) => {
-    CommunityModels.Citizen.findById(request.user.id, function(err, citizen) {
-        CommunityModels.Community.findById(request.body.community, function(err, community) {
-            CommunityModels.Home.findById(request.body.home, async function(err, home) {
-                citizen.communities.push(community);
-                citizen.home = home;
+const postCommunityJoin = async (request, response) => {
+    //can't join community if you are already part of community
+    let citizen = await CommunityModels.Citizen.findById(request.user.id);
+    let community = await CommunityModels.Community.findById(request.body.community);
+    let home = await CommunityModels.Home.findById(request.body.home);
 
-                community.citizens.push(citizen);
+    //search if community is already in user and user in community. Cannot join if already part of it
+    if(community.citizens.includes(citizen.id) || citizen.communities.includes(community.id)){
+        response.locals.message = 'Ya perteneces a esta comunidad';
+        response.redirect('/profile');
+        return;
+    } 
+    //
+    citizen.communities.push(community);
+    citizen.home = home;
+    community.citizens.push(citizen);
 
-                home.citizen = citizen;
-
-                await citizen.save();
-                await community.save();
-                await home.save();
-                response.redirect('/mycommunity');
-
-            });
-        });
-    });
+    await citizen.save();
+    await community.save();
+    await home.save();
+    response.redirect('/mycommunity');
 };
 //FUNCTION I WANT TO IMPLEMENT FOR CODE REUSABILITY
 function createCommunity(data) {
@@ -134,7 +136,7 @@ const getCreateProposalAjax = async (request, response) => {
     }
 }
 module.exports = {
-    getCheckIsAuthenticated,
+    RouteIfUserNoAuthenticated: RouteIfUserNoAuthenticated,
     getCommunityAbout,
     getCommunityProposal,
     getCommunityJoin,

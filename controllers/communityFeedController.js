@@ -2,12 +2,16 @@ const Community = require('../models/communityModels');
 const Law = require('../models/citizenActionsModels');
 
 const getCommunityFeed = async (request, response) => {
-    if (!request.user.community) return response.redirect('/mycommunity/nocommunity');
+    if (!request.user.communities.length) return response.redirect('/mycommunity/nocommunity');
      
     response.locals.firstName = request.user.firstName;
     
     //Search for the community associated with the user
     let community = await Community.Community.findById(request.user.community); 
+    if (community === null) {
+        response.redirect('/profile');
+        return;
+    }
     response.locals.community = community; //Save the community's information on locals to render on page
     
     //if there are no proposals yet, redirect to /mycommunity directly
