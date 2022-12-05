@@ -9,11 +9,11 @@ function isUserAllowed(user, action, proposal){
             throw new Error ('User is not authorized for action');
 
     }
-}
+};
 
 async function createProposal(user, proposalRequest){
     
-    isUserAllowed(user, createProposal, proposal);
+    isUserAllowed(user, createProposal, proposalRequest);
     
     let community = await CommunityModels.Community.findById(proposal.community);
     let pR = proposalRequest;
@@ -34,8 +34,7 @@ async function createProposal(user, proposalRequest){
     //check if the proposal has the right info given the type of proposal it is
     switch(proposal.type){
         case 'createLaw':
-            if(!(pR.citizenActionTitle && pR.citizenActionBody && pR.citizenActionStartDate && pR.citizenActionExpirationDate)) throw new Error ('Missing attributes to create a law proposal');
-            
+            if(!(pR.citizenActionTitle && pR.citizenActionBody && pR.citizenActionStartDate)) throw new Error ('Missing attributes to create a law proposal');
             proposal.citizenActiontitle = pR.citizenActionTitle;
             proposal.citizenActionBody = pR.citizenActionBody;
             proposal.citizenActionStartDate = pR.citizenActionStartDate;
@@ -76,4 +75,8 @@ async function createProposal(user, proposalRequest){
 function createLaw(user, proposal){
     if (!isUserAllowed(user)) throw new Error('User is not allowed to create laws');
 
+}
+
+module.exports = {
+    createProposal,
 }

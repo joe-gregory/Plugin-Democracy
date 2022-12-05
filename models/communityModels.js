@@ -91,7 +91,7 @@ const citizenSchema = new Schema({
 
     cellPhone: String, 
     
-    community: { type: Schema.Types.ObjectId, ref : 'Community' },
+    communities: [{ type: Schema.Types.ObjectId, ref : 'Community' }],
 
     home: { type: Schema.Types.ObjectId, ref : 'Home' },
 

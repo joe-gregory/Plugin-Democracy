@@ -1,7 +1,7 @@
-const Community = require('../models/communityModels');
+const CommunityModels = require('../models/communityModels');
 const CitizenActionsModels = require('../models/citizenActionsModels');
 
-const citizenActions = require('_citizenActionsController');
+const citizenActions = require('./_citizenActionsController');
 
 const getCheckIsAuthenticated = (request, response, next) => {
     if(!request.isAuthenticated()){
@@ -11,13 +11,13 @@ const getCheckIsAuthenticated = (request, response, next) => {
 
 const getCommunityAbout = async (request, response) => {
     //Get community's name, address, amount of homes, currently participating members, laws, president, treasurer
-    let community = await Community.Community.findById(request.user.community);
+    let community = await CommunityModels.Community.findById(request.user.community);
     response.locals.community = community;
 
-    let homes = await Community.Home.find({'_id' : { $in: community.innerHomes}});
+    let homes = await CommunityModels.Home.find({'_id' : { $in: community.innerHomes}});
     response.locals.homes = homes; 
 
-    let citizens = await Community.Citizen.find({'_id' : { $in: community.citizens}});
+    let citizens = await CommunityModels.Citizen.find({'_id' : { $in: community.citizens}});
     
     for(let i = 0; i < citizens.length; i++){
         relatedHome = homes.find( home => home.citizen == citizens[i].id);
@@ -38,22 +38,23 @@ const getCommunityProposal = (request, response) => {
 };
 
 const getCommunityJoin = (request, response) => {
-    Community.Community.find({}, function(err, communities) {
+    CommunityModels.Community.find({}, function(err, communities) {
+        console.log('in getCommunityJoin');
         response.locals.communities = [];
 
         communities.forEach(function(community) {
             response.locals.communities.push(community);
         });
-
+        console.log(response.locals.communities.length);
         response.render('joinCommunity', request.user);
     });
 };
 
 const postCommunityJoin = (request, response) => {
-    Community.Citizen.findById(request.user.id, function(err, citizen) {
-        Community.Community.findById(request.body.community, function(err, community) {
-            Community.Home.findById(request.body.home, async function(err, home) {
-                citizen.community = community;
+    CommunityModels.Citizen.findById(request.user.id, function(err, citizen) {
+        CommunityModels.Community.findById(request.body.community, function(err, community) {
+            CommunityModels.Home.findById(request.body.home, async function(err, home) {
+                citizen.communities.push(community);
                 citizen.home = home;
 
                 community.citizens.push(citizen);
@@ -71,12 +72,12 @@ const postCommunityJoin = (request, response) => {
 };
 //FUNCTION I WANT TO IMPLEMENT FOR CODE REUSABILITY
 function createCommunity(data) {
-    const community = new Community.Community({
+    const community = new CommunityModels.Community({
         name: data.communityName,
         communityAddress: data.communityAddress,
     });
     for(let i = request.body.communityStartingNumber; i <= request.body.communityEndingNumber; i++){
-        let home = new Community.Home({
+        let home = new CommunityModels.Home({
             innerNumber: i, 
             community:community,
         });
@@ -91,12 +92,12 @@ function createCommunity(data) {
 //THE FUNCTION WOULD GO IN HERE
 const postCommunityCreate = (request, response) => {
     
-    const community = new Community.Community({
+    const community = new CommunityModels.Community({
         name:  request.body.communityName,
         communityAddress: request.body.communityAddress, 
     });
     for(let i = request.body.communityStartingNumber; i <= request.body.communityEndingNumber; i++){
-        let home = new Community.Home({
+        let home = new CommunityModels.Home({
             innerNumber: i, 
             community:community,
         });
@@ -112,9 +113,9 @@ const postCommunityCreate = (request, response) => {
 const getCommunityJoinHomesAjax = (request,response) => {
     //check wether request is ajax and if accepts json
     if(request.xhr || request.accepts('json,html') ==='json') {
-        Community.Community.findById(request.query.id, function(err, community) {
+        CommunityModels.Community.findById(request.query.id, function(err, community) {
             
-            Community.Home.find(
+            CommunityModels.Home.find(
                 {'_id' : { $in: community.innerHomes}}, 
                 function(err, homes) {
                     if(err) console.log(err);
@@ -132,7 +133,7 @@ const postCreateProposal = (request, response) => {
 const getCreateProposalAjax = async (request, response) => {
     //check whether request is ajax and if accepts json
     if(request.xhr || request.accepts('jason, html') == 'json') {
-        let community = await Community.Community.findById(request.user.community);
+        let community = await CommunityModels.Community.findById(request.user.community);
         let laws = await CitizenActionsModels.Law.find({'_id' : {$in: community.laws}});
         response.send({laws:laws});
     }
