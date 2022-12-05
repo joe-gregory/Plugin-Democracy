@@ -2,6 +2,7 @@ const CommunityModels = require('../models/communityModels');
 const CitizenActionsModels = require('../models/citizenActionsModels');
 
 const citizenActions = require('./_citizenActionsController');
+const dbController = require('./_dbController');
 
 const getCheckIsAuthenticated = (request, response, next) => {
     if(!request.isAuthenticated()){
@@ -37,17 +38,13 @@ const getCommunityProposal = (request, response) => {
     response.render('createProposal')
 };
 
-const getCommunityJoin = (request, response) => {
-    CommunityModels.Community.find({}, function(err, communities) {
-        console.log('in getCommunityJoin');
-        response.locals.communities = [];
-
-        communities.forEach(function(community) {
-            response.locals.communities.push(community);
-        });
-        console.log(response.locals.communities.length);
-        response.render('joinCommunity', request.user);
-    });
+const getCommunityJoin = async (request, response) => {
+    response.locals.communities = []
+    communities = await CommunityModels.Community.find({});
+    communities.forEach(community => response.locals.communities.push(community));
+    console.log(response.locals.communities);
+    console.log(typeof(response.locals.communities));
+    response.render('joinCommunity');
 };
 
 const postCommunityJoin = (request, response) => {

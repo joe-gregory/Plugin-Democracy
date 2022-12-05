@@ -7,9 +7,9 @@ const session = require('express-session');
 const key = require('./keys');
 
 //routes
-const authRoutes = require('./routes/authRoute');
-const errorsRoutes = require('./routes/errorsRoute');
-const createCommunityRoutes = require('./routes/myCommunityRoute');
+const authRoutes = require('./routes/authRoutes');
+const errorsRoutes = require('./routes/errorsRoutes');
+const myCommunityRoutes = require('./routes/myCommunityRoutes');
 
 //express app 
 const DDapp = express();
@@ -103,5 +103,5 @@ DDapp.get('/', (request, response) => {
 });
 
 DDapp.use(authRoutes);
-DDapp.use(createCommunityRoutes);
+DDapp.use(myCommunityRoutes);
 DDapp.use(errorsRoutes);

@@ -6,9 +6,13 @@ const CitizenActions = require('../models/citizenActionsModels');
 function isUserCitizen(user, community){
 
 }
-
+//this is not being used right now
 async function getAllCommunities(){
     let communities =  await CommunityModels.Community.find({});
     return communities;
 
+}
+
+module.exports = {
+    getAllCommunities,
 }
