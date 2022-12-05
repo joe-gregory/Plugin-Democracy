@@ -42,8 +42,6 @@ const getCommunityJoin = async (request, response) => {
     response.locals.communities = []
     communities = await CommunityModels.Community.find({});
     communities.forEach(community => response.locals.communities.push(community));
-    console.log(response.locals.communities);
-    console.log(typeof(response.locals.communities));
     response.render('joinCommunity');
 };
 
