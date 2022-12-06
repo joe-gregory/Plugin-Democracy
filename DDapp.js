@@ -4,13 +4,13 @@ const Community = require('./models/communityModels');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
-const flash = require('flash');
 const key = require('./keys');
 
 //routes
 const authRoutes = require('./routes/authRoutes');
 const errorsRoutes = require('./routes/errorsRoutes');
 const myCommunityRoutes = require('./routes/myCommunityRoutes');
+const { application } = require('express');
 
 //express app 
 const DDapp = express();
@@ -43,7 +43,12 @@ DDapp.use(session ({
     saveUninitialized: false, 
     })
 );
-DDapp.use(flash);
+//flash message middleware
+DDapp.use((request, response, next) =>{
+    response.locals.message = request.session.message;
+    delete request.session.message;
+    next();
+})
 
 DDapp.use(passport.initialize());
 DDapp.use(passport.session());
