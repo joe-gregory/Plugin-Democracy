@@ -2,7 +2,7 @@ const Community = require('../models/communityModels');
 const Law = require('../models/citizenActionsModels');
 
 const getCommunityFeed = async (request, response) => {
-    if (!request.user.communities.length) return response.redirect('/mycommunity/nocommunity');
+    if (!request.user.residencies.length) return response.redirect('/mycommunity/nocommunity');
      
     response.locals.firstName = request.user.firstName;
     

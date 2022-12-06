@@ -16,7 +16,7 @@ const communitySchema = new Schema({
         unique: true,
     },
     
-    innerHomes : [{ 
+    homes : [{ 
          type: Schema.Types.ObjectId, ref: 'Home'
     }],
 
@@ -56,9 +56,9 @@ const homeSchema = new Schema({
 
     community: { type: Schema.Types.ObjectId, ref: 'Community'},
     
-    citizen: {
+    citizens: [{
         type: Schema.Types.ObjectId, ref: 'Citizen'
-    }
+    }]
 }, 
 {timestamps:true}
 
@@ -91,9 +91,14 @@ const citizenSchema = new Schema({
 
     cellPhone: String, 
     
-    communities: [{ type: Schema.Types.ObjectId, ref : 'Community' }],
+    residencies: [
 
-    home: { type: Schema.Types.ObjectId, ref : 'Home' },
+        { 
+            community: {type: Schema.Types.ObjectId, ref : 'Community'},
+            home: { type: Schema.Types.ObjectId, ref : 'Home' },
+        }
+
+        ],
 
     badges: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.badge'}],
 

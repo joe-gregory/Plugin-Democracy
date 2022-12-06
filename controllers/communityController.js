@@ -46,72 +46,56 @@ const getCommunityJoin = async (request, response) => {
 };
 
 const postCommunityJoin = async (request, response) => {
-    //can't join community if you are already part of community
+    //Obtain data from POST
     let citizen = await CommunityModels.Citizen.findById(request.user.id);
     let community = await CommunityModels.Community.findById(request.body.community);
     let home = await CommunityModels.Home.findById(request.body.home);
 
-    //search if community is already in user and user in community. Cannot join if already part of it
-    if(community.citizens.includes(citizen.id) || citizen.communities.includes(community.id)){
-        response.locals.message = 'Ya perteneces a esta comunidad';
-        response.redirect('/profile');
+    //can't join community if you are already part of community
+    /*if(!dbController.isCitizenHomeCommunityConsistent(citizen, home,community)) {
+        let citizen_home_number = dbController.obtainCitizenHomeNumberInCommunity(citizen, community);
+        request.session.message = {
+            type: 'danger',
+            title: 'Usuario ya registrado en comunidad',
+            message: `Ya estas registrado con esta comunidad en casa ${citizen_home_number}.
+            Puedes checar el estado de registracion en tu pagina de perfil. Si hay algun problema,
+            por favor comunicate con servicio tecnico.`
+        }
+        response.redirect('/mycommunity/join');
         return;
-    } 
-    //
-    citizen.communities.push(community);
-    citizen.home = home;
-    community.citizens.push(citizen);
-
-    await citizen.save();
-    await community.save();
-    await home.save();
+    }*/
+    dbController.joinCitizenToCommunity(citizen, home, community);
+    
     response.redirect('/mycommunity');
 };
-//FUNCTION I WANT TO IMPLEMENT FOR CODE REUSABILITY
-function createCommunity(data) {
-    const community = new CommunityModels.Community({
-        name: data.communityName,
-        communityAddress: data.communityAddress,
-    });
-    for(let i = request.body.communityStartingNumber; i <= request.body.communityEndingNumber; i++){
-        let home = new CommunityModels.Home({
-            innerNumber: i, 
-            community:community,
-        });
-        home.save();
-        //community.innerHomes.push(new Community.Home({innerNumber: i}));
-        community.innerHomes.push(home);
-    }
-    community.save()
-        .then((result) => console.log('Community saved'))
-        .catch((err) => console.log('Error community creation', err));
-};
-//THE FUNCTION WOULD GO IN HERE
+
 const postCommunityCreate = (request, response) => {
-    
-    const community = new CommunityModels.Community({
-        name:  request.body.communityName,
-        communityAddress: request.body.communityAddress, 
-    });
-    for(let i = request.body.communityStartingNumber; i <= request.body.communityEndingNumber; i++){
-        let home = new CommunityModels.Home({
-            innerNumber: i, 
-            community:community,
-        });
-        home.save();
-        //community.innerHomes.push(new Community.Home({innerNumber: i}));
-        community.innerHomes.push(home);
+    let result_of_community_create = dbController.createCommunity(request.body);
+    if (result_of_community_create instanceof Error){
+        
+        request.session.message = {
+            type: 'danger',
+            title: 'Error creando comunidad',
+            message: `Por favor comunicate con servicio tecnico.`
+        }
+
+        response.redirect('/mycommunity/create');
+        return;
+    } else{
+        request.session.message = {
+            type: 'success',
+            title: 'Comunidad creada exitosamente', 
+            message: '', 
+        }
+        response.redirect('/mycommunity/join');
     }
-    community.save()
-        .then((result) => response.redirect('/mycommunity'))
-        .catch((err) => response.send(err));
 };
 
 const getCommunityJoinHomesAjax = (request,response) => {
     //check wether request is ajax and if accepts json
     if(request.xhr || request.accepts('json,html') ==='json') {
         CommunityModels.Community.findById(request.query.id, function(err, community) {
-            
+            //Search for homes that have a community id == community
             CommunityModels.Home.find(
                 {'_id' : { $in: community.innerHomes}}, 
                 function(err, homes) {
