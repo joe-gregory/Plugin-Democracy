@@ -20,7 +20,7 @@ async function isCitizenHomeCommunityConsistent(citizen, home, community){
     let citizen_home_id = citizen.residencies.find(residency => residency.home === home.id);
 
     let home_citizen_id = home.citizens.find(cit => cit === citizen.id);
-    let home_community_id = home.community.find(com => com === community.id);
+    let home_community_id = community.id;
 
     let community_citizen_id = community.citizens.find(cit => cit === citizen.id);
     let community_home_id = community.homes.find(hm => hm === home.id);
@@ -30,9 +30,11 @@ async function isCitizenHomeCommunityConsistent(citizen, home, community){
 }
 
 async function joinCitizenToCommunity(citizen, home, community) {
-     //can't join community if you are already part of community
-     if(!dbController.isCitizenHomeCommunityConsistent(citizen, home,community)) {
-        let citizen_home_number = dbController.obtainCitizenHomeNumberInCommunity(citizen, community);
+    //This function joins a citizen to a community if the citizen is not registered in the community 
+    //or vice versa if community has it registered
+    //if it can't it returns an error, otherwise the result of community.save()
+     if(!isCitizenHomeCommunityConsistent(citizen, home,community)) {
+        let citizen_home_number = obtainCitizenHomeNumberInCommunity(citizen, community);
         request.session.message = {
             type: 'danger',
             title: 'Usuario ya registrado en comunidad',
@@ -41,7 +43,7 @@ async function joinCitizenToCommunity(citizen, home, community) {
             Por favor comunicate con servicio tecnico.`
         }
         response.redirect('back');
-        return;
+        return new Error ('Unable to join citizen to community');
     }
     
     let citizen_residency = {
@@ -61,7 +63,7 @@ async function joinCitizenToCommunity(citizen, home, community) {
 async function obtainCitizenHomeNumberInCommunity(citizen, community){
     //returns the house number of the citizen in a given community
     let citizen_residency = citizen.residencies.find(residency => residency.community === community.id);
-    let home = await CommunityModels.Home.findById(citizen_community.home);
+    let home = await CommunityModels.Home.findById(citizen_residency.home);
     return home.innerNumber;
 }
 

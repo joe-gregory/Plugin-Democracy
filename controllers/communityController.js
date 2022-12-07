@@ -12,10 +12,10 @@ const RouteIfUserNoAuthenticated = (request, response, next) => {
 
 const getCommunityAbout = async (request, response) => {
     //Get community's name, address, amount of homes, currently participating members, laws, president, treasurer
-    let community = await CommunityModels.Community.findById(request.user.community);
+    let community = await CommunityModels.Community.findById(request.user.residencies[0].community);
     response.locals.community = community;
 
-    let homes = await CommunityModels.Home.find({'_id' : { $in: community.innerHomes}});
+    let homes = await CommunityModels.Home.find({'_id' : { $in: community.homes}});
     response.locals.homes = homes; 
 
     let citizens = await CommunityModels.Citizen.find({'_id' : { $in: community.citizens}});
@@ -51,19 +51,6 @@ const postCommunityJoin = async (request, response) => {
     let community = await CommunityModels.Community.findById(request.body.community);
     let home = await CommunityModels.Home.findById(request.body.home);
 
-    //can't join community if you are already part of community
-    /*if(!dbController.isCitizenHomeCommunityConsistent(citizen, home,community)) {
-        let citizen_home_number = dbController.obtainCitizenHomeNumberInCommunity(citizen, community);
-        request.session.message = {
-            type: 'danger',
-            title: 'Usuario ya registrado en comunidad',
-            message: `Ya estas registrado con esta comunidad en casa ${citizen_home_number}.
-            Puedes checar el estado de registracion en tu pagina de perfil. Si hay algun problema,
-            por favor comunicate con servicio tecnico.`
-        }
-        response.redirect('/mycommunity/join');
-        return;
-    }*/
     dbController.joinCitizenToCommunity(citizen, home, community);
     
     response.redirect('/mycommunity');
@@ -97,7 +84,7 @@ const getCommunityJoinHomesAjax = (request,response) => {
         CommunityModels.Community.findById(request.query.id, function(err, community) {
             //Search for homes that have a community id == community
             CommunityModels.Home.find(
-                {'_id' : { $in: community.innerHomes}}, 
+                {'_id' : { $in: community.homes}}, 
                 function(err, homes) {
                     if(err) console.log(err);
                     response.send({homes:homes});

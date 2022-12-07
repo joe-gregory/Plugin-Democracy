@@ -3,11 +3,9 @@ const Law = require('../models/citizenActionsModels');
 
 const getCommunityFeed = async (request, response) => {
     if (!request.user.residencies.length) return response.redirect('/mycommunity/nocommunity');
-     
-    response.locals.firstName = request.user.firstName;
     
-    //Search for the community associated with the user
-    let community = await Community.Community.findById(request.user.community); 
+    //Search for the community associated with the user: new change: search for the communities associated with the user
+    let community = await Community.Community.findById(request.user.residencies[0].community); 
     if (community === null) {
         response.redirect('/profile');
         return;
