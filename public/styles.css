@@ -259,3 +259,7 @@
 .message{
   color:red;
 }
+
+.alertMessage{
+  text-align: center;
+}

@@ -25,8 +25,8 @@
     </div>
 </nav> 
 <% if(locals.message){ %>
-    <%- `<div style ="text-align: center" class = "alert alert-${message.type} alert-dismissible fade show" role="alert">` %>
+    <%- `<div class = "alert alert-${message.type} alert-dismissible fade show alertMessage" role="alert">` %>
         <%- `<strong>${locals.message.title}</strong> ${message.message}` %>
-        <%- `<button type = "button" class = "close" data-dismiss = "alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>` %>
+        <%- `<button type = "button" class = "close btn-close" data-bs-dismiss = "alert" aria-label="Close"></button>` %>
     <%- '</div>' %>
 <% } %>
