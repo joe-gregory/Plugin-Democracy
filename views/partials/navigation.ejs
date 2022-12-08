@@ -24,6 +24,7 @@
         </div>
     </div>
 </nav> 
+
 <% if(locals.message){ %>
     <%- `<div class = "alert alert-${message.type} alert-dismissible fade show alertMessage" role="alert">` %>
         <%- `<strong>${locals.message.title}</strong> ${message.message}` %>

@@ -72,7 +72,7 @@ const postCommunityCreate = (request, response) => {
         request.session.message = {
             type: 'success',
             title: 'Comunidad creada exitosamente', 
-            message: '', 
+            message: 'Ahora puedes unirte a esta comunidad', 
         }
         response.redirect('/mycommunity/join');
     }
