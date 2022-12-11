@@ -4,12 +4,14 @@ const CitizenActionsModels = require('../models/citizenActionsModels');
 const citizenActions = require('./_citizenActionsController');
 const dbController = require('./_dbController');
 
+//IF USER NOT LOGGED IN, REROUTE TO /LOGIN
 const RouteIfUserNoAuthenticated = (request, response, next) => {
     if(!request.isAuthenticated()){
         response.redirect('/login');
     }else{next();} 
 }
 
+//COMMUNITY ABOUT
 const getCommunityAbout = async (request, response) => {
     //Get community's name, address, amount of homes, currently participating members, laws, president, treasurer
     let community = await CommunityModels.Community.findById(request.user.residencies[0].community);
@@ -33,17 +35,28 @@ const getCommunityAbout = async (request, response) => {
     response.render('aboutCommunity');
 };
 
-const getCommunityProposal = (request, response) => {
-    response.locals.firstName = request.user.firstName;
-    response.render('createProposal')
-};
-
+//JOIN COMMUNITY
 const getCommunityJoin = async (request, response) => {
     response.locals.communities = []
     communities = await CommunityModels.Community.find({});
     communities.forEach(community => response.locals.communities.push(community));
     response.render('joinCommunity');
 };
+
+const getCommunityJoinHomesAjax = (request,response) => {
+    //check wether request is ajax and if accepts json
+    if(request.xhr || request.accepts('json,html') ==='json') {
+        CommunityModels.Community.findById(request.query.id, function(err, community) {
+            //Search for homes that have a community id == community
+            CommunityModels.Home.find(
+                {'_id' : { $in: community.homes}}, 
+                function(err, homes) {
+                    if(err) console.log(err);
+                    response.send({homes:homes});
+                });
+        })
+    };
+}
 
 const postCommunityJoin = async (request, response) => {
     //Obtain data from POST
@@ -55,6 +68,11 @@ const postCommunityJoin = async (request, response) => {
     
     response.redirect('/mycommunity');
 };
+
+//CREATE COMMUNITY
+const getCommunityCreate = (request, response) => {
+    response.render('createCommunity');
+}
 
 const postCommunityCreate = (request, response) => {
     let result_of_community_create = dbController.createCommunity(request.body);
@@ -78,24 +96,10 @@ const postCommunityCreate = (request, response) => {
     }
 };
 
-const getCommunityJoinHomesAjax = (request,response) => {
-    //check wether request is ajax and if accepts json
-    if(request.xhr || request.accepts('json,html') ==='json') {
-        CommunityModels.Community.findById(request.query.id, function(err, community) {
-            //Search for homes that have a community id == community
-            CommunityModels.Home.find(
-                {'_id' : { $in: community.homes}}, 
-                function(err, homes) {
-                    if(err) console.log(err);
-                    response.send({homes:homes});
-                });
-        })
-    };
-}
-
-const postCreateProposal = (request, response) => {
-    citizenActions.createProposal(request.user, request.body);
-    response.redirect('/mycommunity');    
+//COMMUNITY PROPOSALS
+const getCommunityProposal = (request, response) => {
+    response.locals.firstName = request.user.firstName;
+    response.render('createProposal')
 };
 
 const getCreateProposalAjax = async (request, response) => {
@@ -106,14 +110,21 @@ const getCreateProposalAjax = async (request, response) => {
         response.send({laws:laws});
     }
 }
+
+const postCreateProposal = (request, response) => {
+    citizenActions.createProposal(request.user, request.body);
+    response.redirect('/mycommunity');    
+};
+
 module.exports = {
-    RouteIfUserNoAuthenticated: RouteIfUserNoAuthenticated,
+    RouteIfUserNoAuthenticated,
     getCommunityAbout,
-    getCommunityProposal,
     getCommunityJoin,
-    postCommunityJoin,
-    postCommunityCreate,
     getCommunityJoinHomesAjax,
+    postCommunityJoin,
+    getCommunityCreate,
+    postCommunityCreate,
+    getCommunityProposal,
     getCreateProposalAjax,
     postCreateProposal,
 }

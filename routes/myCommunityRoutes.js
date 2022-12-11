@@ -15,9 +15,7 @@ router.get('/mycommunity/nocommunity', (request, response) => {
 })
 router.get('/mycommunity/about',communityController.getCommunityAbout);
 
-router.get('/mycommunity/create', (request, response) =>{
-    response.render('createCommunity');
-});
+router.get('/mycommunity/create', communityController.getCommunityCreate);
 
 router.post('/mycommunity/create', communityController.postCommunityCreate);
 
