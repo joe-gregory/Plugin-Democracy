@@ -141,6 +141,10 @@ const roleSchema = new Schema ({
             type: Schema.Types.ObjectId, ref: 'Community.Community',
             required: true,
         },
+    
+    citizen:  {
+        type: Schema.Types.ObjectId, ref: 'Community.Citizen'
+    },
 
     proposal: {
         type: Schema.Types.ObjectId, ref: 'Proposal',

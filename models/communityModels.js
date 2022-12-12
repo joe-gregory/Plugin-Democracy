@@ -24,10 +24,6 @@ const communitySchema = new Schema({
         type: Schema.Types.ObjectId, ref: 'Citizen'
     }],
 
-    president : { type: Schema.Types.ObjectId, ref: 'Citizen'},
-
-    treasurer : { type: Schema.Types.ObjectId, ref: 'Citizen' },
-
     proposals: [{
         type: Schema.Types.ObjectId, ref: 'CitizenActions.Proposal'
     }],
@@ -56,9 +52,9 @@ const homeSchema = new Schema({
 
     community: { type: Schema.Types.ObjectId, ref: 'Community'},
     
-    citizens: [{
-        type: Schema.Types.ObjectId, ref: 'Citizen'
-    }]
+    citizens: [{ type: Schema.Types.ObjectId, ref: 'Citizen' }], 
+
+    voter: {type: Schema.Types.ObjectId, ref: 'Citizen'},
 }, 
 {timestamps:true}
 
@@ -105,6 +101,9 @@ const citizenSchema = new Schema({
 }, 
     {timestamps: true}
 );
+
+citizenSchema.virtual('fullName').
+    get(function(){ return `${this.firstName} ${this.lastName} ${this.secondLastName}`})
 
 const Community = mongoose.model('Community', communitySchema);
 const Home = mongoose.model('Home', homeSchema);

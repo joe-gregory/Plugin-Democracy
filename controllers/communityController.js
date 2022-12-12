@@ -13,24 +13,18 @@ const RouteIfUserNoAuthenticated = (request, response, next) => {
 
 //COMMUNITY ABOUT
 const getCommunityAbout = async (request, response) => {
-    //Get community's name, address, amount of homes, currently participating members, laws, president, treasurer
-    let community = await CommunityModels.Community.findById(request.user.residencies[0].community);
-    response.locals.community = community;
-
-    let homes = await CommunityModels.Home.find({'_id' : { $in: community.homes}});
-    response.locals.homes = homes; 
-
-    let citizens = await CommunityModels.Citizen.find({'_id' : { $in: community.citizens}});
+    //Get community's name, address, amount of homes, currently participating members per home, 
+    //Voting member of home, roles, laws
     
-    for(let i = 0; i < citizens.length; i++){
-        relatedHome = homes.find( home => home.citizen == citizens[i].id);
-        citizens[i].innerNumber = relatedHome.innerNumber;
+    //let communityDetails = await dbController.communityDetails(request.user.residencies[0].community);
+    //console.log(communityDetails);
+    
+    response.locals.communities = [];
+    for(let i = 0; i < request.user.residencies.length; i++){
+        community = await dbController.communityDetails(request.user.residencies[i].community);
+        response.locals.communities.push(community);
     }
-
-    response.locals.citizens = citizens;
-    response.locals.firstName = request.user.firstName; //this is to show nav bar. This is sloppy. Address in future. 
-    let laws = await CitizenActionsModels.Law.find({'_id' : {$in: community.laws}});
-    response.locals.laws = laws;
+    console.log(response.locals.communities);
 
     response.render('aboutCommunity');
 };

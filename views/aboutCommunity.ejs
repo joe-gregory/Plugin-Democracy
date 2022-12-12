@@ -2,36 +2,109 @@
 <%- include('./partials/navigation.ejs') %>
 
 <div class = 'container'>
-    <h1 class="h1 pageTitle">Sobre Comunidad</h1>
-</div>
+    <h1 class="h1 pageTitle">Detalles De Tu Comunidad</h1>
+    
+    <div class = 'mb-3'>
+        <select  name = 'communities' class="form-select" id='community'>
+            <option disabled selected>Selecciona una comunidad</option>
+            <% for(let i = 0; i < locals.communities.length; i++){%>
+            <%- `<option value = '${i}'>${locals.communities[i].name}</option>` %> 
+            <% } %>
+        </select>
+    </div>
 
-<div class = 'container'>
-    <h2 class = 'h2 pageTitle'>Detalles de tu comunidad</h2>
-    <p><b>Nombre de la comunidad:</b> <%=locals.community.name%></p>
-    <p><b>Direccion: </b><%=locals.community.communityAddress%></p>
-    <p><b>Cantidad de casas internas: </b><%=locals.community.innerHomes.length%></p>
-    <p><b>Cantidad de ciudadanos registrados: </b><%=locals.community.citizens.length%></p>
-    <p><b>Rango de casas internas: </b><%=locals.homes[0].innerNumber%> - <%=locals.homes[locals.homes.length - 1].innerNumber %></p>
-    <div class = 'container'>
-        <h3 class = 'h3'>Ciudadanos Registrados</h3>
-        <div class = 'row'>
-            <ul class = 'list-group'>
-                <%for(let i = 0; i < locals.citizens.length; i++) { %>
-                    <%-`<li class = 'list-group-item'><b>Nombre: </b>${locals.citizens[i].firstName} <b>Casa #</b>${locals.citizens[i].innerNumber}</li>`%>
-                <%}%>
-            </ul>
+    <div class = 'mb-3' id = 'community'>
+        <h2 class = 'h2 pageTitle'>Comunidad</h2>
+        <div class = 'mb-3' id = 'communityDetails'>
+        </div>
+    </div>
+
+    <div class = 'mb-3' id = 'members'>
+        <h2 class = 'h2 pageTitle'>Miembros</h2>
+        <div class = 'mb-3' id = 'membersDetails'>
+        </div>
+    </div>
+
+    <div class = 'mb-3' id = 'roles'>
+        <h2 class = 'h2 pageTitle'>Roles</h2>
+        <div class = 'mb-3' id = 'rolesDetails'>
+        </div>
+    </div>
+
+    <div class = 'mb-3' id = 'projects'>
+        <h2 class = 'h2 pageTitle'>Proyectos</h2>
+        <div class = 'mb-3' id = 'projectsDetails'>
+        </div>
+    </div>
+
+    <div class = 'mb-3' id = 'permits'>
+        <h2 class = 'h2 pageTitle'>Permisos</h2>
+        <div class = 'mb-3' id = 'permitsDetails'>
+        </div>
+    </div>
+
+    <div class = 'mb-3' id = 'laws'>
+        <h2 class = 'h2 pageTitle'>Leyes</h2>
+        <div class = 'mb-3' id = 'lawsDetails'>
+        </div>
+    </div>
+
+    <div class = 'mb-3' id = 'badges'>
+        <h2 class = 'h2 pageTitle'>Medallas</h2>
+        <div class = 'mb-3' id = 'badgesDetails'>
         </div>
     </div>
 </div>
 
-<div class = 'container'>
-    <h2 class = 'h2 pageTitle'>Leyes</h2>
-    <% for(let i = 0; i < locals.laws.length; i++) { %>
-        <%- `<h3 class = 'h3'>Ley #${i+1}</h3>` %>
-        <%- `<p>${locals.laws[i].law}</p>` %>
-    <% } %>
-</div>
+<script>
+    $('#communities').on('change', function(){
+        let index = $('#communities').val();
 
+        $('#communityDetails').empty();
+        $('#membersDetails').empty();
+        $('#rolesDetails').emtpy();
+        $('#projectsDetails').empty();
+        $('#permitsDetails').empty();
+        $('#lawsDetailes').empty();
+        $('#badgesDetails').empty();
 
+        //fill in community Details
+        $('#communityDetails').append(`<p><b>Nombre de la comunidad:</b> ${locals.communities[index].name}</p>`);
+        $('#communityDetails').append(`<p><b>Direccion:</b> ${locals.communities[index].address}</p>`);
+        $('#communityDetails').append(`<p><b>Cantidad de hogares: </b>${locals.communities[index].homes.length}`);
+        $('#communityDetails').append(`<p><b>Cantidad de ciudadanos: </b>${locals.communities[index].citizens.length}`);
+        
+        //members
+        for(let i = 0; i < locals.communities[index].homes; i++){
+            $('membersDetails').append(`<h4 class = "h4">Casa #${locals.communities[index].homes[i].innerNumber}<h4>`);
+            $('#membersDetails').append(`<ul class = "list-group">`);
+            for(let j = 0; j < locals.communities[index].homes[i].citizens.length; j++){
+                append = `<li class = "list-group-item">${locals.communities[index].homes[i].citizens[j].fullName}`;
+                if(locals.communities[index].homes[i].citizens[j].voter === true) append += ' <b>(miembro votador)</b>';
+                append += '</li>';
+                $('#membersDetails').append(append);
+            }
+            $('#membersDetails').append('</ul>');
+        }
+        
+        //roles
+        for(let i = 0; i < locals.communities[index].roles.length; i++){
+            $('rolesDetails').append(`<h4 class = "h4">${locals.communities[index].roles[i].title}</h4>`);
+            $('rolesDetails').append(`<p>${locals.communities[index].roles[i].citizen.fullName}</p>`);
+        }
 
+        //projects
+        for(let i =0; i < locals.communities[index].projects.length; i++){
+            $('projectsDetails').append(`<p><a href = "/community/project/${locals.communities[index].projects[i]}">${locals.communities[index].projects[i].title}</a></p>`);
+        }
+
+        //permits
+
+        //laws
+
+        //badges
+        
+    })
+   
+</script>
 <%- include('./partials/footer.ejs') %>
