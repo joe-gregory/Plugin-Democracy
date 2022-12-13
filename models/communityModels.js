@@ -10,7 +10,7 @@ const communitySchema = new Schema({
         unique: true,
     },
     
-    communityAddress : {
+    address : {
         type: String,
         required: true,
         unique: true,

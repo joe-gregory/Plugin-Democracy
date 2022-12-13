@@ -106,8 +106,12 @@ async function communityDetails(communityId){
 
     //citizens
     let citizens = await CommunityModels.Citizen.find({'_id': {$in: community.citizens}});
+    for (let i = 0; i < citizens.length; i++){
+        citizens[i].fullName = returnCitizenFullName(citizens[i]);
+        delete citizens[i].password;
+    }
     community.citizens = citizens;
-    
+
     //active laws
     let laws = await CitizenActions.Law.find({'_id' : {$in: community.laws}});
     let activeLaws = laws.filter( law => law.active === true);
@@ -153,6 +157,7 @@ async function homeDetails(homeId){
     for(let i = 0; i < home.citizens.length; i++){
         
         let citizen = await CommunityModels.Citizen.findById(home.citizens[i]);
+        citizen.fullName = returnCitizenFullName(citizen);
         
         (citizen.id == home.voter) ? citizen.voter = true : citizen.voter = false;
         
@@ -164,6 +169,76 @@ async function homeDetails(homeId){
     return home;
 }
 
+async function fullCommunityObject(communityId){
+    //mongoDB instance object: immutable
+    let mongoCom = await CommunityModels.Community.findById(communityId);
+    
+    //declare the object that will be filled
+    let community = {};
+    //Basic info
+    community.id = mongoCom.id;
+    community.name = mongoCom.name;
+    community.address = mongoCom.address;
+
+    //Citizens
+    community.citizens = [];
+    for (let i = 0; i < mongoCom.citizens.length; i++){
+        mongoCitizen = await CommunityModels.Citizen.findById(mongoCom.citizens[i]);
+        citizen = {
+            id: mongoCitizen.id,
+            firstName: mongoCitizen.firstName,
+            lastName: mongoCitizen.lastName,
+            secondLastName: mongoCitizen.secondLastName,
+            fullName: `${mongoCitizen.firstName} ${mongoCitizen.lastName} ${mongoCitizen.secondLastName}`,
+            email: mongoCitizen.email,
+            cellPhone: mongoCitizen.cellPhone,
+            voter: false,
+        }
+        community.citizens.push(citizen);
+    }
+
+    //Homes
+    let mongoHomes = [];
+    for (let i = 0; i < mongoCom.homes.length; i++){
+        let mongoHome = await CommunityModels.Home.findById(mongoCom.homes[i]);
+        mongoHomes.push(mongoHome);
+    }
+
+    community.homes = [];
+    for (let i = 0; i < mongoHomes.length; i++){
+        let home = {
+            id: mongoHomes[i].id,
+            innerNumber: mongoHomes[i].innerNumber,
+            community: community,
+
+        }
+        //Adding reference of community.citizens to homes[i].citizens and vice versa
+        home.citizens = [];
+        for(let j = 0; j < mongoHomes[i].citizens.length; j++){
+            //what community.citizen index are the citizens in this home
+            let index = community.citizens.findIndex(citizen => citizen.id == mongoHomes[i].citizens[j]);
+            if(index === -1) console.log('-1');
+            if(mongoHomes[i].citizens[j].voter === true) community.citizens[index].voter = true;
+            community.citizens[index].residencies = [];
+            community.citizens[index].residencies.push({community: community, home: home});
+            home.citizens.push(community.citizens[index]);
+        }
+
+        community.homes.push(home);
+    }
+
+  
+    //return object
+    return community;
+}
+
+
+
+function returnCitizenFullName(citizen){
+    if(citizen.firstName == undefined || citizen.lastName == undefined) return;
+    return `${citizen.firstName} ${citizen.lastName} ${citizen.secondLastName}`;
+}
+
 module.exports = {
     isHomePartOfCommunity,
     isCitizenHomeCommunityConsistent,
@@ -172,4 +247,6 @@ module.exports = {
     createCommunity,
     communityDetails,
     homeDetails,
+    fullCommunityObject,
+    returnCitizenFullName,
 }

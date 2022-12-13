@@ -15,6 +15,8 @@ router.get('/mycommunity/nocommunity', (request, response) => {
 })
 router.get('/mycommunity/about',communityController.getCommunityAbout);
 
+router.get('/mycommunity/about/details', communityController.getCommunityAboutDetailsAjax);
+
 router.get('/mycommunity/create', communityController.getCommunityCreate);
 
 router.post('/mycommunity/create', communityController.postCommunityCreate);

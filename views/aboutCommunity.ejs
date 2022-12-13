@@ -5,10 +5,10 @@
     <h1 class="h1 pageTitle">Detalles De Tu Comunidad</h1>
     
     <div class = 'mb-3'>
-        <select  name = 'communities' class="form-select" id='community'>
+        <select  name = 'communities' class="form-select" id='communities'>
             <option disabled selected>Selecciona una comunidad</option>
             <% for(let i = 0; i < locals.communities.length; i++){%>
-            <%- `<option value = '${i}'>${locals.communities[i].name}</option>` %> 
+            <%- `<option value = '${locals.communities[i].id}'>${locals.communities[i].name}</option>` %> 
             <% } %>
         </select>
     </div>
@@ -57,54 +57,82 @@
 </div>
 
 <script>
-    $('#communities').on('change', function(){
-        let index = $('#communities').val();
-
-        $('#communityDetails').empty();
-        $('#membersDetails').empty();
-        $('#rolesDetails').emtpy();
-        $('#projectsDetails').empty();
-        $('#permitsDetails').empty();
-        $('#lawsDetailes').empty();
-        $('#badgesDetails').empty();
-
-        //fill in community Details
-        $('#communityDetails').append(`<p><b>Nombre de la comunidad:</b> ${locals.communities[index].name}</p>`);
-        $('#communityDetails').append(`<p><b>Direccion:</b> ${locals.communities[index].address}</p>`);
-        $('#communityDetails').append(`<p><b>Cantidad de hogares: </b>${locals.communities[index].homes.length}`);
-        $('#communityDetails').append(`<p><b>Cantidad de ciudadanos: </b>${locals.communities[index].citizens.length}`);
-        
-        //members
-        for(let i = 0; i < locals.communities[index].homes; i++){
-            $('membersDetails').append(`<h4 class = "h4">Casa #${locals.communities[index].homes[i].innerNumber}<h4>`);
-            $('#membersDetails').append(`<ul class = "list-group">`);
-            for(let j = 0; j < locals.communities[index].homes[i].citizens.length; j++){
-                append = `<li class = "list-group-item">${locals.communities[index].homes[i].citizens[j].fullName}`;
-                if(locals.communities[index].homes[i].citizens[j].voter === true) append += ' <b>(miembro votador)</b>';
-                append += '</li>';
-                $('#membersDetails').append(append);
+    $('#communities').on('change', async function(){
+        //AJAX
+        await $.ajax({
+            url: '/mycommunity/about/details',
+            data: {
+                id: $('#communities').val(),
+            },
+            type: "GET",
+            dataType : "json",
+            cache: false,
+            success: function(data) {
+                console.log(data);
+                detailsUpdate(data); 
+                                },
+            error: function(){
+                $('h1.pageTitle').html('error');
             }
-            $('#membersDetails').append('</ul>');
-        }
-        
-        //roles
-        for(let i = 0; i < locals.communities[index].roles.length; i++){
-            $('rolesDetails').append(`<h4 class = "h4">${locals.communities[index].roles[i].title}</h4>`);
-            $('rolesDetails').append(`<p>${locals.communities[index].roles[i].citizen.fullName}</p>`);
-        }
-
-        //projects
-        for(let i =0; i < locals.communities[index].projects.length; i++){
-            $('projectsDetails').append(`<p><a href = "/community/project/${locals.communities[index].projects[i]}">${locals.communities[index].projects[i].title}</a></p>`);
-        }
-
-        //permits
-
-        //laws
-
-        //badges
-        
+        })
     })
+
+function detailsUpdate(community) {
+$('#communityDetails').empty();
+$('#membersDetails').empty();
+$('#rolesDetails').empty();
+$('#projectsDetails').empty();
+$('#permitsDetails').empty();
+$('#lawsDetailes').empty();
+$('#badgesDetails').empty();
+
+//fill in community Details
+$('#communityDetails').append(`<p><b>Nombre de la comunidad:</b> ${community.community.name}</p>`);
+$('#communityDetails').append(`<p><b>Direccion:</b> ${community.community.address}</p>`);
+$('#communityDetails').append(`<p><b>Cantidad de hogares: </b>${community.community.homes.length}`);
+$('#communityDetails').append(`<p><b>Cantidad de ciudadanos: </b>${community.community.citizens.length}`);
+
+//members
+for(let i = 0; i < community.community.homes.length; i++){
+    $('#membersDetails').append(`<h4 class = "h4">Casa #${community.community.homes[i].innerNumber}<h4>`);
+    $('#membersDetails').append(`<ul class = "list-group">`);
+    for(let j = 0; j < community.community.homes[i].citizens.length; j++){
+        append = `<li class = "list-group-item">${community.community.homes[i].citizens[j].fullName}`;
+        if(community.community.homes[i].citizens[j].voter === true) append += ' <b>(miembro votador)</b>';
+        append += '</li>';
+        $('#membersDetails').append(append);
+    }
+    $('#membersDetails').append('</ul>');
+}
+
+//roles
+for(let i = 0; i < community.community.roles.length; i++){
+    $('#rolesDetails').append(`<h4 class = "h4">${community.community.roles[i].title}</h4>`);
+    $('#rolesDetails').append(`<p>${community.community.roles[i].citizen.fullName}</p>`);
+}
+
+//projects
+for(let i = 0; i < community.community.projects.length; i++){
+    $('#projectsDetails').append(`<p><a href = "/community/badges/${community.community.projects[i]}">${community.community.projects[i].title}</a></p>`);
+}
+
+//permits
+for(let i = 0; i < community.community.permits.length; i++){
+    $('#permitsDetails').append(`<p><a href = "/community/permits/${community.community.permits[i]}">${community.community.permits[i].title}</a></p>`);
+}
+
+//laws
+for(let i = 0; i < community.community.laws.length; i++) {
+    $('#lawsDetails').append(`<h4 class = "h4">${community.community.laws[i].title}</h4>`);
+    $('#lawsDetails').append(`<p>${community.community.laws[i].body}<p>`);
+}
+
+//badges
+for(let i = 0; i < community.community.badges.length; i++){
+    $('#badgesDetails').append(`<img src = "/badges/${community.community.badges[i].image}">`);
+    $('#badgesDetails').append(`<p><a href = "/community/badges/${community.community.badges[i]}">${community.community.badges[i].title}</a></p>`);
+}
+}
    
 </script>
 <%- include('./partials/footer.ejs') %>

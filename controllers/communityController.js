@@ -15,23 +15,26 @@ const RouteIfUserNoAuthenticated = (request, response, next) => {
 const getCommunityAbout = async (request, response) => {
     //Get community's name, address, amount of homes, currently participating members per home, 
     //Voting member of home, roles, laws
-    
-    //let communityDetails = await dbController.communityDetails(request.user.residencies[0].community);
-    //console.log(communityDetails);
-    
     response.locals.communities = [];
-    for(let i = 0; i < request.user.residencies.length; i++){
-        community = await dbController.communityDetails(request.user.residencies[i].community);
+    for (let i = 0; i < request.user.residencies.length; i++){
+        community = await dbController.fullCommunityObject(request.user.residencies[i].community);
         response.locals.communities.push(community);
     }
-    console.log(response.locals.communities);
-
+    
     response.render('aboutCommunity');
 };
-
+/*
+const getCommunityAboutDetailsAjax = async (request, response) => {
+    if(request.xhr || request.accepts('json, html') == 'json') {
+        //let community = await dbController.communityDetails(request.query.id);
+        let community = await dbController.fullCommunityObject(request.query.id)
+        //console.log(com.homes[0].citizens[0].residencies[0].home.citizens[0].fullName);
+        response.send({community: community});
+    }
+}*/
 //JOIN COMMUNITY
 const getCommunityJoin = async (request, response) => {
-    response.locals.communities = []
+    response.locals.communities = [];
     communities = await CommunityModels.Community.find({});
     communities.forEach(community => response.locals.communities.push(community));
     response.render('joinCommunity');
@@ -46,7 +49,7 @@ const getCommunityJoinHomesAjax = (request,response) => {
                 {'_id' : { $in: community.homes}}, 
                 function(err, homes) {
                     if(err) console.log(err);
-                    response.send({homes:homes});
+                    response.send(community);
                 });
         })
     };
@@ -98,7 +101,7 @@ const getCommunityProposal = (request, response) => {
 
 const getCreateProposalAjax = async (request, response) => {
     //check whether request is ajax and if accepts json
-    if(request.xhr || request.accepts('jason, html') == 'json') {
+    if(request.xhr || request.accepts('json, html') == 'json') {
         let community = await CommunityModels.Community.findById(request.user.community);
         let laws = await CitizenActionsModels.Law.find({'_id' : {$in: community.laws}});
         response.send({laws:laws});
@@ -113,6 +116,7 @@ const postCreateProposal = (request, response) => {
 module.exports = {
     RouteIfUserNoAuthenticated,
     getCommunityAbout,
+    getCommunityAboutDetailsAjax,
     getCommunityJoin,
     getCommunityJoinHomesAjax,
     postCommunityJoin,
