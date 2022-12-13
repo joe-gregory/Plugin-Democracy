@@ -55,6 +55,7 @@
         </div>
     </div>
 </div>
+<script src = "https://unpkg.com/flatted@3.2.7/min.js"></script>
 
 <script>
     $('#communities').on('change', async function(){
@@ -69,7 +70,8 @@
             cache: false,
             success: function(data) {
                 console.log(data);
-                detailsUpdate(data); 
+                com = Flatted.parse(data);
+                detailsUpdate(com); 
                                 },
             error: function(){
                 $('h1.pageTitle').html('error');

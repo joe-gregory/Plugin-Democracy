@@ -3,6 +3,7 @@ const CitizenActionsModels = require('../models/citizenActionsModels');
 
 const citizenActions = require('./_citizenActionsController');
 const dbController = require('./_dbController');
+const flatted = require('flatted');
 
 //IF USER NOT LOGGED IN, REROUTE TO /LOGIN
 const RouteIfUserNoAuthenticated = (request, response, next) => {
@@ -23,15 +24,17 @@ const getCommunityAbout = async (request, response) => {
     
     response.render('aboutCommunity');
 };
-/*
+
 const getCommunityAboutDetailsAjax = async (request, response) => {
     if(request.xhr || request.accepts('json, html') == 'json') {
         //let community = await dbController.communityDetails(request.query.id);
         let community = await dbController.fullCommunityObject(request.query.id)
         //console.log(com.homes[0].citizens[0].residencies[0].home.citizens[0].fullName);
-        response.send({community: community});
+        let stringfiedCommunity = flatted.stringify(community);
+        console.log(stringfiedCommunity);
+        response.send({community: stringfiedCommunity});
     }
-}*/
+}
 //JOIN COMMUNITY
 const getCommunityJoin = async (request, response) => {
     response.locals.communities = [];
