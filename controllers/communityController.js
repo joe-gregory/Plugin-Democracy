@@ -56,8 +56,9 @@ const postCommunityJoin = async (request, response) => {
     let citizen = await CommunityModels.Citizen.findById(request.user.id);
     let community = await CommunityModels.Community.findById(request.body.community);
     let home = await CommunityModels.Home.findById(request.body.home);
+    console.log(home);
 
-    dbController.joinCitizenToCommunity(citizen, home, community);
+    await dbController.joinCitizenToCommunity(citizen, home, community);
     
     response.redirect('/mycommunity');
 };
@@ -67,9 +68,9 @@ const getCommunityCreate = (request, response) => {
     response.render('createCommunity');
 }
 
-const postCommunityCreate = (request, response) => {
-    let result_of_community_create = dbController.createCommunity(request.body);
-    if (result_of_community_create instanceof Error){
+const postCommunityCreate = async (request, response) => {
+    let result_of_community_create = await dbController.createCommunity(request.body);
+    if (result_of_community_create!== true){
         
         request.session.message = {
             type: 'danger',
@@ -79,7 +80,7 @@ const postCommunityCreate = (request, response) => {
 
         response.redirect('/mycommunity/create');
         return;
-    } else{
+    } else if(result_of_community_create === true){
         request.session.message = {
             type: 'success',
             title: 'Comunidad creada exitosamente', 

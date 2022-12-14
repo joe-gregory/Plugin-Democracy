@@ -188,7 +188,7 @@ const projectSchema = new Schema ({
 
     active: Boolean,
 
-    Volunteers: [{type: Schema.Types.ObjectId, ref: 'Community.Citizen'}],
+    volunteers: [{type: Schema.Types.ObjectId, ref: 'Community.Citizen'}],
 
     rewardBadges: [{type: Schema.Types.ObjectId, ref: 'Badge'}]
 
@@ -253,6 +253,8 @@ const permitSchema = new Schema ({
     expirationDate : Date, 
 
     active: Boolean,
+
+    citizens: [{type: Schema.Types.ObjectId, ref: 'Community.Citizen'}],
 
 },
 

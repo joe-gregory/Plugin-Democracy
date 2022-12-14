@@ -1,5 +1,5 @@
 const CommunityModels = require('../models/communityModels');
-const CitizenActions = require('../models/citizenActionsModels');
+const CitizenActionsModels = require('../models/citizenActionsModels');
 
 async function isHomePartOfCommunity(home, community){
     //returns true if a Home ID is also registered in community.innerHomes
@@ -58,6 +58,8 @@ async function joinCitizenToCommunity(citizen, home, community) {
     await citizen.save();
     await community.save();
     await home.save();
+
+    return true;
 }
 
 async function obtainCitizenHomeNumberInCommunity(citizen, community){
@@ -71,39 +73,57 @@ async function createCommunity(community_details){
     
     const community = new CommunityModels.Community({
         name:  community_details.communityName,
-        communityAddress: community_details.communityAddress, 
+        address: community_details.communityAddress, 
     });
-    
+    let homes = [];
     for(let i = community_details.communityStartingNumber; i <= community_details.communityEndingNumber; i++){
         let home = new CommunityModels.Home({
             innerNumber: i, 
             community:community,
         });
 
-        home.save().catch((error) => {return(error)});;
         community.homes.push(home);
+        homes.push(home);
+        console.log(homes);
+        console.log(community.homes);
+    }
+    //if there is an error, delete everything that was saved
+   let result = false;
+  
+    await community.save().
+    then(() => {result = true; console.log('saved community')}).
+    catch(() => result = false);
+    for (let i = 0; i < homes.length; i++){
+        await homes[i].save().
+        then(() => result = true).
+        catch(() =>result = false);
     }
 
-    community.save()
-        .then((result) => {return(result)})
-        .catch((error) => {return(error)});
+    if(result === false){
+        await community.remove();
+        for(let j = 0; j < homes.length; j++){
+            await homes[j].remove();
+        }
+    }
+
+    return result;
 }
 
 async function fullCommunityObject(communityId){
     //mongoDB instance object: immutable
-    let mongoCom = await CommunityModels.Community.findById(communityId);
+    let mongoCommunity = await CommunityModels.Community.findById(communityId);
     
     //declare the object that will be filled
     let community = {};
     //Basic info
-    community.id = mongoCom.id;
-    community.name = mongoCom.name;
-    community.address = mongoCom.address;
+    community.id = mongoCommunity.id;
+    community.name = mongoCommunity.name;
+    community.address = mongoCommunity.address;
 
     //Citizens
     community.citizens = [];
-    for (let i = 0; i < mongoCom.citizens.length; i++){
-        mongoCitizen = await CommunityModels.Citizen.findById(mongoCom.citizens[i]);
+    for (let i = 0; i < mongoCommunity.citizens.length; i++){
+        mongoCitizen = await CommunityModels.Citizen.findById(mongoCommunity.citizens[i]);
         citizen = {
             id: mongoCitizen.id,
             firstName: mongoCitizen.firstName,
@@ -119,8 +139,8 @@ async function fullCommunityObject(communityId){
 
     //Homes
     let mongoHomes = [];
-    for (let i = 0; i < mongoCom.homes.length; i++){
-        let mongoHome = await CommunityModels.Home.findById(mongoCom.homes[i]);
+    for (let i = 0; i < mongoCommunity.homes.length; i++){
+        let mongoHome = await CommunityModels.Home.findById(mongoCommunity.homes[i]);
         mongoHomes.push(mongoHome);
     }
 
@@ -145,7 +165,189 @@ async function fullCommunityObject(communityId){
         }
         community.homes.push(home);
     }
+   
+    //proposals
+    community.proposals = [];
+    for(let i = 0; i < mongoCommunity.proposals.length; i++){
+        let mongoProposal = await CitizenActionsModels.Proposal.findById(mongoCommunity.proposals[i]);
+        let authorIndex = community.citizens.findIndex(citizen => citizen.id == mongoProposal.author);
+        let proposal = {
+            title: mongoProposal.title,
+            body: mongoProposal.body,
+            type: mongoProposal.type,
+            author: community.citizens[authorIndex],
+            votesInFavor: mongoProposal.votesInFavor,
+            votesAgains: mongoProposal.votesAgainst,
+            community: community,
+            approvedDate: mongoProposal.approvedDate,
+            passed: mongoProposal.passed,
+            passedDate: mongoProposal.passedDate,
+            citizenActionTitle: mongoProposal.citizenActionTitle,
+            citizenActionBody: mongoProposal.citizenActionBody,
+            citizenActionStartDate: mongoProposal.citizenActionStartDate,
+            citizenActionExpirationDate: mongoProposal.citizenActionExpirationDate,
+            citizenActionActive: mongoProposal.citizenActionActive,
+            citizenActionPay: mongoProposal.citizenActionPay,
+            citizenActionBadgeImage: mongoProposal.citizenActionBadgeImage,            
+        }
+        //proposals: citizenActionVolunteers (citizens)
+        proposal.citizenActionVolunteers = []
+        for (let j = 0; j < mongoProposal.citizenActionVolunteers.length; j++){
+            let volunteerIndex = community.citizens.findIndex(citizen.id == mongoProposal.citizenActionvolunteers[j]);
+            proposal.citizenActionVolunteers.push(community.citizens[volunteerIndex]);
+        }
+        //votes
+        //proposal: votes
+        proposal.votes = []
+        for(let k = 0; k < mongoProposal.votes.length; k++){
+            mongoVote = await CitizenActionsModels.Vote.findById(mongoVote);
+            citizenIndex = community.citizens.findIndex(citizen => citizen.id == mongoVote.citizen)
+            vote = {
+                citizen: community.citizens[citizenIndex],
+                inFavor: mongoVote.inFavor,
+                proposal: proposal,
+            }
+        }
+        community.proposals.push(proposal);
+    }
+
+    //laws
+    community.laws = [];
+    for(let i = 0; i < mongoCommunity.laws.length; i++){
+        let mongoLaw = CitizenActionsModels.Law.findById(mongoCommunity.laws[i]);
+        let authorIndex = community.citizens.findIndex(citizen => citizen.id == mongoLaw.author)
+        let proposalIndex = community.proposals.findIndex(proposal => proposal.id == mongoLaw.proposal);
+        let law = {
+            title: mongoLaw.title,
+            law: mongoLaw.law,
+            author: community.citizens[authorIndex],
+            proposal: community.proposals[proposalIndex],
+            community: community,
+            beginningDate: mongoLaw.beginningDate,
+            expirationDate: mongoLaw.expirationDate,
+            active: mongoLaw.active,
+
+        }
+        community.laws.push(law);
+    }
+
+    //roles
+    community.roles = [];
+    for(let i = 0; i < mongoCommunity.roles.length; i++){
+        let mongoRole = await CitizenActionsModels.Role.findById(mongoCommunity.roles[i]);
+        citizenIndex = community.citizens.findIndex(citizen => citizen.id == mongoRole.citizen);
+        proposalIndex = community.proposals.findIndex(proposal => proposal.id == mongoRole.proposal);
+        role = {
+            title: mongoRole.title,
+            body: mongoRole.body,
+            community: community,
+            citizen: community.citizens[citizenIndex],
+            proposal: community.proposals[proposalIndex],
+            beginningDate: mongoRole.beginningDate,
+            expirationDate: mongoRole.expirationDate,
+            active: mongoRole.active,
+            pay: mongoRole.pay
+        }
+        community.roles.push(role);
+    }
+
+    //projects
+    community.projects = [];
+    for(let k = 0; k < mongoCommunity.projects.length; k++){
+        let mongoProject = await CitizenActionsModels.Project.findById(mongoCommunity.projects[k]);
+        proposalIndex = community.proposals.findIndex(proposal => proposal.id == mongoProject.proposal);
+        let project = {
+            title: mongoProject.title,
+            body: mongoProject.body,
+            community: community,
+            proposal: community.proposals[proposalIndex],
+            beginningDate: mongoProject.beginningDate,
+            expiratioNDate: mongoProject.expirationDate,
+            active: mongoProject.active,
+        }
+        project.volunteers = [];
+        for (let j = 0; j < mongoProject.volunteers.length; j++){
+            volunteerIndex = community.citizens.findIndex(citizen => citizen.id == mongoProject.volunteers[j]);
+            project.volunteers.push(community.citizens[volunteerIndex]);
+        }
+        community.projects.push(project);
+    }
+
+    //badges
+    community.badges = [];
+    for(let i = 0; i < mongoCommunity.badges.length; i++){
+        mongoBadge = await CitizenActionsModels.Badge.findById(mongoCommunity.badges[i]);
+        proposalIndex = community.proposals.findIndex(proposal => proposal.id == mongoBadge.proposal);
+        let badge = {
+            title: mongoBadge.title,
+            body: mongoBadge.body,
+            community: community,
+            proposal: community.proposals[proposalIndex],
+            beginningDate: mongoBadge.beginningDate,
+            expirationDate: mongoBadge.expirationDate,
+            active: mongoBadge.active,
+            image: mongoBadge.image,
+        }
+    }
     
+
+    //proposals: citizenActionRewardBadges & citizenActionDocument
+    for(let k = 0; k < community.proposals.length; k++){
+        community.proposals[k].citizenActionRewardBadges = [];
+        let mongoProposal = await CitizenActionsModels.Proposal.findById(community.proposals[k].id);
+        //Badges
+        for(let i = 0; i < mongoProposal.citizenActionRewardBadges.length; i++){
+            badgeIndex = community.badges.findIndex(badge => badge.id == mongoProposal.citizenActionRewardBadges[i]);
+            community.proposals[k].citizenActionRewardBadges.push(community.badges[badgeIndex]);
+        }
+        //citizenActionDocument
+        //I would have to look in: laws, roles, projects, badges & permits
+        let indexLaw = community.laws.findIndex(law => law.id == mongoProposal.citizenActionDocument);
+        if(indexLaws > -1) community.proposals[k].citizenActionDocument = community.laws[indexLaw];
+        let indexRole = community.roles.findIndex(role => role.id == mongoProposal.citizenActionDocument);
+        if(indexRole > -1) community.proposals[k].citizenActionDocument = community.roles[indexRole];
+        let indexProject = community.projects.findIndex(project => project.id == mongoProposal.citizenActionDocument);
+        if(indexProject > -1) community.proposals[k].citizenActionDocument = community.projects[indexProject];
+        let indexBadge = community.badges.findIndex(badge => badge.id == mongoProposal.citizenActionDocument);
+        if(indexBadge > -1) community.proposals[k].citizenActionDocument = community.badges[indexBadge];
+        let indexPermit = community.permits.findIndex(permit => permit.id == mongoProposal.citizenActionDocument);
+        if(indexPermit > -1) community.permits[k].citizenActionDocument = community.permits[indexPermit];
+    }
+    
+    //project: rewardBadges: 
+    for(let k = 0; k < community.projects.length; k++){
+        let mongoProject = await CitizenActionsModels.Project.findById(community.projects[k].id);
+        let badgeIndexes = [];
+        community.projects[k].rewardBadges = [];
+        for(j = 0; j < mongoProject.rewardBadges.length; j++){
+            let mongoBadge = await CitizenActionsModels.Badge.findById(mongoProject.rewardBadges[j]);
+            let badgeIndex = community.badges.findIndex(badge => badge.id == mongoBadge.id);
+            community.projects[k].rewardBadges.push(community.badges[badgeIndex]);
+        }
+    }
+
+    //permits
+    community.permits = [];
+    for(let k = 0; k < mongoCommunity.permits.length; k++){
+        let mongoPermit = await CitizenActionsModels.Permit.findById(mongoCommunity.permits[k]);
+        let proposalIndex = community.proposals.findIndex(proposal => proposal.id == mongoPermit.proposal);
+        let permit = {
+            title: mongoPermit.title,
+            body: mongoPermit.body,
+            community: community,
+            proposal: community.proposals[proposalIndex],
+            beginningDate: mongoPermit.beginningDate,
+            expirationDate: mongoPermit.expirationDate,
+            active: mongoPermit.active,
+        }
+        permit.citizens = [];
+        for (j = 0; j < mongoPermit.citizens.length; j++){
+            let citizenIndex = community.citizens.findIndex(citizen => citizen.id == mongoPermit.citizens[j]);
+            permit.citizens.push(community.citizens[citizenIndex]);
+        }
+        community.permits.push(permit);
+    }
+
     //return object
     return community;
 }

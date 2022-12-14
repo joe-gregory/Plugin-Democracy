@@ -96,15 +96,17 @@ $('#communityDetails').append(`<p><b>Cantidad de ciudadanos: </b>${community.cit
 
 //members
 for(let i = 0; i < community.homes.length; i++){
+    $('#membersDetails').append('<div class = "mb-3">')
     $('#membersDetails').append(`<h4 class = "h4">Casa #${community.homes[i].innerNumber}<h4>`);
     $('#membersDetails').append(`<ul class = "list-group">`);
     for(let j = 0; j < community.homes[i].citizens.length; j++){
         append = `<li class = "list-group-item">${community.homes[i].citizens[j].fullName}`;
-        if(community.homes[i].citizens[j].voter === true) append += ' <b>(miembro votador)</b>';
+        if(community.homes[i].citizens[j] == community.homes[i].voter) append += ' <b>(miembro votador)</b>';
         append += '</li>';
         $('#membersDetails').append(append);
     }
     $('#membersDetails').append('</ul>');
+    $('#membersDetails').append('</div>');
 }
 
 //roles
