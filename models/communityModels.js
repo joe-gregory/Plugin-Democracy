@@ -32,11 +32,13 @@ const communitySchema = new Schema({
         type: Schema.Types.ObjectId, ref: 'CitizenActions.Law'
     }],
 
-    roles: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.role'}],
+    roles: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.Role'}],
 
-    projects: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.project'}],
+    projects: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.Project'}],
 
-    permits: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.permit'}],
+    permits: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.Permit'}],
+
+    badges: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.Badge'}],
 }, 
 
 {timestamps:true}

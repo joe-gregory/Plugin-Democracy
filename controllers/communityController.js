@@ -91,8 +91,11 @@ const postCommunityCreate = async (request, response) => {
 };
 
 //COMMUNITY PROPOSALS
-const getCommunityProposal = (request, response) => {
-    response.locals.firstName = request.user.firstName;
+const getCommunityProposal = async (request, response) => {
+    let communities = [];
+    for(let i = 0; i < request.user.communities.length; i++){
+        let community = await CommunityModels.findById()
+    }
     response.render('createProposal')
 };
 
