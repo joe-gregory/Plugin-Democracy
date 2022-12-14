@@ -31,8 +31,10 @@ const getCommunityAboutDetailsAjax = async (request, response) => {
         let community = await dbController.fullCommunityObject(request.query.id)
         //console.log(com.homes[0].citizens[0].residencies[0].home.citizens[0].fullName);
         let stringfiedCommunity = flatted.stringify(community);
+        console.log(community);
         console.log(stringfiedCommunity);
-        response.send({community: stringfiedCommunity});
+        //console.log(flatted.parse(stringfiedCommunity));
+        response.send(stringfiedCommunity);
     }
 }
 //JOIN COMMUNITY

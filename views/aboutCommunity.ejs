@@ -66,12 +66,12 @@
                 id: $('#communities').val(),
             },
             type: "GET",
-            dataType : "json",
+            dataType : "script",
             cache: false,
             success: function(data) {
-                console.log(data);
-                com = Flatted.parse(data);
-                detailsUpdate(com); 
+                community = Flatted.parse(data);
+                console.log(community.citizens[0].residencies[0].home.citizens[0].residencies[0].home.community.homes[0].citizens[0].voter);
+                detailsUpdate(community); 
                                 },
             error: function(){
                 $('h1.pageTitle').html('error');
@@ -89,18 +89,18 @@ $('#lawsDetailes').empty();
 $('#badgesDetails').empty();
 
 //fill in community Details
-$('#communityDetails').append(`<p><b>Nombre de la comunidad:</b> ${community.community.name}</p>`);
-$('#communityDetails').append(`<p><b>Direccion:</b> ${community.community.address}</p>`);
-$('#communityDetails').append(`<p><b>Cantidad de hogares: </b>${community.community.homes.length}`);
-$('#communityDetails').append(`<p><b>Cantidad de ciudadanos: </b>${community.community.citizens.length}`);
+$('#communityDetails').append(`<p><b>Nombre de la comunidad:</b> ${community.name}</p>`);
+$('#communityDetails').append(`<p><b>Direccion:</b> ${community.address}</p>`);
+$('#communityDetails').append(`<p><b>Cantidad de hogares: </b>${community.homes.length}`);
+$('#communityDetails').append(`<p><b>Cantidad de ciudadanos: </b>${community.citizens.length}`);
 
 //members
-for(let i = 0; i < community.community.homes.length; i++){
-    $('#membersDetails').append(`<h4 class = "h4">Casa #${community.community.homes[i].innerNumber}<h4>`);
+for(let i = 0; i < community.homes.length; i++){
+    $('#membersDetails').append(`<h4 class = "h4">Casa #${community.homes[i].innerNumber}<h4>`);
     $('#membersDetails').append(`<ul class = "list-group">`);
-    for(let j = 0; j < community.community.homes[i].citizens.length; j++){
-        append = `<li class = "list-group-item">${community.community.homes[i].citizens[j].fullName}`;
-        if(community.community.homes[i].citizens[j].voter === true) append += ' <b>(miembro votador)</b>';
+    for(let j = 0; j < community.homes[i].citizens.length; j++){
+        append = `<li class = "list-group-item">${community.homes[i].citizens[j].fullName}`;
+        if(community.homes[i].citizens[j].voter === true) append += ' <b>(miembro votador)</b>';
         append += '</li>';
         $('#membersDetails').append(append);
     }
@@ -108,31 +108,31 @@ for(let i = 0; i < community.community.homes.length; i++){
 }
 
 //roles
-for(let i = 0; i < community.community.roles.length; i++){
-    $('#rolesDetails').append(`<h4 class = "h4">${community.community.roles[i].title}</h4>`);
-    $('#rolesDetails').append(`<p>${community.community.roles[i].citizen.fullName}</p>`);
+for(let i = 0; i < community.roles.length; i++){
+    $('#rolesDetails').append(`<h4 class = "h4">${community.roles[i].title}</h4>`);
+    $('#rolesDetails').append(`<p>${community.roles[i].citizen.fullName}</p>`);
 }
 
 //projects
-for(let i = 0; i < community.community.projects.length; i++){
-    $('#projectsDetails').append(`<p><a href = "/community/badges/${community.community.projects[i]}">${community.community.projects[i].title}</a></p>`);
+for(let i = 0; i < community.projects.length; i++){
+    $('#projectsDetails').append(`<p><a href = "/community/badges/${community.projects[i]}">${community.projects[i].title}</a></p>`);
 }
 
 //permits
-for(let i = 0; i < community.community.permits.length; i++){
-    $('#permitsDetails').append(`<p><a href = "/community/permits/${community.community.permits[i]}">${community.community.permits[i].title}</a></p>`);
+for(let i = 0; i < community.permits.length; i++){
+    $('#permitsDetails').append(`<p><a href = "/community/permits/${community.permits[i]}">${community.permits[i].title}</a></p>`);
 }
 
 //laws
-for(let i = 0; i < community.community.laws.length; i++) {
-    $('#lawsDetails').append(`<h4 class = "h4">${community.community.laws[i].title}</h4>`);
-    $('#lawsDetails').append(`<p>${community.community.laws[i].body}<p>`);
+for(let i = 0; i < community.laws.length; i++) {
+    $('#lawsDetails').append(`<h4 class = "h4">${community.laws[i].title}</h4>`);
+    $('#lawsDetails').append(`<p>${community.laws[i].body}<p>`);
 }
 
 //badges
-for(let i = 0; i < community.community.badges.length; i++){
-    $('#badgesDetails').append(`<img src = "/badges/${community.community.badges[i].image}">`);
-    $('#badgesDetails').append(`<p><a href = "/community/badges/${community.community.badges[i]}">${community.community.badges[i].title}</a></p>`);
+for(let i = 0; i < community.badges.length; i++){
+    $('#badgesDetails').append(`<img src = "/badges/${community.badges[i].image}">`);
+    $('#badgesDetails').append(`<p><a href = "/community/badges/${community.badges[i]}">${community.badges[i].title}</a></p>`);
 }
 }
    
