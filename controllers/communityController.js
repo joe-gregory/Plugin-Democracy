@@ -27,35 +27,26 @@ const getCommunityAbout = async (request, response) => {
 
 const getCommunityAboutDetailsAjax = async (request, response) => {
     if(request.xhr || request.accepts('json, html') == 'json') {
-        //let community = await dbController.communityDetails(request.query.id);
         let community = await dbController.fullCommunityObject(request.query.id)
-        //console.log(com.homes[0].citizens[0].residencies[0].home.citizens[0].fullName);
         let stringfiedCommunity = flatted.stringify(community);
-        console.log(community);
-        console.log(stringfiedCommunity);
-        //console.log(flatted.parse(stringfiedCommunity));
         response.send(stringfiedCommunity);
     }
 }
 //JOIN COMMUNITY
 const getCommunityJoin = async (request, response) => {
-    response.locals.communities = [];
-    communities = await CommunityModels.Community.find({});
-    communities.forEach(community => response.locals.communities.push(community));
+    response.locals.communities = await CommunityModels.Community.find({});
     response.render('joinCommunity');
 };
 
 const getCommunityJoinHomesAjax = (request,response) => {
     //check wether request is ajax and if accepts json
-    if(request.xhr || request.accepts('json,html') ==='json') {
+    if(request.xhr || request.accepts('json, html') ==='json') {
         CommunityModels.Community.findById(request.query.id, function(err, community) {
             //Search for homes that have a community id == community
-            CommunityModels.Home.find(
-                {'_id' : { $in: community.homes}}, 
-                function(err, homes) {
+            CommunityModels.Home.find({'_id' : { $in: community.homes}}, function(err, homes) {
                     if(err) console.log(err);
-                    response.send(community);
-                });
+                    response.send(homes);
+            });
         })
     };
 }

@@ -89,86 +89,6 @@ async function createCommunity(community_details){
         .catch((error) => {return(error)});
 }
 
-async function communityDetails(communityId){
-    //return object with community's name, address, 
-    //a homes list of sub objects with the home & its currently participating members full name, 
-    //noting who the voting member is
-    //active laws, active roles, active projects, (proposals?), active permits, badges
-    let community = await CommunityModels.Community.findById(communityId);
-    
-    //homes 
-    let homes = []
-    for(let i = 0; i < community.homes.length; i++){
-       let home = await homeDetails(community.homes[i]);
-       homes.push(home);
-    }
-    community.homes = homes;
-
-    //citizens
-    let citizens = await CommunityModels.Citizen.find({'_id': {$in: community.citizens}});
-    for (let i = 0; i < citizens.length; i++){
-        citizens[i].fullName = returnCitizenFullName(citizens[i]);
-        delete citizens[i].password;
-    }
-    community.citizens = citizens;
-
-    //active laws
-    let laws = await CitizenActions.Law.find({'_id' : {$in: community.laws}});
-    let activeLaws = laws.filter( law => law.active === true);
-    community.laws = activeLaws;
-
-    //active roles
-    let roles = await CitizenActions.Role.find({'_id': {$in: community.roles}});
-    let activeRoles = roles.filter(role => role.active === true);
-    for(let i = 0; i < activeRoles.length; i++) {
-        let rolee = await CommunityModels.Citizen.findById(activeRoles[i].citizen);
-        activeRoles.citizen = rolee;
-    }
-    community.roles = activeRoles; 
-
-    //active projects
-    let projects = await CitizenActions.Project.find({'_id': {$in: community.projects}});
-    let activeProjects = projects.filter(project => project.active === true);
-    community.projects = activeProjects;
-    
-    //permits
-    let permits = await CitizenActions.Permit.find({'_id' : {$in: community.permits}});
-    let activePermits = permits.filter(permit => permit.active === true);
-    community.permits = activePermits;
-
-    //badges
-    let badges = await CitizenActions.Badge.find({'_id': {$in: community.badges}});
-    let activeBadges = badges.filter(badge => badge.active === true);
-    community.badges = activeBadges;
-
-    return community;
-}
-
-async function homeDetails(homeId){
-    //return object with home number, and a list of its members with a voter true/false for voter
-    //[id, full name, voter]
-    let home = await CommunityModels.Home.findById(homeId);
-    let community = await CommunityModels.Community.findById(home.community);
-    home.community = community;
-
-    let citizens = [];
-
-    //cycling through the citizens of the home
-    for(let i = 0; i < home.citizens.length; i++){
-        
-        let citizen = await CommunityModels.Citizen.findById(home.citizens[i]);
-        citizen.fullName = returnCitizenFullName(citizen);
-        
-        (citizen.id == home.voter) ? citizen.voter = true : citizen.voter = false;
-        
-        citizens.push(citizen);
-    }
-
-    home.citizens = citizens; 
-
-    return home;
-}
-
 async function fullCommunityObject(communityId){
     //mongoDB instance object: immutable
     let mongoCom = await CommunityModels.Community.findById(communityId);
@@ -223,11 +143,9 @@ async function fullCommunityObject(communityId){
             community.citizens[index].residencies.push({community: community, home: home});
             home.citizens.push(community.citizens[index]);
         }
-
         community.homes.push(home);
     }
-
-  
+    
     //return object
     return community;
 }
@@ -245,8 +163,6 @@ module.exports = {
     joinCitizenToCommunity,
     obtainCitizenHomeNumberInCommunity,
     createCommunity,
-    communityDetails,
-    homeDetails,
     fullCommunityObject,
     returnCitizenFullName,
 }

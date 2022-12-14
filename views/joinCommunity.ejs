@@ -11,7 +11,7 @@
                      <select name="community" class="form-select" id = 'communities'>
                         <option disabled selected>Selecciona una comunidad existente</option>
                         <% for(let i = 0; i < locals.communities.length; i++) { %>
-                        <%- `<option value = '${locals.communities[i].id}' data-address = '${locals.communities[i].communityAddress}'>${locals.communities[i].name}</option>`%>
+                        <%- `<option value = '${locals.communities[i].id}' data-address = '${locals.communities[i].address}'>${locals.communities[i].name}</option>`%>
                         <% } %>
                     </select>
                 </div>
@@ -49,9 +49,10 @@
             dataType : "json",
             cache: false,
             success: function(data) {
-                if(data.homes){
-                    for (let i = 0; i < data.homes.length; i++) {
-                        $('#homes').append($('<option></option>').val(data.homes[i]._id).html(data.homes[i].innerNumber));
+                console.log(data);
+                if(data){
+                    for (let i = 0; i < data.length; i++) {
+                        $('#homes').append($('<option></option>').val(data[i]._id).html(data[i].innerNumber));
                     }
                 }
             },
