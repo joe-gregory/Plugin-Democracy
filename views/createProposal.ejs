@@ -7,8 +7,10 @@
         <div class = 'mb-3'>
             <label class = 'form-label' for = 'community'>Elige la comunidad para la que haces la propuesta</label>
             <select name = 'community' class = 'form-select' id = 'communities' required="true">
-                <option disabled selected>Elige tipo de propuesta</option>
-                <% for(let i = 0; i < locals.co)
+                <option disabled selected>Elige para que comunidad es la propuesta</option>
+                <% for(let i = 0; i < locals.communities.length; i++){ %>
+                    <%- `<option value = "${locals.communities[i].id}">${locals.communities[i].name}</option>` %>
+               <% } %>
             </select>
         </div>
         <div class = 'mb-3'>

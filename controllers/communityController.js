@@ -92,10 +92,17 @@ const postCommunityCreate = async (request, response) => {
 
 //COMMUNITY PROPOSALS
 const getCommunityProposal = async (request, response) => {
-    let communities = [];
-    for(let i = 0; i < request.user.communities.length; i++){
-        let community = await CommunityModels.findById()
+    response.locals.communities = [];
+    for(let i = 0; i < request.user.residencies.length; i++){
+        let community = await CommunityModels.Community.findById(request.user.residencies[i].community);
+        response.locals.communities.push(community);
     }
+    //get proposal types on locals
+    response.locals.proposal.types = [];
+    for(k = 0; k < CitizenActionsModels.Proposal.schema.obj.type.enum.length; k++){
+        response.locals.proposal.types.push(CitizenActionsModels.Proposal.schema.obj.type.enum[k]);
+    }
+
     response.render('createProposal')
 };
 
