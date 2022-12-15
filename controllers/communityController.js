@@ -97,11 +97,11 @@ const getCommunityProposal = async (request, response) => {
         let community = await CommunityModels.Community.findById(request.user.residencies[i].community);
         response.locals.communities.push(community);
     }
-    //get proposal types on locals
-    response.locals.proposal.types = [];
-    for(k = 0; k < CitizenActionsModels.Proposal.schema.obj.type.enum.length; k++){
-        response.locals.proposal.types.push(CitizenActionsModels.Proposal.schema.obj.type.enum[k]);
-    }
+    //get proposal types on locals: This wont give me a text interpretation though
+    //response.locals.proposalTypes = [];
+    //for(k = 0; k < CitizenActionsModels.Proposal.schema.obj.type.enum.length; k++){
+        //response.locals.proposalTypes.push(CitizenActionsModels.Proposal.schema.obj.type.enum[k]);
+    //}
 
     response.render('createProposal')
 };

@@ -11,7 +11,7 @@ const proposalSchema = new Schema ({
 
     type: {
         type: String, 
-        enum: ['createLaw','deleteLaw', 'editLaw', 'createRole','deleteRole', 
+        enum: ['createLaw','deleteLaw', 'editLaw', 'createRole','deleteRole', 'editRole', 
         'assignRole', 'removeRole', 'swapRole', 'createProject', 'createBadge', 
         'assignBadge', 'permit'],
     }, 
