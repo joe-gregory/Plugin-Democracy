@@ -13,8 +13,8 @@
                <% } %>
             </select>
         </div>
+        
         <div class = 'mb-3'>
-            
             <label class = 'form-label' for = 'type'>Elige el tipo de propuesta</label>
             <select name = 'type' class = 'form-select' id = 'citizenActions' required="true">
                 <option disabled selected>Elige tipo de propuesta</option>
@@ -33,44 +33,69 @@
                 <option value ="permit">Pedir un permiso a la comunidad</option>
             </select>
         </div>
-        <div class = 'mb-3'>
-            <label class = 'form-label' for = 'title'>Titulo de la propuesta</label>
+
+        <div class = 'mb-3 d-none' id ="titleDiv">
+            <label class = 'form-label ' for = 'title'>Titulo de la propuesta</label>
             <input class="form-control" id = 'title' name = 'title' type = 'text' required="true">
         </div> 
-        <div class = 'mb-3'>
-            <label class = 'form-label' for = 'body'>Argumentos a favor de la propuesta</label>
+
+        <div class = 'mb-3 d-none' id="bodyDiv">
+            <label class = 'form-label' for = 'body'>Describe la razon detras de la propuesta. Explicale a tus vecinos los beneficios</label>
             <textarea id = 'body' class = 'form-control' name = 'body' type = 'text' required="true" placeholder="Describe la razon de tu propuesta, tus argumentos y otra informacion que apoye tu propuesta para que tus vecinos entiendan mas el contexto"></textarea>
         </div>
 
+        <div class = 'mb-3 d-none' id="citizenActionTitleDiv">
+            <label class = 'form-label' for = 'citizenActionTitle' id="citizenActionTitleLabel"></label>
+            <input class="form-control" id = 'citizenActionTitle' name = 'citizenActionTitle' type = 'text'>
+        </div>
+
+        <div class = 'mb-3 d-none' id="citizenActionBodyDiv">
+            <label class = 'form-label' for = 'citizenActionBody' id="citizenActionBodyLabel"></label>
+            <input class="form-control" id = 'citizenActionBody' name = 'citizenActionBody' type = 'text'>
+        </div>
+
+        <div class = 'mb-3 d-none' id="citizenActionStartDateDiv">
+            <label class = 'form-label' for = 'citizenActionStartDate' id="citizenActionStartDateLabel"></label>
+            <input class="form-control" id = 'citizenActionStartDate' name = 'citizenActionStartDate' type = 'date'>
+        </div>
+
+        <div class = 'mb-3 d-none' id="citizenActionExpirationDateDiv">
+            <label class = 'form-label' for = 'citizenActionExpirationDate' id="citizenActionExpirationDateLabel"></label>
+            <input class="form-control" id = 'citizenActionExpirationDate' name = 'citizenActionExpirationDate' type = 'date'>
+        </div>
         
-        <div id = 'createLawInput' class = 'd-none'>
-            <div class = 'mb-3'>
-                <label class = 'form-label' for = 'citizenActionTitle' required = "true">Titulo de la ley</label>
-                <input class="form-control" id = 'citizenActionTitle' name = 'citizenActionTitle' type = 'text'>
-            </div>
-            <div class = 'mb-3'>
-                <label class = 'form-label' for = 'citizenActionBody'>Texto de la ley</label>
-            <textarea id = 'citizenActionBody' class = 'form-control' name = 'citizenActionBody' type = 'text' required="true"></textarea>
-            </div>
-            <div class = 'mb-3'>
-                <label class = 'form-label' for = 'citizenActionStartDate'>En que fecha tomaria inicio esta ley</label>
-                <input type="date" name="citizenActionStartDate" required = "true" id='citizenActionStartDate'/>
-            </div>
-            <div class = 'mb-3'>
-                <label class = 'form-label' for = 'citizenActionExpirationDate'>En que fecha expiraria esta ley (opcional)</label>
-            <input type="date" name="citizenActionExpirationDate" id='citizenActionExpirationDate'/>
-            </div>
+        <div class = 'mb-3 d-none' id="citizenActionPayDiv">
+            <label class = 'form-label' for = 'citizenActionPay' id="citizenActionPayLabel"></label>
+            <input class="form-control" id = 'citizenActionPay' name = 'citizenActionPay' type = 'number' min="0" vale="0">
         </div>
 
-        <div id = 'removeLawInput' class = 'mb-3 d-none'>
+        <div class = 'mb-3 d-none' id="citizenActionVolunteersAmountDiv">
+            <label class = 'form-label' for = 'citizenActionVolunteersAmount' id="citizenActionVolunteersAmountLabel"></label>
+            <input class="form-control" id = 'citizenActionVolunteersAmount' name = 'citizenActionVolunteersAmount' type = 'number' min="0">
         </div>
 
-        <div class = 'mb-3'>
-            <button class = 'btn' id='loginButton' type = 'submit' disabled>Crear Propuesta</button>
+        <div class = 'mb-3 d-none' id="citizenActionRewardBadgesDiv">
+            <label class = 'form-label' for = 'citizenActionRewardBadges' id="citizenActionRewardBadgesLabel"></label>
+            <select name = 'citizenActionRewardBadges' class = 'form-select' id = 'citizenActionRewardBadges'>
+                <option disabled selected>Elige medallas</option>
+            </select>
         </div>
-    
+
+        <div class = 'mb-3 d-none' id="citizenActionBadgeImageDiv">
+            <label class = 'form-label' for = 'citizenActionBadgeImage' id="citizenActionBadgeImageLabel"></label>
+            <select name = 'citizenActionBadgeImage' class = 'form-select' id = 'citizenActionBadgeImage'>
+                <option disabled selected>Elige imagen para medalla</option>
+            </select>
+        </div>
+        
+        <div class = 'mb-3 d-none' id="citizenAction_Div">
+            <label class = 'form-label' for = 'citizenAction_' id="citizenAction_Label"></label>
+            <input class="form-control" id = 'citizenAction_' name = 'citizenAction_' type = 'text_'>
+        </div>
+
     </form>
 </div>
+
 <script>
     $('#citizenActions').on('change', function() {
         //Show options based on selection. #1 show  
