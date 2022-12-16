@@ -191,7 +191,7 @@
   display: table-cell;
   vertical-align: middle;
 }
-#loginButton{
+.submitButton{
   background-color:  #358856;
   color:white;
   box-shadow: none;

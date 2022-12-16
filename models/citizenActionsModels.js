@@ -64,6 +64,8 @@ const proposalSchema = new Schema ({
 
     citizenActionPay: Number,
 
+    citizenActionVolunteersAmount: Number,
+
     citizenActionVolunteers : [{type: Schema.Types.ObjectId, ref: 'Community.Citizen'}],
 
     citizenActionRewardBadges : [{type: Schema.Types.ObjectId, ref: 'Badge'}],

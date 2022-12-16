@@ -15,8 +15,8 @@
         </div>
         
         <div class = 'mb-3'>
-            <label class = 'form-label' for = 'type'>Elige el tipo de propuesta</label>
-            <select name = 'type' class = 'form-select' id = 'citizenActions' required="true">
+            <label class = 'form-label' for = 'proposalType'>Elige el tipo de propuesta</label>
+            <select name = 'proposalType' class = 'form-select' id = 'proposalType' required="true">
                 <option disabled selected>Elige tipo de propuesta</option>
                 <option value ="createLaw">Crear una nueva ley</option>
                 <option value ="deleteLaw">Eliminar una ley existente</option>
@@ -36,7 +36,7 @@
 
         <div class = 'mb-3 d-none' id ="titleDiv">
             <label class = 'form-label ' for = 'title'>Titulo de la propuesta</label>
-            <input class="form-control" id = 'title' name = 'title' type = 'text' required="true">
+            <input class="form-control" id = 'title' name = 'title' type = 'text' required="true" placeholder="Describe la propuesta en un titulo">
         </div> 
 
         <div class = 'mb-3 d-none' id="bodyDiv">
@@ -51,7 +51,7 @@
 
         <div class = 'mb-3 d-none' id="citizenActionBodyDiv">
             <label class = 'form-label' for = 'citizenActionBody' id="citizenActionBodyLabel"></label>
-            <input class="form-control" id = 'citizenActionBody' name = 'citizenActionBody' type = 'text'>
+            <textarea class="form-control" id = 'citizenActionBody' name = 'citizenActionBody' type = 'text'></textarea>
         </div>
 
         <div class = 'mb-3 d-none' id="citizenActionStartDateDiv">
@@ -88,48 +88,67 @@
             </select>
         </div>
         
-        <div class = 'mb-3 d-none' id="citizenAction_Div">
+        <!--<div class = 'mb-3 d-none' id="citizenAction_Div">
             <label class = 'form-label' for = 'citizenAction_' id="citizenAction_Label"></label>
             <input class="form-control" id = 'citizenAction_' name = 'citizenAction_' type = 'text_'>
+        </div>-->
+        <div class = 'mb-3'>
+            <button class = 'btn submitButton' type = 'submit'>Crear</button>
         </div>
-
     </form>
 </div>
 
 <script>
-    $('#citizenActions').on('change', function() {
-        //Show options based on selection. #1 show  
-        if($('#citizenActions option:selected').val() == 'createLaw') {
-            $('#createLawInput').removeClass('d-none');
-            $('#removeLawInput').addClass('d-none');
-            $('#loginButton').removeAttr('disabled');
-        } else if($('#citizenActions option:selected').val() == 'delete') {
-            $('#createLawInput').addClass('d-none');
-            $('#removeLawInput').removeClass('d-none');
-            $('#loginButton').removeAttr('disabled');
-            $.ajax({
-                url: '/mycommunity/createproposal/delete',
-                type: 'GET',
-                dataType: 'json',
-                cache: false,
-                success: function(data) {
-                    if(data.laws){
-                        console.log('laws passed ', data.laws);
-                        $('#removeLawInput').empty();
-                        for(let i = 0; i < data.laws.length; i++) {
-                            let section = $('<div></div>').attr('class', 'container mb-3');
-                            section.append($('<input></input>').val(data.laws[i]._id).attr('type','radio').attr('name','law'));
-                            section.append($('<label></label>').attr('for', data.laws[i]._id).html(`Ley #${i+1}:`));
-                            section.append($('<p></p>').text(`${data.laws[i].law}`));
-                            $('#removeLawInput').append(section);
-                        }
-                    }
-                }, 
-                error: (error) => {alert(error);}
-            });
+    $('#proposalType').on('change', function() {
+        let proposalType = $('#proposalType option:selected').val();
+        
+        switch(proposalType){
+            case 'createLaw':
+                $('#titleDiv').removeClass('d-none');
+                $('#bodyDiv').removeClass('d-none');
+
+                $('#citizenActionTitleDiv').removeClass('d-none');
+                $('#citizenActionTitleLabel').text("Titulo de la ley");
+                $('#citizenActionTitle').attr('placeholder','Como aparecera el titulo de la ley como tan en la constitucion de la comunidad.')
+
+                $('#citizenActionBodyDiv').removeClass('d-none');
+                $('#citizenActionBodyLabel').text('Texto de la ley');
+                $('#citizenActionBody').attr('placeholder', 'Escribe el texto de la ley como estara en la constitucion de la privada.')
+                
+                $('#citizenActionStartDateDiv').removeClass('d-none');
+                $('#citizenActionStartDateLabel').text('Fecha en que la ley tomara efecto (opcional). Sin fecha, la ley toma efecto inmediatamente que la propuesta pase.');
+
+                $('#citizenActionExpirationDateDiv').removeClass('d-none');
+                $('#citizenActionExpirationDateLabel').text('Fecha en que expiraria la ley (opcional). Sin fecha de expiracion, la ley permanece permanentemente hasta que se vote para removerla.');
+                break;
+            case 'deleteLaw':
+                break;
+            case 'editLaw':
+                break;
+            case 'createRole':
+                break;
+            case 'deleteRole':
+                break;
+            case 'editRole':
+                break;
+            case 'assignRole':
+                break;
+            case 'removeRole':
+                break;
+            case 'swapRole':
+                break;
+            case 'createProject':
+                break;
+            case 'createBadge': 
+                break;
+            case 'assignBadge': 
+                break;
+            case 'permit':
+                break;
+            
         }
+        
     });
-    //get citizens communities
 
 </script>
 
