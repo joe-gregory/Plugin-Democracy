@@ -90,30 +90,46 @@ const postCommunityCreate = async (request, response) => {
     }
 };
 
-//COMMUNITY PROPOSALS
+//CREATE PROPOSALS
 const getCommunityProposal = async (request, response) => {
     response.locals.communities = [];
     for(let i = 0; i < request.user.residencies.length; i++){
         let community = await CommunityModels.Community.findById(request.user.residencies[i].community);
         response.locals.communities.push(community);
     }
-    //get proposal types on locals: This wont give me a text interpretation though
-    //response.locals.proposalTypes = [];
-    //for(k = 0; k < CitizenActionsModels.Proposal.schema.obj.type.enum.length; k++){
-        //response.locals.proposalTypes.push(CitizenActionsModels.Proposal.schema.obj.type.enum[k]);
-    //}
 
     response.render('createProposal')
 };
 
-const getCreateProposalAjax = async (request, response) => {
+async function getCitizenActionDocumentsAjax(request, response){
+    
+    //check whether request is ajax and if accepts json
+    if(request.xhr || request.accepts('json, html') == 'json') {
+
+        let community = await CommunityModels.Community.findById(request.query.community);
+        let laws = [];
+        
+        if(request.query.type == 'deleteLaw' || request.query.type == 'editLaw'){
+            //Search for all the active laws of a community
+            for(i = 0; i < community.laws.length; i++){
+
+                let law = await CitizenActionsModels.Law.findById(community.laws[i]);
+                if(law.active===true) laws.push(law);
+            }
+            response.send({laws:laws});
+        }
+
+    }
+}
+
+/*const getCreateProposalAjax = async (request, response) => {
     //check whether request is ajax and if accepts json
     if(request.xhr || request.accepts('json, html') == 'json') {
         let community = await CommunityModels.Community.findById(request.user.community);
         let laws = await CitizenActionsModels.Law.find({'_id' : {$in: community.laws}});
         response.send({laws:laws});
     }
-}
+}*/
 
 const postCreateProposal = (request, response) => {
     citizenActions.createProposal(request.user, request.body);
@@ -130,6 +146,7 @@ module.exports = {
     getCommunityCreate,
     postCommunityCreate,
     getCommunityProposal,
-    getCreateProposalAjax,
+    getCitizenActionDocumentsAjax,
+    //getCreateProposalAjax,
     postCreateProposal,
 }

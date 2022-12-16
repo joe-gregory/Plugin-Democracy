@@ -32,8 +32,10 @@ router.get('/mycommunity/createproposal', communityController.getCommunityPropos
 
 router.post('/mycommunity/createproposal', communityController.postCreateProposal);
 
+router.get('/mycommunity/createproposal/getcitizenactiondocuments', communityController.getCitizenActionDocumentsAjax);
+
 router.post('/mycommunity/vote/:proposalId', communityFeedController.postFeedVote);
 
-router.get('/mycommunity/createproposal/delete', communityController.getCreateProposalAjax);
+//router.get('/mycommunity/createproposal/delete', communityController.getCreateProposalAjax);
 
 module.exports = router;
