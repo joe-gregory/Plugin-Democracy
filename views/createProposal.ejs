@@ -1,12 +1,15 @@
 <%- include('./partials/head.ejs') %>
 <%- include('./partials/navigation.ejs') %>
+
+
+
 <h1 class = 'pageTitle'>Crear nueva propuesta</h1>
 
 <div class = 'container'>
     <form method = 'post' action = '/mycommunity/createproposal'>
         <div class = 'mb-3'>
             <label class = 'form-label' for = 'community'>Elige la comunidad para la que haces la propuesta</label>
-            <select name = 'community' class = 'form-select' id = 'communities' required="true">
+            <select name = 'community' class = 'form-select' id = 'community' required="true">
                 <option disabled selected>Elige para que comunidad es la propuesta</option>
                 <% for(let i = 0; i < locals.communities.length; i++){ %>
                     <%- `<option value = "${locals.communities[i].id}">${locals.communities[i].name}</option>` %>
@@ -104,88 +107,6 @@
     </form>
 </div>
 
-<script>
-    $('#communities').on('change', function() {
-        $('#proposalType').removeAttr('disabled');
-    })
-
-    $('#proposalType').on('change', async function() {
-        let proposalType = $('#proposalType option:selected').val();
-        
-        switch(proposalType){
-            case 'createLaw':
-                $('#titleDiv').removeClass('d-none');
-                $('#bodyDiv').removeClass('d-none');
-
-                $('#citizenActionTitleDiv').removeClass('d-none');
-                $('#citizenActionTitleLabel').text("Titulo de la ley");
-                $('#citizenActionTitle').attr('placeholder','Como aparecera el titulo de la ley como tan en la constitucion de la comunidad.')
-
-                $('#citizenActionBodyDiv').removeClass('d-none');
-                $('#citizenActionBodyLabel').text('Texto de la ley');
-                $('#citizenActionBody').attr('placeholder', 'Escribe el texto de la ley como estara en la constitucion de la privada.')
-                
-                $('#citizenActionStartDateDiv').removeClass('d-none');
-                $('#citizenActionStartDateLabel').text('Fecha en que la ley tomara efecto (opcional). Sin fecha, la ley toma efecto inmediatamente que la propuesta pase.');
-
-                $('#citizenActionExpirationDateDiv').removeClass('d-none');
-                $('#citizenActionExpirationDateLabel').text('Fecha en que expiraria la ley (opcional). Sin fecha de expiracion, la ley permanece permanentemente hasta que se vote para removerla.');
-                break;
-            case 'deleteLaw':
-                $('#titleDiv').removeClass('d-none');
-                $('#bodyDiv').removeClass('d-none');
-
-                $('#citizenActionDocument').
-
-                break;
-            case 'editLaw':
-                break;
-            case 'createRole':
-                break;
-            case 'deleteRole':
-                break;
-            case 'editRole':
-                break;
-            case 'assignRole':
-                break;
-            case 'removeRole':
-                break;
-            case 'swapRole':
-                break;
-            case 'createProject':
-                break;
-            case 'createBadge': 
-                break;
-            case 'assignBadge': 
-                break;
-            case 'permit':
-                break;
-            
-        }
-        
-    });
-
-function getCitizenActionDocuments(){
-    let documents;
-    $.ajax({
-        url: '/mycommunity/createproposal/getcitizenactiondocuments',
-        data: {
-            community: $('communities').val(),
-            type: $('#proposalType option:selected').val()
-        },
-        type: 'GET',
-        dataType: "json",
-        cache: false,
-        success: function(data) {
-            documents = data;
-        },
-        error: function(){
-            $('h1.pageTitle').html('error');
-        }
-    })
-    return documents;
-}
-
-</script>
+<script src = '/scripts/createProposal.js'></script>
 
 <%- include('./partials/footer.ejs') %>

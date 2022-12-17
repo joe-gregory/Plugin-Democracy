@@ -122,18 +122,25 @@ async function getCitizenActionDocumentsAjax(request, response){
     }
 }
 
-/*const getCreateProposalAjax = async (request, response) => {
-    //check whether request is ajax and if accepts json
-    if(request.xhr || request.accepts('json, html') == 'json') {
-        let community = await CommunityModels.Community.findById(request.user.community);
-        let laws = await CitizenActionsModels.Law.find({'_id' : {$in: community.laws}});
-        response.send({laws:laws});
-    }
-}*/
+const postCreateProposal = async (request, response) => {
+    
+    let proposal = await citizenActions.createProposal(request.user, request.body);
 
-const postCreateProposal = (request, response) => {
-    citizenActions.createProposal(request.user, request.body);
-    response.redirect('/mycommunity');    
+    if(proposal == false){
+        request.session.message = {
+            type: 'danger',
+            title: 'Propuesta no fue creada', 
+            message: 'Puede que no seas un ciudadano de esta comunidad. Si ese no es el caso, favor de contactar servicio tecnico.', 
+        }
+        response.redirect('/mycommunity/createproposal');
+    } else{
+        request.session.message = {
+            type: 'success',
+            title: `Propuesta <a href="/mycommunity/proposal/${proposal.id}">${proposal.title}</a> creada exitosamente`, 
+            message: 'Puede que no seas un ciudadano de esta comunidad. Si ese no es el caso, favor de contactar servicio tecnico.', 
+        }
+        response.redirect('/mycommunity');  
+    }
 };
 
 module.exports = {

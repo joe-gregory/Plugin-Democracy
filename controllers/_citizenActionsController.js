@@ -1,75 +1,46 @@
+const { request } = require("express");
 const CommunityModels  = require("../models/communityModels");
+const CitizenActionsModels = require("../models/citizenActionsModels");
 
-function isUserAllowed(user, action, proposal){
-    switch(action) {
-        case createProposal:
-            //if user belongs to the community, the user can create a proposal even if not a homeowner
-            if (user.community === proposal.community) return true;
-        default:
-            throw new Error ('User is not authorized for action');
+async function createProposal(user, proposal){
 
-    }
-};
-
-async function createProposal(user, proposalRequest){
-    
-    isUserAllowed(user, createProposal, proposalRequest);
-    
     let community = await CommunityModels.Community.findById(proposal.community);
-    let pR = proposalRequest;
+    
+    //Is user allowed to create proposal? Aka, is user citizen of said community. 
+    if(community.citizens.find(citizen => citizen == user.id) === undefined) return false;
+    
+    for(let key in proposal){
+        if(proposal[key]== '') proposal[key] = null;
+    }
 
-    const proposal = new CitizenActions.Proposal({
-        title: pR.title,
-        body: pR.body,
-        type: pR.type,
+    const mongoProposal = new CitizenActionsModels.Proposal({
+        title: proposal.title,
+        body: proposal.body,
+        type: proposal.proposalType,
         author: user.id,
         votesInFavor: 0,
         votesAgainst: 0,
-        community: pR.community,
-        approvedDate: null,
-        passed: null,
-        passedDate: null,
-    });
+        community: proposal.community,
+        passed:null,
+        citizenActionDocument: proposal.citizenActionDocument,
+        citizenActionTitle: proposal.citizenActionTitle,
+        citizenActionBody: proposal.citizenActionBody,
+        citizenActionStartDate: proposal.citizenActionStartDate,
+        citizenActionExpirationDate: proposal.citizenActionExpirationDate,
+        citizenActionActive: proposal.citizenActionActive,
+        citizenActionPay: proposal.citizenActionPay,
+        citizenActionPay: proposal.citizenActionVolunteersAmount,
+        citizenActionRewardBadges: proposal.citizenActionRewardBadges,
+        citizenActionBadgeImage: proposal.citizenActionBadgeImage,
+    })
     
-    //check if the proposal has the right info given the type of proposal it is
-    switch(proposal.type){
-        case 'createLaw':
-            if(!(pR.citizenActionTitle && pR.citizenActionBody && pR.citizenActionStartDate)) throw new Error ('Missing attributes to create a law proposal');
-            proposal.citizenActiontitle = pR.citizenActionTitle;
-            proposal.citizenActionBody = pR.citizenActionBody;
-            proposal.citizenActionStartDate = pR.citizenActionStartDate;
-            proposal.citizenActionExpirationDate = pR.citizenActionExpirationDate;
-            break;
-        case 'deleteLaw':
-            break;
-        case 'editLaw':
-            break;
-        case 'createRole':
-            break;
-        case 'deleteRole':
-            break;
-        case 'assignRole':
-            break;
-        case 'removeRole':
-            break;
-        case 'swapRole':
-            break;
-        case 'createProject':
-            break;
-        case 'createBadge':
-            break;
-        case 'assignBadge':
-            break;
-        case 'permit':
-            break;
-        default:
-            throw new Error('Missing or wrong attributes for proposal type');
-    }
 
     //push proposal to community, save both the community changes and proposal
-    community.proposals.push(proposal);    
-    proposal.save();
+    community.proposals.push(mongoProposal);    
+    mongoProposal.save();
     community.save();
+
+    return mongoProposal;
 };
 
 function createLaw(user, proposal){
