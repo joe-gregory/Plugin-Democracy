@@ -177,7 +177,7 @@ async function fullCommunityObject(communityId){
             type: mongoProposal.type,
             author: community.citizens[authorIndex],
             votesInFavor: mongoProposal.votesInFavor,
-            votesAgains: mongoProposal.votesAgainst,
+            votesAgainst: mongoProposal.votesAgainst,
             community: community,
             approvedDate: mongoProposal.approvedDate,
             passed: mongoProposal.passed,
@@ -188,6 +188,7 @@ async function fullCommunityObject(communityId){
             citizenActionExpirationDate: mongoProposal.citizenActionExpirationDate,
             citizenActionActive: mongoProposal.citizenActionActive,
             citizenActionPay: mongoProposal.citizenActionPay,
+            citizenActionVolunteersAmount: mongoProposal.citizenActionVolunteersAmount,
             citizenActionBadgeImage: mongoProposal.citizenActionBadgeImage,            
         }
         //proposals: citizenActionVolunteers (citizens)

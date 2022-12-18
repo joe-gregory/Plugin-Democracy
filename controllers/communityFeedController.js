@@ -1,10 +1,28 @@
-const Community = require('../models/communityModels');
-const Law = require('../models/citizenActionsModels');
+const CommunityModels = require('../models/communityModels');
+const CitizenActionModels = require('../models/citizenActionsModels');
 
 const getCommunityFeed = async (request, response) => {
+    
     if (!request.user.residencies.length) return response.redirect('/mycommunity/nocommunity');
     
-    //Search for the community associated with the user: new change: search for the communities associated with the user
+    let user_communities = [];
+    for(let i = 0; i < request.user.residencies.length; i++){
+        user_communities.push(request.user.residencies[i].community);
+    }
+
+    let mongoCommunities = await CommunityModels.Community.find({'_id':{$in: user_communities}});
+    response.locals.communities = []
+    for(let i = 0; i < mongoCommunities.length; i++){
+        response.locals.communities.push(mongoCommunities[i]);        
+        let proposals = await CitizenActionModels.Proposal.find({'_id':{$in: mongoCommunities[i].proposals}});
+        response.locals.communities[i].proposals = proposals;
+        console.log(response.locals.communities[i].proposals);
+    }
+
+    //votes = await Law.Vote.find({'_id' : { $in: response.locals.proposals[j].votes}});
+
+    /////////////////////////////////////////////////////////////////////////
+    /*
     let community = await Community.Community.findById(request.user.residencies[0].community); 
     if (community === null) {
         response.redirect('/profile');
@@ -58,6 +76,7 @@ const getCommunityFeed = async (request, response) => {
         }
     }
     response.render('mycommunity');
+    */
 };
 
 //dealing with voting on feed proposals:
