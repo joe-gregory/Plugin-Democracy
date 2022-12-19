@@ -18,7 +18,8 @@ const getCommunityAbout = async (request, response) => {
     //Voting member of home, roles, laws
     response.locals.communities = [];
     for (let i = 0; i < request.user.residencies.length; i++){
-        community = await dbController.fullCommunityObject(request.user.residencies[i].community);
+        let community = await CommunityModels.Community.findById(request.user.residencies[i].community);
+        //let community = await dbController.fullCommunityObject(request.user.residencies[i].community);
         response.locals.communities.push(community);
     }
     
