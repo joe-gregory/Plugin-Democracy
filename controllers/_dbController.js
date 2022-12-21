@@ -172,6 +172,7 @@ async function fullCommunityObject(communityId){
         let mongoProposal = await CitizenActionsModels.Proposal.findById(mongoCommunity.proposals[i]);
         let authorIndex = community.citizens.findIndex(citizen => citizen.id == mongoProposal.author);
         let proposal = {
+            id: mongoProposal.id,
             title: mongoProposal.title,
             body: mongoProposal.body,
             type: mongoProposal.type,
@@ -189,7 +190,8 @@ async function fullCommunityObject(communityId){
             citizenActionActive: mongoProposal.citizenActionActive,
             citizenActionPay: mongoProposal.citizenActionPay,
             citizenActionVolunteersAmount: mongoProposal.citizenActionVolunteersAmount,
-            citizenActionBadgeImage: mongoProposal.citizenActionBadgeImage,            
+            citizenActionBadgeImage: mongoProposal.citizenActionBadgeImage,
+            createdAt: mongoProposal.createdAt,            
         }
         //proposals: citizenActionVolunteers (citizens)
         proposal.citizenActionVolunteers = []
@@ -204,6 +206,7 @@ async function fullCommunityObject(communityId){
             mongoVote = await CitizenActionsModels.Vote.findById(mongoVote);
             citizenIndex = community.citizens.findIndex(citizen => citizen.id == mongoVote.citizen)
             vote = {
+                id: mongoVote.id,
                 citizen: community.citizens[citizenIndex],
                 inFavor: mongoVote.inFavor,
                 proposal: proposal,
@@ -219,6 +222,7 @@ async function fullCommunityObject(communityId){
         let authorIndex = community.citizens.findIndex(citizen => citizen.id == mongoLaw.author)
         let proposalIndex = community.proposals.findIndex(proposal => proposal.id == mongoLaw.proposal);
         let law = {
+            id: mongoLaw.id,
             title: mongoLaw.title,
             law: mongoLaw.law,
             author: community.citizens[authorIndex],
@@ -239,6 +243,7 @@ async function fullCommunityObject(communityId){
         citizenIndex = community.citizens.findIndex(citizen => citizen.id == mongoRole.citizen);
         proposalIndex = community.proposals.findIndex(proposal => proposal.id == mongoRole.proposal);
         role = {
+            id: mongoRole.id,
             title: mongoRole.title,
             body: mongoRole.body,
             community: community,
@@ -258,6 +263,7 @@ async function fullCommunityObject(communityId){
         let mongoProject = await CitizenActionsModels.Project.findById(mongoCommunity.projects[k]);
         proposalIndex = community.proposals.findIndex(proposal => proposal.id == mongoProject.proposal);
         let project = {
+            id: mongoProject.id,
             title: mongoProject.title,
             body: mongoProject.body,
             community: community,
@@ -280,6 +286,7 @@ async function fullCommunityObject(communityId){
         mongoBadge = await CitizenActionsModels.Badge.findById(mongoCommunity.badges[i]);
         proposalIndex = community.proposals.findIndex(proposal => proposal.id == mongoBadge.proposal);
         let badge = {
+            id: mongoBadge.id,
             title: mongoBadge.title,
             body: mongoBadge.body,
             community: community,
@@ -289,30 +296,6 @@ async function fullCommunityObject(communityId){
             active: mongoBadge.active,
             image: mongoBadge.image,
         }
-    }
-    
-
-    //proposals: citizenActionRewardBadges & citizenActionDocument
-    for(let k = 0; k < community.proposals.length; k++){
-        community.proposals[k].citizenActionRewardBadges = [];
-        let mongoProposal = await CitizenActionsModels.Proposal.findById(community.proposals[k].id);
-        //Badges
-        for(let i = 0; i < mongoProposal.citizenActionRewardBadges.length; i++){
-            badgeIndex = community.badges.findIndex(badge => badge.id == mongoProposal.citizenActionRewardBadges[i]);
-            community.proposals[k].citizenActionRewardBadges.push(community.badges[badgeIndex]);
-        }
-        //citizenActionDocument
-        //I would have to look in: laws, roles, projects, badges & permits
-        let indexLaw = community.laws.findIndex(law => law.id == mongoProposal.citizenActionDocument);
-        if(indexLaws > -1) community.proposals[k].citizenActionDocument = community.laws[indexLaw];
-        let indexRole = community.roles.findIndex(role => role.id == mongoProposal.citizenActionDocument);
-        if(indexRole > -1) community.proposals[k].citizenActionDocument = community.roles[indexRole];
-        let indexProject = community.projects.findIndex(project => project.id == mongoProposal.citizenActionDocument);
-        if(indexProject > -1) community.proposals[k].citizenActionDocument = community.projects[indexProject];
-        let indexBadge = community.badges.findIndex(badge => badge.id == mongoProposal.citizenActionDocument);
-        if(indexBadge > -1) community.proposals[k].citizenActionDocument = community.badges[indexBadge];
-        let indexPermit = community.permits.findIndex(permit => permit.id == mongoProposal.citizenActionDocument);
-        if(indexPermit > -1) community.permits[k].citizenActionDocument = community.permits[indexPermit];
     }
     
     //project: rewardBadges: 
@@ -333,6 +316,7 @@ async function fullCommunityObject(communityId){
         let mongoPermit = await CitizenActionsModels.Permit.findById(mongoCommunity.permits[k]);
         let proposalIndex = community.proposals.findIndex(proposal => proposal.id == mongoPermit.proposal);
         let permit = {
+            id: mongoPermit.id,
             title: mongoPermit.title,
             body: mongoPermit.body,
             community: community,
@@ -349,6 +333,29 @@ async function fullCommunityObject(communityId){
         community.permits.push(permit);
     }
 
+    //proposals: citizenActionRewardBadges & citizenActionDocument
+    for(let k = 0; k < community.proposals.length; k++){
+        community.proposals[k].citizenActionRewardBadges = [];
+        let mongoProposal = await CitizenActionsModels.Proposal.findById(community.proposals[k].id);
+        //Badges
+        for(let i = 0; i < mongoProposal.citizenActionRewardBadges.length; i++){
+            badgeIndex = community.badges.findIndex(badge => badge.id == mongoProposal.citizenActionRewardBadges[i]);
+            community.proposals[k].citizenActionRewardBadges.push(community.badges[badgeIndex]);
+        }
+        //citizenActionDocument
+        //I would have to look in: laws, roles, projects, badges & permits
+        let indexLaw = community.laws.findIndex(law => law.id == mongoProposal.citizenActionDocument);
+        if(indexLaw > -1) community.proposals[k].citizenActionDocument = community.laws[indexLaw];
+        let indexRole = community.roles.findIndex(role => role.id == mongoProposal.citizenActionDocument);
+        if(indexRole > -1) community.proposals[k].citizenActionDocument = community.roles[indexRole];
+        let indexProject = community.projects.findIndex(project => project.id == mongoProposal.citizenActionDocument);
+        if(indexProject > -1) community.proposals[k].citizenActionDocument = community.projects[indexProject];
+        let indexBadge = community.badges.findIndex(badge => badge.id == mongoProposal.citizenActionDocument);
+        if(indexBadge > -1) community.proposals[k].citizenActionDocument = community.badges[indexBadge];
+        let indexPermit = community.permits.findIndex(permit => permit.id == mongoProposal.citizenActionDocument);
+        if(indexPermit > -1) community.permits[k].citizenActionDocument = community.permits[indexPermit];
+    }
+    
     //return object
     return community;
 }
