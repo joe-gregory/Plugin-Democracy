@@ -1,7 +1,7 @@
 const CommunityModels = require('../models/communityModels');
 const CitizenActionsModels = require('../models/citizenActionsModels');
 
-const citizenActions = require('./_citizenActionsController');
+const citizenActionsController = require('./_citizenActionsController');
 const dbController = require('./_dbController');
 const flatted = require('flatted');
 
@@ -125,7 +125,7 @@ async function getCitizenActionDocumentsAjax(request, response){
 
 const postCreateProposal = async (request, response) => {
     
-    let proposal = await citizenActions.createProposal(request.user, request.body);
+    let proposal = await citizenActionsController.createProposal(request.user, request.body);
 
     if(proposal == false){
         request.session.message = {

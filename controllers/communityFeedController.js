@@ -1,22 +1,27 @@
 const CommunityModels = require('../models/communityModels');
 const CitizenActionModels = require('../models/citizenActionsModels');
 const dbController = require('./_dbController');
-const flatted = require('flatted');
 
 const getCommunityFeed = async (request, response) => {
     
     if (!request.user.residencies.length) return response.redirect('/mycommunity/nocommunity');
     
     response.locals.communities = [];
-    let community = await dbController.fullCommunityObject(request.user.residencies[0].community);
-    response.locals.communities.push(community);
-
-    for(let i = 1; i < request.user.residencies.length; i++){
-       community = await CommunityModels.Community.findById(request.user.residencies[i].community);
-       response.locals.communities.push(community);
+    
+    for(let i = 0; i < request.user.residencies.length; i++){
+        let community = await CommunityModels.Community.findById(request.user.residencies[i].community);
+        response.locals.communities.push(community);
+        }
+    
+    if(request.params.communityId === undefined) response.locals.index = 0;
+    else{
+        response.locals.index = response.locals.communities.findIndex(community => community.id = request.params.communityId); 
     }
+
+    let community = await dbController.fullCommunityObject(request.user.residencies[0].community);
+    response.locals.communities[response.locals.index] = community;
     response.locals.user = request.user;
-    response.locals.index = 0;
+
     response.render('mycommunity');
 };
 

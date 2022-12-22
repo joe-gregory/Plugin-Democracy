@@ -14,9 +14,12 @@
     <div class = "mb-3">
         <label class = 'form-label' for = 'communities'>Elige comunidad</label>
         <select id="communities" name="communities">
-            <%- `<option val="${communities[index].id}" selected>${communities[index].name}</option>` %>
-            <% for(let i = 1; i < communities.length; i++){ %>
-                <%- `<option val="${communities[i].id}">${communities[i].name}</option>` %>
+            <% for(let i = 0; i < communities.length; i++){ %>
+                <% if (i == index){ %>
+                <%-`<option value="${communities[i].id}" selected>${communities[index].name}</option>` %>
+                <% }else { %>
+                <%- `<option value="${communities[i].id}">${communities[i].name}</option>` %>
+                <% } %>
             <% } %>
         </select>
     </div>

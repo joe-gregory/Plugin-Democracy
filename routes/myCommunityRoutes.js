@@ -10,6 +10,8 @@ router.post('/mycommunity*', communityController.RouteIfUserNoAuthenticated);
 
 router.get('/mycommunity', communityFeedController.getCommunityFeed);
 
+router.get('/mycommunity/:communityId', communityFeedController.getCommunityFeed);
+
 router.get('/mycommunity/nocommunity', (request, response) => {
     response.render('noCommunity');
 })
