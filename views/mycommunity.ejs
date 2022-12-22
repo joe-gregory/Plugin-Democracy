@@ -16,7 +16,7 @@
         <select id="communities" name="communities">
             <% for(let i = 0; i < communities.length; i++){ %>
                 <% if (i == index){ %>
-                <%-`<option value="${communities[i].id}" selected>${communities[index].name}</option>` %>
+                <%-`<option value="${communities[i].id}" selected>${communities[i].name}</option>` %>
                 <% }else { %>
                 <%- `<option value="${communities[i].id}">${communities[i].name}</option>` %>
                 <% } %>

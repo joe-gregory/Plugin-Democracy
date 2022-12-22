@@ -15,10 +15,10 @@ const getCommunityFeed = async (request, response) => {
     
     if(request.params.communityId === undefined) response.locals.index = 0;
     else{
-        response.locals.index = response.locals.communities.findIndex(community => community.id = request.params.communityId); 
+        response.locals.index = response.locals.communities.findIndex(community => community.id == request.params.communityId); 
     }
-
-    let community = await dbController.fullCommunityObject(request.user.residencies[0].community);
+    
+    let community = await dbController.fullCommunityObject(request.user.residencies[response.locals.index].community);
     response.locals.communities[response.locals.index] = community;
     response.locals.user = request.user;
 
