@@ -113,17 +113,13 @@ const lawSchema = new Schema ({
 );
 
 const voteSchema = new Schema({
-    citizen: {
-        type: Schema.Types.ObjectId, ref: 'Community.Citizen'
-    },
+    citizen: {type: Schema.Types.ObjectId, ref: 'Community.Citizen'},
 
-    inFavor: {
-        type: Boolean
-    },
+    inFavor: {type: Boolean},
 
-    proposal: {
-        type: Schema.Types.ObjectId, ref: 'Law'
-    }
+    proposal: {type: Schema.Types.ObjectId, ref: 'Law'},
+
+    community: {type: Schema.Types.ObjectId, ref: 'Community'},
 },
 
 { timestamps: true}
