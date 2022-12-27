@@ -24,14 +24,6 @@ const proposalSchema = new Schema ({
     votes: [{
         type: Schema.Types.ObjectId, ref: 'Vote'
     }],
-
-    votesInFavor: {
-        type: Number
-    }, 
-
-    votesAgainst: {
-        type: Number
-    },
     
     community: {
         type: Schema.Types.ObjectId, ref: 'Community.Community',
@@ -77,6 +69,14 @@ const proposalSchema = new Schema ({
     {timestamps: true}
 
 );
+
+proposalSchema.virtual('votesInFavor').get(function(){ 
+    return this.votes.reduce((accumulator, vote) => accumulator + (vote.inFavor === true),0);
+});
+
+proposalSchema.virtual('votesAgainst').get(function(){
+  return this.votes.reduce((accumulator, vote) => accumulator + (vote.inFavor === false), 0);
+});
 
 const lawSchema = new Schema ({
 

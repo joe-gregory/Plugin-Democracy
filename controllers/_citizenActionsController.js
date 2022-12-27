@@ -42,13 +42,13 @@ async function createProposal(user, proposal){
 };
 
 async function voteOnProposal(userId, proposalId, inFavor){
+    //Does user have voting rights for this proposal's community?
+    
     //Adjust value of inFavor accordingly
     if(inFavor === 'accept') inFavor = true;
     else if(inFavor === 'reject') inFavor = false;
     else if(inFavor === true || inFavor === false);
     else{throw new Error('Invalid inFavor vote value')} 
-
-    //Does user have voting rights for this proposal's community?
 
     //throw error if user already voted on proposal
     if(await hasUserVotedForProposal(userId, proposalId)) throw new Error('User has already voted on proposal');
@@ -86,7 +86,7 @@ async function voteOnProposal(userId, proposalId, inFavor){
     if(votes.find(vote => vote.citizen == request.user.id)) response.redirect('/profile');
 
     //If user hasn't voted on this proposal previously, did he vote in favor or against
-    const inFavor = request.body.voteButton === 'accept' ? true : false;
+    /////const inFavor = request.body.voteButton === 'accept' ? true : false;
 
     //create new vote object for this users vote on this proposal
     const vote = new Law.Vote({

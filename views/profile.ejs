@@ -2,7 +2,7 @@
 <%- include('./partials/navigation.ejs') %>
 <h1 class = 'pageTitle'>PROFILE PAGE</h1>
 <h2> <%= (locals.message != undefined) ? message : '' ;%> </h2>
-<p> <%= (locals.firstName != undefined) ? `Nombre: ${firstName} ${lastName} ${secondLastName}`:''%> </p>
+<p> <%= (locals.firstName != undefined) ? `Nombre: ${fullName}`:''%> </p>
 <p> <%= (locals.email != undefined) ? 'Email: ' + email : '' ;%> </p>
 <p> <%= (locals.community != undefined) ? `Comunidad: ${community.name}`:'';%> </p>
 <p> <%= (locals.home != undefined) ? `Casa #${home.innerNumber}` :'';%> </p>

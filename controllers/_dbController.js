@@ -129,7 +129,7 @@ async function fullCommunityObject(communityId){
             firstName: mongoCitizen.firstName,
             lastName: mongoCitizen.lastName,
             secondLastName: mongoCitizen.secondLastName,
-            fullName: `${mongoCitizen.firstName} ${mongoCitizen.lastName} ${mongoCitizen.secondLastName}`,
+            fullName: mongoCitizen.fullName,
             email: mongoCitizen.email,
             cellPhone: mongoCitizen.cellPhone,
             voter: false,
@@ -194,7 +194,7 @@ async function fullCommunityObject(communityId){
             createdAt: mongoProposal.createdAt,            
         }
         //proposals: citizenActionVolunteers (citizens)
-        proposal.citizenActionVolunteers = []
+        proposal.citizenActionVolunteers = [];
         for (let j = 0; j < mongoProposal.citizenActionVolunteers.length; j++){
             let volunteerIndex = community.citizens.findIndex(citizen.id == mongoProposal.citizenActionvolunteers[j]);
             proposal.citizenActionVolunteers.push(community.citizens[volunteerIndex]);

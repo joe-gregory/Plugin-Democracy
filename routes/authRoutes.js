@@ -58,6 +58,7 @@ router.get('/profile', (request, response) => {
         Community.Home.findById(request.user.home, function(err, home){
             response.locals.community = community;
             response.locals.home = home;
+            response.locals.fullName = request.user.fullName;
             response.locals.firstName = request.user.firstName;
             response.locals.lastName = request.user.lastName;
             response.locals.secondLastName = request.user.secondLastName;

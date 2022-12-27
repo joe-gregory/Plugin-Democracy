@@ -104,8 +104,9 @@ const citizenSchema = new Schema({
     {timestamps: true}
 );
 
-citizenSchema.virtual('fullName').
-    get(function(){ return `${this.firstName} ${this.lastName} ${this.secondLastName}`})
+citizenSchema.virtual('fullName').get(function(){ 
+    return `${this.firstName} ${this.lastName} ${this.secondLastName}`;
+});
 
 const Community = mongoose.model('Community', communitySchema);
 const Home = mongoose.model('Home', homeSchema);
