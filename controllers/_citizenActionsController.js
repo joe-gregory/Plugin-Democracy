@@ -172,8 +172,13 @@ async function hasUserVotedForProposal(userId, proposalId){
     return false
 }
 
-async function doesUserHaveVotingRightsForProposal(userId, proposalId){
-    //return true if user is a voter for a given community, if not return false
+async function votingRights(userId, communityId){
+    //return number of home if user is a voter for a given community, if not return false
+    let community = await CommunityModels.Community.findById(communityId);
+    let homes = await CommunityModels.Home.find({'community': {$in: community.homes}});
+    let home = homes.find(home => home.voter == userId);
+    if(home === undefined) return false;
+    return home;
 }
 
 function createLaw(user, proposal){
