@@ -24,6 +24,8 @@ const proposalSchema = new Schema ({
     votes: [{
         type: Schema.Types.ObjectId, ref: 'Vote'
     }],
+
+    unofficialVotes: [{type: Schema.Types.ObjectId, ref: 'UnofficialVote'}],
     
     community: {
         type: Schema.Types.ObjectId, ref: 'Community.Community',
@@ -78,6 +80,14 @@ proposalSchema.virtual('votesAgainst').get(function(){
   return this.votes.reduce((accumulator, vote) => accumulator + (vote.inFavor === false), 0);
 });
 
+proposalSchema.virtual('unofficialVotesInFavor').get(function(){
+    return this.unofficialVotes.reduce((accumulator, unofficialVote) => accumulator + (unofficialVote.inFavor === true), 0);
+});
+
+proposalSchema.virtual('unofficialVotesAgainst').get(function(){
+    return this.unofficialVotes.reduce((accumulator, unofficialVote) => accumulator + (unofficialVote.inFavor === false),0);
+})
+
 const lawSchema = new Schema ({
 
     title: String, 
@@ -113,6 +123,20 @@ const lawSchema = new Schema ({
 );
 
 const voteSchema = new Schema({
+    citizen: {type: Schema.Types.ObjectId, ref: 'Community.Citizen'},
+
+    inFavor: {type: Boolean},
+
+    proposal: {type: Schema.Types.ObjectId, ref: 'Law'},
+
+    community: {type: Schema.Types.ObjectId, ref: 'Community'},
+},
+
+{ timestamps: true}
+
+);
+
+const unofficialVoteSchema = new Schema({
     citizen: {type: Schema.Types.ObjectId, ref: 'Community.Citizen'},
 
     inFavor: {type: Boolean},
@@ -262,6 +286,7 @@ const permitSchema = new Schema ({
 const Proposal = mongoose.model('Proposal', proposalSchema);
 const Law = mongoose.model('Law', lawSchema);
 const Vote = mongoose.model('Vote', voteSchema);
+const UnofficialVote = mongoose.model('UnofficialVote', unofficialVoteSchema);
 const Role = mongoose.model('Role', roleSchema);
 const Project = mongoose.model('Project', projectSchema);
 const Badge = mongoose.model('Badge', badgeSchema);
@@ -271,6 +296,7 @@ module.exports = {
     Proposal,
     Law,
     Vote,
+    UnofficialVote,
     Role,
     Project,
     Badge,

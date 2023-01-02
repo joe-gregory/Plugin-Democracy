@@ -41,22 +41,42 @@ async function createProposal(user, proposal){
     return mongoProposal;
 };
 
-async function voteOnProposal(userId, proposalId, inFavor){
-    //Does user have voting rights for this proposal's community?
+async function voteOnProposal(citizenId, proposalId, inFavor){
+    //return true if vote went through, throw a corresponding error otherwise
+    //if citizen doesn't have voting rights, the vote is counted as a non-official vote
     
+    //get needed mongo objects
+    let mongoProposal = await CitizenActionsModels.findById(proposalId);
+    ////let mongoCitizen = await CommunityModels.findById(citizenId);
+    ////let mongoCommunity = await CommunityModels.findById(mongoProposal.community);
+
     //Adjust value of inFavor accordingly
     if(inFavor === 'accept') inFavor = true;
     else if(inFavor === 'reject') inFavor = false;
     else if(inFavor === true || inFavor === false);
     else{throw new Error('Invalid inFavor vote value')} 
 
-    //throw error if user already voted on proposal
-    if(await hasUserVotedForProposal(userId, proposalId)) throw new Error('User has already voted on proposal');
+    //Does user have voting rights for this proposal?: is he a voter in the proposal's community?
+    let votingRight = true;
+    let mongoHomes = await CommunityModels.Home.find({voter: citizenId, community: mongoProposal.community});
+    if(mongoHomes.length == 0){
+        votingRight = false; //throw new Error('Citizen has no voting rights on this proposal');  
+        console.log("Citizen doesn't have voting rights on this proposal");
+    }
+
+    //throw error if user already voted on proposal. Check for official and non-official votes.
+    //official votes
+    let officialVotes = await CitizenActionsModels.Vote.find({community: mongoProposal.community, citizen: citizenId, proposal: proposalId});
+    if(officialVotes.length == 1){
+        //make sure the vote is saved in the proposals votes array
+        if(!mongoProposal.votes.find(vote => vote == officialVotes[0].id)) throw new Error("There is a vote object saved with citizen, proposal and community id but it is not in the proposal's vote array");
+        throw new Error("There is already vote with this citizen id, this proposal id and this community id & it is saved in the votes array of proposal");
+    } else if(officialVotes.length > 1){
+        throw new Error("There is more than one vote saved with that information");
+    }
+    //unofficial votes
     
-    let mongoCitizen = await CommunityModels.findById(userId);
-    let mongoProposal = await CitizenActionsModels.findById(proposalId);
-    let mongoCommunity = await CommunityModels.findById(mongoProposal.community);
-    
+
     //create new vote object
     const mongoVote = new CitizenActionsModels.Vote({
         citizen: mongoCitizen,
@@ -161,19 +181,12 @@ async function voteOnProposal(userId, proposalId, inFavor){
     
 }
 
-async function hasUserVotedForProposal(userId, proposalId){
-    //returns true if user has voted for proposal, false otherwise
-    //Get the mongo proposal object
-    let mongoProposal = await CitizenActionsModels.Proposal.findById(proposalId);
-    //Obtain the list of mongo votes for this proposal:
-    let mongoVotes = await CitizenActionsModels.Vote.find({'_id':{$in:mongoProposal.votes}});
-    //if user has voted for this previously, send message
-    if(mongoVotes.find(vote => vote.citizen == userId)) return true
-    return false
-}
-
-async function doesUserHaveVotingRightsForProposal(userId, proposalId){
-    //return true if user is a voter for a given community, if not return false
+async function doesUserHaveVotingRightsForProposal(citizenId, proposalId){
+    //return true if user is a voter for the proposal's community, if not return false
+    let citizenId = await CommunityModels.Citizen.findById(citizenId);
+    let mongoCommunity = await
+    //I need to search a house that has a community like communityId and that has this guy as a voter
+    
 }
 
 function createLaw(user, proposal){
