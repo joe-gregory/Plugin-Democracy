@@ -1,69 +1,191 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema; 
-const CitizenActions = require('./citizenActionsModels');
 
-const communitySchema = new Schema({
-   
-    name : {
-        type: String,
-        required: true,
-        unique: true,
+const communitySchema = new Schema(
+{   
+    name : {type: String, required: true,},
+
+    address : { type: String, required: true, unique: true, },
+    
+    votingUnit: {type: String, enum:['homes.citizens', 'homes.owner'], required: true},
+
+    proposalLimit: {type: Number, default: 30},
+
+    homes : [{
+        identifier: String,
+        
+        number : {type: Number, required: true,},
+
+        residents: [{ type: Schema.Types.ObjectId, ref: 'Citizen' }], 
+
+        owner: {type: Schema.Types.ObjectId, ref: 'Citizen'},
+        }],
+
+    records: {
+        type: [{
+            identifier: {type: String, required: true},
+        
+            title: {type: String, required: true},
+            
+            body: {type: String, required: true},
+
+            effectiveDate : {
+                date: Date,
+                days: Number,
+            },
+
+            expirationDate : {
+                date: Date,
+                days: Number,
+            },
+
+            number: {type: Number, required: true} ,
+
+            category: {type: String, default: 'main'},
+
+            categoryNumber: Number, 
+
+            status: {type: String, enum: ['proposal', 'law','inactive'], required: true, default :'proposal'},
+
+            votes: [{
+                who: {type: Schema.Types.ObjectId, ref: 'Citizen'},
+                vote: Boolean
+            }],
+        }],
+        
+        timestamps: true,
+
+        set: function(record){
+            //I either get an initial proposal or an update to an existing proposal or law
+            //check if it's a new proposal or an update to an existing proposal
+            if(this.isModified('records')){
+                //current records are being modified
+                
+            }else{
+                let newRecord = {};
+                //a new record is being added
+                //ensure votes is clear
+                newRecord.votes = [];
+
+                //ensure title and body are provided
+                if(!(record.title && record.body)) throw new Error('No title or body provided for new proposal');
+                newRecord.title = record.title;
+                newRecord.body = record.body;
+                
+                //provide new identifier ensuring there are no collisions
+                let success = false;
+                let identifier;
+                while(!success){
+                    identifier = this.constructor.communitySchema.generateIdentifier();
+                    console.log(identifier);
+                    if(!this.find(record => record.identifier == identifier)) success = true;
+                }
+                record.identifier = identifier;
+                
+                //assign category (or default) to record
+                if (record.category) newRecord.category = record.category;
+                
+                //assign number field to record
+                //if a number field is provided in the middle, push the other numbers in front of this one. 
+                //if no number provided or number bigger than last current number, add to the end
+                if(!record.categoryNumber){
+                    //obtain latest number
+                    let laws = this.constructor.communitySchema.laws;
+                }
+
+                //assign categoryNumber to record
+                //if a categoryNumber field is provided in the middle, push the other numbers in front of this one.
+                //if no number provided or number bigger than last current number, add to the end
+
+                //save new element or save community document to include history
+                //save in history
+
+            }
+            //assign number field to record
+            //if a number field is provided in the middle, push the other numbers in front of this one. 
+            //if no number provided or number bigger than last current number, add to the end
+
+            //assign categoryNumber to record
+            //if a categoryNumber field is provided in the middle, push the other numbers in front of this one.
+            //if no number provided or number bigger than last current number, add to the end
+
+            //save new element or save community document to include history
+            //save in history
+        }
+    },
+
+    history: [{
+        who: String,
+        what: String,
+        when: String,
+    }],
+
+    //Community options
+    timestamps:true, 
+    
+    pre: {
+        save: function(next) {
+            if (this.isNew){
+
+            }
+            next();
+        }
     },
     
-    address : {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    
-    homes : [{ 
-         type: Schema.Types.ObjectId, ref: 'Home'
-    }],
+    methods: {
+        addCitizen: async function (citizenId, houseNumber){
+            homeIndex = this.homes.findIndex(home => home.number === houseNumber);
+            if (homeIndex === -1) throw new Error('No home with given identifier');
+            //Ensure that this citizen doesn't live in this community already
+            this.homes[homeIndex].residents.push(citizenId);
+            await this.save();
+        }, 
 
-    citizens: [{ 
-        type: Schema.Types.ObjectId, ref: 'Citizen'
-    }],
+        generateIdentifier: function(){
+            //generates a random 5 digit identifier consisting of all lowercase letters and digits 0-9
+            const characters = '0123456789abcdefghijklmnopqrstuvwxyz';
+            let identifier = '';
 
-    proposals: [{
-        type: Schema.Types.ObjectId, ref: 'CitizenActions.Proposal'
-    }],
-
-    laws: [{
-        type: Schema.Types.ObjectId, ref: 'CitizenActions.Law'
-    }],
-
-    roles: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.Role'}],
-
-    projects: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.Project'}],
-
-    permits: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.Permit'}],
-
-    badges: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.Badge'}],
-}, 
-
-{timestamps:true}
-
-);
-
-const homeSchema = new Schema({
-    
-    innerNumber : {
-        type: Number,
-        required: true,
+            for (let i = 0; i < 5; i++){
+                //generate a random index between 0 and 35
+                const index = Math.floor(Math.random()*characters.length);
+                //add the random character to the combination
+                identifier += characters[index];
+            }
+            return identifier;
+        }
     },
 
-    community: { type: Schema.Types.ObjectId, ref: 'Community'},
-    
-    citizens: [{ type: Schema.Types.ObjectId, ref: 'Citizen' }], 
+    virtuals: {
+        citizens: {
+            get() {
+                //get all the homes.residents and homes.owners
+                let citizens = [];
+                for (const home of this.homes){
+                    if(home.owner !== undefined) citizens.push(home.owner);
+                    for(const resident of home.residents){
+                        citizens.push(resident);
+                    }
+                }
+                //eliminate repeated citizens using the Set object and the spread operator
+                citizens = [...new Set(citizens)];
 
-    voter: {type: Schema.Types.ObjectId, ref: 'Citizen'},
-}, 
-{timestamps:true}
+                return citizens;
+            }
+        },
 
-);
+        laws: {
+            get(){
+                let laws = this.
+            }
+        }
+    }
+});
 
 const citizenSchema = new Schema({
     
+    identifier: String, 
+
     firstName: {
         type: String,
         required: true
@@ -101,19 +223,22 @@ const citizenSchema = new Schema({
     badges: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.badge'}],
 
 }, 
-    {timestamps: true}
+    {timestamps: true}, 
+
+    {virtuals: {
+        fullName: {
+            get() {
+                return `${this.firstName} ${this.lastName} ${this.secondLastName}`
+            }
+        }
+    }
+    },
 );
 
-citizenSchema.virtual('fullName').get(function(){ 
-    return `${this.firstName} ${this.lastName} ${this.secondLastName}`;
-});
-
 const Community = mongoose.model('Community', communitySchema);
-const Home = mongoose.model('Home', homeSchema);
 const Citizen = mongoose.model('Citizen', citizenSchema);
 
 module.exports = {
     Community,
-    Home,
     Citizen,
 };
