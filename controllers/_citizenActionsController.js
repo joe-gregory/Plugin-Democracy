@@ -42,6 +42,7 @@ async function createProposal(user, proposal){
 };
 
 async function voteOnProposal(citizenId, proposalId, inFavor){
+    /*
     //return true if vote went through, throw a corresponding error otherwise
     //if citizen doesn't have voting rights, the vote is counted as a non-official vote
     
@@ -69,13 +70,23 @@ async function voteOnProposal(citizenId, proposalId, inFavor){
     let officialVotes = await CitizenActionsModels.Vote.find({community: mongoProposal.community, citizen: citizenId, proposal: proposalId});
     if(officialVotes.length == 1){
         //make sure the vote is saved in the proposals votes array
+        //this if is in case the vote object was created but was never added to proposals.votes array
         if(!mongoProposal.votes.find(vote => vote == officialVotes[0].id)) throw new Error("There is a vote object saved with citizen, proposal and community id but it is not in the proposal's vote array");
         throw new Error("There is already vote with this citizen id, this proposal id and this community id & it is saved in the votes array of proposal");
     } else if(officialVotes.length > 1){
+        //In case there are duplicate votes from the same user on the same proposal:
+        //Checks that there is more than one vote 
         throw new Error("There is more than one vote saved with that information");
     }
     //unofficial votes
-    
+    let unofficialVotes = await CitizenActionsModels.UnofficialVote.find({community: mongoProposal.community, citizen: citizenId, proposalId})
+    if(officialVotes.length == 1){
+        //make sure the vote is saved in proposals.unofficialVotes in case it was created but never added to proposals.unofficialVotes array
+        if(!mongoProposal.unofficialVotes.find(unofficialVote => unofficialVote[0].id)) throw new Error("There is an unofficial vote eobject saved with citizen, proposal and community id but it is not in the proposal's unofficial votes array");
+        throw new Error("There is already an unofficial vote with this citizen id, this proposal id and this community id & it is saved in the unofficial votes array of proposal");
+    } else if(unofficialVotes.length > 1){
+        //
+    }
 
     //create new vote object
     const mongoVote = new CitizenActionsModels.Vote({
@@ -178,16 +189,17 @@ async function voteOnProposal(citizenId, proposalId, inFavor){
     proposal.votes.push(vote);
     proposal.save();
     response.redirect('/mycommunity');
+    */
     
 }
 
 async function doesUserHaveVotingRightsForProposal(citizenId, proposalId){
     //return true if user is a voter for the proposal's community, if not return false
-    let citizenId = await CommunityModels.Citizen.findById(citizenId);
-    let mongoCommunity = await
+    let citizen = await CommunityModels.Citizen.findById(citizenId);
+    //let mongoCommunity = await
     //I need to search a house that has a community like communityId and that has this guy as a voter
     
-}
+};
 
 function createLaw(user, proposal){
     if (!isUserAllowed(user)) throw new Error('User is not allowed to create laws');
@@ -196,6 +208,5 @@ function createLaw(user, proposal){
 
 module.exports = {
     createProposal,
-    hasUserVotedForProposal,
     voteOnProposal,
 }

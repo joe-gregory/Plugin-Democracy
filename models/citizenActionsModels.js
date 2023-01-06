@@ -22,7 +22,9 @@ const proposalSchema = new Schema ({
     },
 
     votes: [{
-        type: Schema.Types.ObjectId, ref: 'Vote'
+        //type: Schema.Types.ObjectId, ref: 'Vote'
+        citizen: {type: Schema.Types.ObjectId, ref: 'Community.Citizen', required: true},
+        inFavor: {type: Boolean},
     }],
 
     unofficialVotes: [{type: Schema.Types.ObjectId, ref: 'UnofficialVote'}],
