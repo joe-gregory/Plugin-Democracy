@@ -48,8 +48,8 @@ const communitySchema = new Schema(
             status: {type: String, enum: ['proposal', 'law','inactive'], required: true, default :'proposal'},
 
             votes: [{
-                who: {type: Schema.Types.ObjectId, ref: 'Citizen'},
-                vote: Boolean
+                citizen: {type: Schema.Types.ObjectId, ref: 'Citizen'},
+                vote: {type: String, enum: ['plug', 'unplug']}
             }],
         }],
         
@@ -113,23 +113,22 @@ const communitySchema = new Schema(
         }
     },
 
-    history: [{
-        who: String,
-        what: String,
-        when: String,
-    }],
+    history: {
+        type: [{
+        event: {type: String, enum: ['community-created', 'home-added','home-removed',
+        'resident-added','resident-removed','owner-added', 'owner-removed','record-created',
+        'vote', 'record-status','record-edit']},
+        date: Date,
+        citizen: {type: Schema.Types.ObjectId, ref: 'Citizen'},
+        vote: String,
+        record: Schema.Types.ObjectId,
+        status: String, 
+        home: Schema.Types.ObjectId,
+    }], 
+},
 
     //Community options
     timestamps:true, 
-    
-    pre: {
-        save: function(next) {
-            if (this.isNew){
-
-            }
-            next();
-        }
-    },
     
     methods: {
         addCitizen: async function (citizenId, houseNumber){
@@ -178,7 +177,20 @@ const communitySchema = new Schema(
                 let laws = this.
             }
         }
-    }
+    },
+    
+    pre: {
+        save: function(next) {
+            const community = this;
+
+            //detect changes to homes array
+            if(community.isModified('homes')){
+                //check if the homes array has increase in size, 
+            }
+            next();
+        }
+    },
+
 });
 
 const citizenSchema = new Schema({
