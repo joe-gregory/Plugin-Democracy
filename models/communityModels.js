@@ -39,11 +39,11 @@ const communitySchema = new Schema(
                 days: Number,
             },
 
-            number: {type: Number, required: true} ,
+            number: {type: Number, required: true, min: 1} ,
 
             category: {type: String, default: 'main'},
 
-            categoryNumber: Number, 
+            categoryNumber:{type: Number, min: 1},
 
             status: {type: String, enum: ['proposal', 'law','inactive'], required: true, default :'proposal'},
 
@@ -60,19 +60,14 @@ const communitySchema = new Schema(
             //check if it's a new proposal or an update to an existing proposal
             if(this.isModified('records')){
                 //current records are being modified
-                
-            }else{
-                let newRecord = {};
-                //a new record is being added
-                //ensure votes is clear
-                newRecord.votes = [];
 
-                //ensure title and body are provided
-                if(!(record.title && record.body)) throw new Error('No title or body provided for new proposal');
-                newRecord.title = record.title;
-                newRecord.body = record.body;
-                
-                //provide new identifier ensuring there are no collisions
+                //Laws number 1 and 2 are reserved
+                //ensure that no new law tries to become law #1 and #2. Those are going to be reserved.  
+            }else{
+                //a new record is being added
+                let newRecord = {};
+
+                //Identifier: provide new identifier ensuring there are no collisions
                 let success = false;
                 let identifier;
                 while(!success){
@@ -81,25 +76,29 @@ const communitySchema = new Schema(
                     if(!this.find(record => record.identifier == identifier)) success = true;
                 }
                 record.identifier = identifier;
-                
-                //assign category (or default) to record
-                if (record.category) newRecord.category = record.category;
-                
-                //assign number field to record
-                //if a number field is provided in the middle, push the other numbers in front of this one. 
-                //if no number provided or number bigger than last current number, add to the end
-                if(!record.categoryNumber){
-                    //obtain latest number
-                    let laws = this.constructor.communitySchema.laws;
-                }
 
-                //assign categoryNumber to record
-                //if a categoryNumber field is provided in the middle, push the other numbers in front of this one.
-                //if no number provided or number bigger than last current number, add to the end
+                //Title & Body: ensure title and body are provided
+                if(!(record.title && record.body)) throw new Error('No title or body provided for new proposal');
+                newRecord.title = record.title;
+                newRecord.body = record.body;
+                
+                //effectiveDate and expirationDate
+                if(record.effectiveDate) newRecord.effectiveDate = record.effectiveDate;
+                if(record.expirationDate) newRecord.expirationDate = record.expirationDate;
+                
+                //Requested number, category and categoryNumber if passed
+                if(record.number) newRecord.number = record.number;
+                if(record.category) newRecord.category = record.category;
+                if(record.categoryNumber) newRecord.categoryNumber = record.categoryNumber;
+
+                newRecord.number = record.number;
+                newRecord.category = record.category;
+                newRecord.categorynumber = record.categoryNumber;
 
                 //save new element or save community document to include history
                 //save in history
-
+                newRecord.save();
+                return newRecord;
             }
             //assign number field to record
             //if a number field is provided in the middle, push the other numbers in front of this one. 
