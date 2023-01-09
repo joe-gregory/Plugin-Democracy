@@ -190,10 +190,17 @@ const communitySchema = new Schema(
         updateRecord: function(record){
             //input: record, output: result.success
             //if in proposal mode and reached proposalLimit time, it goes inactive
-            let within_proposal_time_limit = (Date.now() - record.createdAt.getTime() >= this.proposalLimit) ? true : false;
+            let within_proposal_time_limit = (Date.now() - record.createdAt.getTime() <= this.proposalLimit) ? true : false;
             let majorityVotes = this.majorityVotes(record); //true if it has majority
-            const currentDate = new Date();
-
+            let within_record_expiration = (record.expirationDate.getTime() > Date.now()) ? true : false;
+            let after_record_effective_date = (record.effectiveDate.getTime() <= Date.now()) ? true : false;
+            //if after expiration date, inactive
+            if(within_record_expiration === false) record.status = 'inactive';
+            //if not enough votes and within proposal time limit, proposal
+            else if(within_proposal_time_limit && !majorityVotes) record.status = 'proposal';
+            //if enough votes but before record effective date
+            //if enough votes but aftev
+            //****me falto clear the votes when turned inactive
         },
         //End utility functions
 
