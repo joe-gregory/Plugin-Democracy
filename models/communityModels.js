@@ -22,6 +22,8 @@ const communitySchema = new Schema(
     records: {
         type: [{
             identifier: {type: String, required: true},
+
+            author: {type: Schema.Types.ObjectId, ref: 'Citizen'},
         
             title: {type: String, required: true},
             
@@ -51,7 +53,9 @@ const communitySchema = new Schema(
 
             categoryNumber:{type: Number, min: 1},
 
-            status: {type: String, enum: ['proposal', 'passed','inactive'], required: true, default :'proposal'},
+            status: {type: String, enum: ['proposal', 'active', 'passed','inactive'], required: true, default :'proposal'},
+            //proposal when it is created and within community.proposalLimit and expiration date with less votes needed for passing
+            //active when passed into law, passed when got votes but active date has not reached yet and inactive when proposalLimit (without enough votes) or expiration run out
 
             votes: [{
                 citizen: {type: Schema.Types.ObjectId, ref: 'Citizen'},
@@ -106,11 +110,11 @@ const communitySchema = new Schema(
             return result
         },
 
-        isCitizenOwner: function(citizen_id){
+        isCitizenOwner: function(input){
             //return true if citizen owns a home otherwise false
             let result = false;
             this.homes.forEach((home) => {
-                if(home.owner === citizen_id) result = true;
+                if(home.owner === input.citizen) result = true;
             })
             return result;
         },
@@ -175,7 +179,7 @@ const communitySchema = new Schema(
                 let amountHomes = this.homes.length;
                 let ownersVotes = [];
                 record.votes.forEach((vote) =>{
-                if(isCitizenOwner(vote.citizen)) ownersVotes.push(vote);
+                if(isCitizenOwner(vote)) ownersVotes.push(vote);
                 })
                 amountOwnersVotes = record.votes.reduce((total, vote) => {
                     if(vote.vote === 'plug') return total + 1;
@@ -187,20 +191,47 @@ const communitySchema = new Schema(
             throw new Error('no condition was found running majorityVotes')
         },
 
-        updateRecord: function(record){
+        updateRecord: async function(record){
             //input: record, output: result.success
-            //if in proposal mode and reached proposalLimit time, it goes inactive
-            let within_proposal_time_limit = (Date.now() - record.createdAt.getTime() <= this.proposalLimit) ? true : false;
-            let majorityVotes = this.majorityVotes(record); //true if it has majority
-            let within_record_expiration = (record.expirationDate.getTime() > Date.now()) ? true : false;
-            let after_record_effective_date = (record.effectiveDate.getTime() <= Date.now()) ? true : false;
-            //if after expiration date, inactive
-            if(within_record_expiration === false) record.status = 'inactive';
-            //if not enough votes and within proposal time limit, proposal
-            else if(within_proposal_time_limit && !majorityVotes) record.status = 'proposal';
-            //if enough votes but before record effective date
-            //if enough votes but aftev
-            //****me falto clear the votes when turned inactive
+            //output: result.success
+            //conditions that get check: 
+            let result;
+            result.success = true;
+            let previous_status = record.status;
+            let within_proposal_time_limit = (Date.now() - record.createdAt.getTime() <= this.proposalLimit) ? true : false; //if proposal if still within the time limit that you can vote on a proposal (community.proposalLimit)
+            let majorityVotes = this.majorityVotes(record); //true if it has majority votes
+            
+            let within_record_expiration;
+            if(record.expirationDate) within_record_expiration = (record.expirationDate.getTime() > Date.now()) ? true : false; //when law expires
+            else within_record_expiration = true;
+            let after_record_effective_date;
+            if(record.effectiveDate) (record.effectiveDate.getTime() <= Date.now()) ? true : false; //when law becomes active
+            else after_record_effective_date = true;
+            
+            //Determination
+            if(record.within_record_expiration === false) record.status = 'inactive';
+            switch(record.status){
+                case 'inactive':
+                    break;
+                case 'proposal':
+                    if(!within_proposal_time_limit && !majorityVotes) record.status = 'inactive';
+                    else if(within_proposal_time_limit && majorityVotes && within_record_expiration && after_record_effective_date) record.status = 'active';
+                    else if(majorityVotes && within_record_expiration && !after_record_effective_date) record.status = 'passed';
+                    break;
+                case 'passed':
+                    if(!within_proposal_time_limit && !majorityVotes) record.status = 'inactive';
+                    else if(within_proposal_time_limit && !majorityVotes && within_record_expiration) record.status = 'proposal';
+                    else if(majorityVotes && within_record_expiration && after_record_effective_date) record.status = 'active'
+                    break;
+                case 'active':
+                    if(!majorityVotes) record.status = 'inactive';
+                    else if(within_proposal_time_limit && !majorityVotes && within_record_expiration) record.status = 'proposal';
+                    break;
+                default:
+                    result.success = false;
+            }
+            await this.save().catch(result.success = false);
+            return result;
         },
         //End utility functions
 
@@ -296,6 +327,7 @@ const communitySchema = new Schema(
             //create new record
             input.proposal.status = null;
             input.proposal.votes = [];
+            input.proposal.author = input.citizen._id;
             //generate identifier until there is an original one
             let success = false;
             let identifier;
@@ -314,7 +346,7 @@ const communitySchema = new Schema(
             //input: record, citizen, & citizen.vote ('plug' or 'unplug')
             //make sure the vote is saved correctly
             if(input.citizen.vote !== 'plug' || input.citizen.vote !== 'unplug'){
-                result.message = 'citizen.vote is not in a valid form';
+                result.message = 'input.citizen.vote is not in a valid form';
                 result.success = false;
                 return result
             }
