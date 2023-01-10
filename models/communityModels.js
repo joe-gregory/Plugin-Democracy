@@ -218,7 +218,44 @@ const communitySchema = new Schema(
                     break;
                 case 'proposal':
                     if(!within_proposal_time_limit && !majorityVotes) record.status = 'inactive';
-                    else if(within_proposal_time_limit && majorityVotes && within_record_expiration && after_record_effective_date) record.status = 'active';
+                    else if(within_proposal_time_limit && majorityVotes && within_record_expiration && after_record_effective_date){
+                        
+                        //when a proposal goes from proposal to active, it either gets a new absolute and/or category number at the end of the current ones
+                        //or if it has numbers specified, it pushes all the other ones 
+                        //if the number is bigger than all the current numbers, it simply gets the next number
+                        //collect all the current numbers: 
+                        let activeRecords = this.records.filter(record => record.status === 'active');
+                        //sort array by activeRecords.number
+                        activeRecords.sort((a,b) => a - b);
+                        let biggestNumber = activeRecords[activeRecords.length-1].number;
+                        //if it came with a number assigned
+                        if(record.number){
+                            //if it is 2 or below 2, adjust to 3, so that it gets pushed as 3
+                            if(record.number <= 2) record.number = 3;
+                            //if it is bigger than the current biggest + 1, it gets adjusted to biggest + 1
+                            if(record.number > biggestNumber + 1) record.number = biggestNumber + 1;
+                            
+                            //insert and adjust the rest
+                            if(record.number <= biggestNumber){
+                                indexAtStartOfMovement = activeRecords.findIndex(r => r.number === record.number);
+                                for(let i = indexAtStartOfMovement; i < activeRecords.length; i++){
+                                    activeRecords[i].number = activeRecords[i].numer + 1;
+                                }
+                            }
+                        }else{
+                            //if it didn't come with a number assigned
+                            record.number = biggestNumber + 1;
+                        }
+                        //Now category & category numbers
+                        //if the category didn't exist, add it to this.lawCategories
+                        let categoryRecords = this.records.filter(r => r.status === 'active' && r.category === record.category);
+                        let biggestCategoryNumber = categoryRecords[categoryRecords.length -1].categoryNumber;
+                        if(record.category && record.categoryNumber){
+
+                        }
+                         
+                        record.status = 'active'; 
+                    } 
                     else if(majorityVotes && within_record_expiration && !after_record_effective_date) record.status = 'passed';
                     break;
                 case 'passed':
@@ -254,6 +291,15 @@ const communitySchema = new Schema(
             try{
                 await this.save();
                 await this.updateAllRecords();
+                let automaticVotes;
+                automaticVotes.record.identifier = '000001';
+                automaticVotes.vote = {
+                    citizen: input.citizen,
+                    vote: 'plug',
+                }
+                await this.vote(automaticVotes);
+                automaticVotes.record.identifier = '000002';
+                await this.vote(automaticVotes);
                 result.success = true;
             }catch(error){
                 result.success = false;
@@ -323,9 +369,19 @@ const communitySchema = new Schema(
             }
             //if no owner, add citizen as owner
             home.owner = input.citizen;
+
             try{
                 await this.save();
                 await this.updateAllRecords();
+                let automaticVotes;
+                automaticVotes.record.identifier = '000001';
+                automaticVotes.vote = {
+                    citizen: input.citizen,
+                    vote: 'plug',
+                }
+                await this.vote(automaticVotes);
+                automaticVotes.record.identifier = '000002';
+                await this.vote(automaticVotes);
             }catch(error){
                 result.success = false;
                 result.message = error;
