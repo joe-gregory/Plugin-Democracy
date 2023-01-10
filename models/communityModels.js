@@ -19,6 +19,8 @@ const communitySchema = new Schema(
         owner: {type: Schema.Types.ObjectId, ref: 'Citizen'},
         }],
 
+    lawCategories : [{type: String}],
+
     records: {
         type: [{
             identifier: {type: String, required: true},
@@ -49,18 +51,18 @@ const communitySchema = new Schema(
 
             type: {type: String, enum:['law', 'role','project', 'permit','badge'], required: true},
 
-            category: {type: String,},
+            lawCategory: {type: String,},
 
-            categoryNumber:{type: Number, min: 1},
+            lawCategoryNumber:{type: Number, min: 1},
 
             status: {type: String, enum: ['proposal', 'active', 'passed','inactive'], required: true, default :'proposal'},
             //proposal when it is created and within community.proposalLimit and expiration date with less votes needed for passing
             //active when passed into law, passed when got votes but active date has not reached yet and inactive when proposalLimit (without enough votes) or expiration run out
 
             votes: [{
-                citizen: {type: Schema.Types.ObjectId, ref: 'Citizen'},
-                vote: {type: String, enum: ['plug', 'unplug']},
-                date: Date
+                citizen: {type: Schema.Types.ObjectId, ref: 'Citizen', required: true},
+                vote: {type: String, enum: ['plug', 'unplug'], required: true},
+                date: {type: Date, required: true}
             }],
         }],
         
@@ -144,23 +146,6 @@ const communitySchema = new Schema(
             if(home === undefined) throw new Error('No home found with provided information');
             return home;
         },
-        
-        getRecord: function(input){
-            //search for records with _id, id or identifiere
-            let record; 
-            //search for records with input.record._id
-            if(input.record._id){
-                record = this.records.find(record => record._id === input.record._id);
-                
-            } else if (input.record.id){
-                record = this.records.find(record => record.id === input.record.id);
-                
-            } else if(input.record.identifier){
-                record = this.records.find(record => record.identifier === input.record.identifier);
-            }
-            if(record !== undefined) return record;
-            else throw new Error('Record not found');
-        },
 
         majorityVotes: function(record){
             //checks whether a given record has enough votes to pass returns true if yes, false otherwise
@@ -178,6 +163,7 @@ const communitySchema = new Schema(
             else if(this.votingUnit === 'homes.owners'){
                 let amountHomes = this.homes.length;
                 let ownersVotes = [];
+                //in this.vote() is where I ensure the citizen hasn't voted twice. 
                 record.votes.forEach((vote) =>{
                 if(isCitizenOwner(vote)) ownersVotes.push(vote);
                 })
@@ -189,6 +175,23 @@ const communitySchema = new Schema(
                 return result;
             }
             throw new Error('no condition was found running majorityVotes')
+        },
+
+        getRecord: function(input){
+            //search for records with _id, id or identifiere
+            let record; 
+            //search for records with input.record._id
+            if(input.record._id){
+                record = this.records.find(record => record._id === input.record._id);
+                
+            } else if (input.record.id){
+                record = this.records.find(record => record.id === input.record.id);
+                
+            } else if(input.record.identifier){
+                record = this.records.find(record => record.identifier === input.record.identifier);
+            }
+            if(record !== undefined) return record;
+            else throw new Error('Record not found');
         },
 
         updateRecord: async function(record){
@@ -230,8 +233,17 @@ const communitySchema = new Schema(
                 default:
                     result.success = false;
             }
-            await this.save().catch(result.success = false);
+            try{
+                await this.save();
+            } catch(error){
+                result.success = false;
+                result.message = error;
+            }
             return result;
+        },
+
+        updateAllRecords: async function(){
+            await this.records.forEach((record) => this.updateRecord(record));
         },
         //End utility functions
 
@@ -239,7 +251,14 @@ const communitySchema = new Schema(
             let result;
             let home = this.getHome(input);
             home.residents.push(input.citizen);
-            await this.save().then(result.success = true).catch(result.success = false);
+            try{
+                await this.save();
+                await this.updateAllRecords();
+                result.success = true;
+            }catch(error){
+                result.success = false;
+                result.message = error;
+            }
             return result;
         },
 
@@ -262,9 +281,14 @@ const communitySchema = new Schema(
                 let residentIndex = home.residents.findIndex(resident => resident === input.citizen._id);
                 //identify index
                 home.residents = home.residents.splice(residentIndex, 1);
-                await this.save().then(result.success = true).catch((error) => {
+                try{
+                    await this.save();
+                    await this.updateAllRecords();
+                    result.success = true;
+                } catch(error){
                     result.success = false;
-                    result.message = error});
+                    result.message = error;
+                }
                 return result;
                 
             } else{
@@ -273,10 +297,15 @@ const communitySchema = new Schema(
                     home.residents = home.residents.filter(citizen => citizen !== input.citizen.id);
                     home.residents = home.residents.filter(citizen => citizen !== input.citizen._id);
                 });
-                await this.save().then(result.success = true).catch((error) =>{
+                try{
+                    await this.save();
+                    await this.updateAllRecords();
+                    result.success = true;
+                }catch(error){
                     result.success = false;
                     result.message = error;
-                });
+                }
+
                 return result;
             }
         },
@@ -294,7 +323,13 @@ const communitySchema = new Schema(
             }
             //if no owner, add citizen as owner
             home.owner = input.citizen;
-            await this.save().then(result.success = true).catch(result.success = false);
+            try{
+                await this.save();
+                await this.updateAllRecords();
+            }catch(error){
+                result.success = false;
+                result.message = error;
+            }
             return result;
         }, 
 
@@ -305,15 +340,19 @@ const communitySchema = new Schema(
             let home = this.getHome(input);
             if(home.owner) {
                 home.owner = null;
-                await this.save().then(result.success = true).catch((error) => {
+                try{
+                    await this.save();
+                    await this.updateAllRecords();
+                    result.success = true;
+                }catch(error){
                     result.success = false;
-                    result.message = error});
-                return result;
+                    result.message = error;
+                }
             }else{
                 result.message = 'No owner in this house';
                 result.success = false;
-                return result;
             }
+            return result
         }, 
 
         createProposal: async function(input){
@@ -337,36 +376,60 @@ const communitySchema = new Schema(
             }
             input.proposal.identifier = identifier;
             this.records.push(input.proposal);
-            await this.save().then(result.success = true).catch(result.success = false);
+            try{
+                await this.save();
+                result.success = true;
+            } catch(error){
+                result.success = false;
+                result.message = error;
+            }
             return result
         },
 
         vote: async function(input){
             let result; 
-            //input: record, citizen, & citizen.vote ('plug' or 'unplug')
+            //input: input.record, input.citizen, input.vote
+            //**In controller: ensure that it is the signed-in user being passed in input.vote.citizen */
             //make sure the vote is saved correctly
-            if(input.citizen.vote !== 'plug' || input.citizen.vote !== 'unplug'){
+            if(input.vote.vote !== 'plug' || input.vote.vote !== 'unplug'){
                 result.message = 'input.citizen.vote is not in a valid form';
                 result.success = false;
                 return result
             }
+            //update all record statuses
+            await this.updateRecord(input.record);
 
             let record = this.getRecord(input);
-            //what is the status of this record?
+            //if the status of the record is inactive, you cannot vote on it
             if(record.status === 'inactive'){
-                result.success = 'false';
+                result.success = false;
                 result.message = 'cannot vote on an inactive record';
                 return result;
             }
             //has this citizen voted on this record?
-            let citizenIndex = record.votes.findIndex(vote => vote.citizen === input.citizen._id);
-            if(citizenIndex === -1){ //this citizen hasn't voted on this record
-                record.votes.push({citizen: input.citizen._id, vote: input.citizen.vote})
+            let voteIndex = record.votes.findIndex(vote => vote.citizen === input.citizen._id);
+            input.vote.date = new Date();
+            if(voteIndex === -1){ //this citizen hasn't voted on this record
+                record.votes.push(input.vote);
+                result.message = 'New vote added to record'
+            } else {
+                record.votes[voteIndex].vote = input.vote.vote;
+                record.votes[voteIndex].date = input.vote.date;
+                result.message = 'Existing vote updated'
             }
-            //Run status updater to see if proposal had any changes
-            //ALSO RUN AT THE BEGINNING
+            result.success = true;
+            //save changes
+            try {
+                await this.save();
+                //update record
+                await this.updateRecord(record);
+              } catch (error) {
+                result.message = error;
+                result.success = false;
+              }
+            return result;
         }
-
+            
     },
 
     virtuals: {
