@@ -7,7 +7,7 @@ const communitySchema = new Schema(
 
     address : { type: String, required: true, unique: true, },
     
-    votingUnit: {type: String, enum:['homes.citizens', 'homes.owner'], required: true},
+    votingUnit: {type: String, enum:['community.citizens', 'homes.owner'], required: true},
 
     proposalLimit: {type: Number, default: 30},
 
@@ -23,39 +23,39 @@ const communitySchema = new Schema(
 
     records: {
         type: [{
-            identifier: {type: String, required: true},
+            identifier: {type: String, required: true}, //automatically assigned
 
-            author: {type: Schema.Types.ObjectId, ref: 'Citizen'},
+            author: {type: Schema.Types.ObjectId, ref: 'Citizen'}, //citizen who created the proposal
         
-            title: {type: String, required: true},
+            title: {type: String, required: true}, //title of law, role, badge, permit or record
             
-            body: {type: String, required: true},
+            body: {type: String, required: true}, //Further description of law, role, badge, permit or record
 
-            description: String,
+            description: String, //why should people vote on this proposal
 
-            salary: Number,
+            salary: Number, //role
 
-            cost: Number,
+            cost: Number, //project
 
-            effectiveDate : {
+            effectiveDate : { //Date at which law, role, badge, permit or project takes effect
                 date: Date,
                 days: Number,
             },
 
-            expirationDate : {
+            expirationDate : { //Date at which law, role, badge, permit or project expires and becomes inactive
                 date: Date,
                 days: Number,
             },
 
-            number: {type: Number, required: true, min: 1} ,
+            number: {type: Number, required: true, min: 1} , //law absolute number
 
-            type: {type: String, enum:['law', 'role','project', 'permit','badge'], required: true},
+            type: {type: String, enum:['law', 'role','project', 'permit','badge'], required: true}, //type of proposal
 
-            lawCategory: {type: String,},
+            lawCategory: {type: String,}, //law category
 
-            lawCategoryNumber:{type: Number, min: 1},
+            lawCategoryNumber:{type: Number, min: 1}, //law category number
 
-            status: {type: String, enum: ['proposal', 'active', 'passed','inactive'], required: true, default :'proposal'},
+            status: {type: String, enum: ['proposal', 'active', 'passed','inactive'], required: true, default :'proposal'}, //status of record
             //proposal when it is created and within community.proposalLimit and expiration date with less votes needed for passing
             //active when passed into law, passed when got votes but active date has not reached yet and inactive when proposalLimit (without enough votes) or expiration run out
 
@@ -152,7 +152,7 @@ const communitySchema = new Schema(
             let result;
             //check the type of voting system for community to count votes
             //for homes.owners, collect all the votes that belong to home owners
-            if(this.votingUnit === 'homes.citizens'){
+            if(this.votingUnit === 'community.citizens'){
                 let amountCitizenVotes = record.votes.reduce((total,vote) => {
                     if(vote.vote === 'plug') return total + 1;
                     return total;
@@ -197,6 +197,7 @@ const communitySchema = new Schema(
         updateRecord: async function(record){
             //input: record, output: result.success
             //output: result.success
+            //add category to lawCategories if necessary and remove if necessary
             //conditions that get check: 
             let result;
             result.success = true;
@@ -218,44 +219,7 @@ const communitySchema = new Schema(
                     break;
                 case 'proposal':
                     if(!within_proposal_time_limit && !majorityVotes) record.status = 'inactive';
-                    else if(within_proposal_time_limit && majorityVotes && within_record_expiration && after_record_effective_date){
-                        
-                        //when a proposal goes from proposal to active, it either gets a new absolute and/or category number at the end of the current ones
-                        //or if it has numbers specified, it pushes all the other ones 
-                        //if the number is bigger than all the current numbers, it simply gets the next number
-                        //collect all the current numbers: 
-                        let activeRecords = this.records.filter(record => record.status === 'active');
-                        //sort array by activeRecords.number
-                        activeRecords.sort((a,b) => a - b);
-                        let biggestNumber = activeRecords[activeRecords.length-1].number;
-                        //if it came with a number assigned
-                        if(record.number){
-                            //if it is 2 or below 2, adjust to 3, so that it gets pushed as 3
-                            if(record.number <= 2) record.number = 3;
-                            //if it is bigger than the current biggest + 1, it gets adjusted to biggest + 1
-                            if(record.number > biggestNumber + 1) record.number = biggestNumber + 1;
-                            
-                            //insert and adjust the rest
-                            if(record.number <= biggestNumber){
-                                indexAtStartOfMovement = activeRecords.findIndex(r => r.number === record.number);
-                                for(let i = indexAtStartOfMovement; i < activeRecords.length; i++){
-                                    activeRecords[i].number = activeRecords[i].numer + 1;
-                                }
-                            }
-                        }else{
-                            //if it didn't come with a number assigned
-                            record.number = biggestNumber + 1;
-                        }
-                        //Now category & category numbers
-                        //if the category didn't exist, add it to this.lawCategories
-                        let categoryRecords = this.records.filter(r => r.status === 'active' && r.category === record.category);
-                        let biggestCategoryNumber = categoryRecords[categoryRecords.length -1].categoryNumber;
-                        if(record.category && record.categoryNumber){
-
-                        }
-                         
-                        record.status = 'active'; 
-                    } 
+                    else if(within_proposal_time_limit && majorityVotes && within_record_expiration && after_record_effective_date) record.status = 'active'; 
                     else if(majorityVotes && within_record_expiration && !after_record_effective_date) record.status = 'passed';
                     break;
                 case 'passed':
@@ -272,11 +236,70 @@ const communitySchema = new Schema(
             }
             try{
                 await this.save();
+                await this.reorderRecords();
             } catch(error){
                 result.success = false;
                 result.message = error;
             }
             return result;
+        },
+
+        reorderRecords: async function(){
+            //Helper function to updateRecord();
+            //Search for the newest 'active' record and update by universal number and category number
+            //or if no numbers are provided, a new number at the end is given.
+            //in the above cases, look for the newest record, and use that information to determine what to do 
+            //if one became inactive, all the records need to get organize to fill the missing number
+            //in this case, look at all absolute and categories and adjust accordingly
+            
+            //search for the newest record.
+            let newestRecord = this.records.sort((a,b) => b.updatedAt - a.updatedAt)[0];
+            let activeLawRecordsInNumberOrder = this.records.filter(r => r.status === 'active' && r.type ==='law').sort((a,b) => a.number - b.number);
+            //remove the current record
+            activeLawRecordsInNumberOrder = activeLawRecordsInNumberOrder.filter(r => r.identifier != newestActiveRecord.identifier);
+            let activeLawRecordsInCategoryOrder = activeLawRecordsInNumberOrder.filter(r => r.category === newestRecord.category).sort((a,b) => a.categoryNumber - b.categoryNumber);
+            if (newestRecord.status === 'active' && newestRecord.type === 'law'){
+                let newestActiveRecord = activeRecord;
+                //Universal Number
+                
+                biggestLawRecordNumber = activeLawRecordsInNumberOrder[activeLawRecordsInNumberOrder - 1].number;
+                //fix universal numbering system
+                if(newestActiveRecord.number){
+                if(newestActiveRecord.number <= 2) newestActiveRecord.number = 3;
+                else if(newestActiveRecord.number > biggestLawRecordNumber + 1) newestActiveRecord.number = biggestLawRecordNumber + 1;
+                //fix numbering
+                let startingIndex = activeLawRecordsInNumberOrder.findIndex(r => r.number === newestActiveRecord.number);
+                for(let i = startingIndex; i < activeLawRecordsInNumberOrder.length; i++) activeLawRecordsInNumberOrder.number++;
+                }else{
+                    newestActiveRecord.number = biggestLawRecordNumber + 1;
+                }
+                //Category Number
+                //if category doesn't exist, add it to lawCategories
+                if(!this.lawCategories(newestRecord.category)) this.lawCategories.push(newestRecord.category);
+                let biggestCategoryNumber = activeLawRecordsInCategoryOrder[activeLawRecordsInCategoryOrder.length - 1].categoryNumber;
+                if(activeLawRecordsInCategoryOrder.length === 0) newestRecord.categoryNumber = 1;
+                else if(newestRecord.categoryNumber > biggestCategoryNumber + 1) newestRecord.categoryNumber = biggestCategoryNumber + 1;
+                else{
+                    if(newestRecord.categoryNumber < 1) newestRecord.categoryNumber = 1;
+                    let index = activeLawRecordsInCategoryOrder.findIndex(r => r.categoryNumber === newestRecord.categoryNumber);
+                    for(let i = index; i < activeLawRecordsInCategoryOrder.length; i++) activeLawRecordsInCategoryOrder[i].categoryNumber++;
+                }
+            } else if(newestRecord.status === 'inactive' && newestRecord.type === 'law'){
+                //Universal Number
+                let index = activeLawRecordsInNumberOrder.findIndex(r => r.number == newestRecord.number + 1);
+                for(let i = index; i < activeLawRecordsInNumberOrder.length; i ++){
+                    activeLawRecordsInNumberOrder[i]--; 
+                }
+                //Category Number. At what index do I need to start decreasing number?
+                index = activeLawRecordsInCategoryOrder.findIndex(r => r.categoryNumber === newestRecord.categoryNumber + 1);
+                for(let i = index; i < activeLawRecordsInCategoryOrder.length; i++) activeLawRecordsInCategoryOrder[i]--;
+                //remove category from lawCategories if no other active law has that category anymore
+                for(let i = 0; i < this.lawCategories.length; i++){
+                    lawsWithCategory = activeLawRecordsInNumberOrder.filter(r => r.category === this.lawCategories[i]);
+                    if(lawsWithCategory.length === 0) this.lawCategories.splice(i,1);
+                }
+            }
+            await this.save();
         },
 
         updateAllRecords: async function(){
@@ -508,23 +531,88 @@ const communitySchema = new Schema(
 
         laws: {
             get(){
-                let laws = this.
+                //return all laws sorted by record.number
+                let laws = this.records.filter(record => record.status === 'active' && record.type === 'law');
+                laws.sort((a,b) => a.number - b.number);
+                return laws;
+            }
+        },
+
+        constitution: {
+            //return an object that contains law categories with the laws in each category sorted by record.categoryNumber. 
+            //The first element of the array is the laws that don't have a category ordered by record.Number
+            get(){
+                let constitution = {};
+                constitution[''] = this.records.filter(record => record.status === 'active' && !record.category).sort((a,b) => a.number - b.number);
+                for(let i = 0; i < this.lawCategories.length; i++){
+                    constitution[this.lawCategories[i]] = this.records.filter(record => record.status === 'active' && record.category === this.lawCategories[i]);
+                }
+                return constitution;
+            }
+        },
+
+        proposals: {
+            get(){
+                //return list of proposals in order of createdAt
+                return this.records.filter(record => record.status === 'proposal').sort((a,b) => a.createdAt - b.createdAt);
+            }
+        },
+
+        inactive: {
+            get(){
+                //return inactive records from oldest to newest
+                return this.records.filter(record => record.status === 'inactive').sort((a,b) => a.createdAt - b.createdAt);
+            }
+        }, 
+
+        roles: {
+            get(){
+                //returned ordered by createdAt date
+                return this.records.filter(record => record.status === 'active' && record.type === 'role').sort((a,b) => a.createdAt - b.createdAt);
+            }
+        }, 
+
+        badges:{
+            get(){
+                //return badges in order of createdAt
+                return this.records.filter(record => record.status === 'active' && record.type === 'badge').sort((a,b) => a.createdAt - b.createdAt);
+            }
+        },
+
+        permits:{
+            get(){
+                //return permits in order of createdAt
+                return this.records.filter(record => record.status === 'active' && record.type === 'permit').sort((a,b) => a.createdAt - b.createdAt);
+            }
+        },
+
+        projects:{
+            get(){
+                //return projects in order of createdAt
+                return this.records.filter(record => record.status === 'active' && record.type === 'project').sort((a,b) => a.createdAt - b.createdAt);
             }
         }
     },
-    
-    pre: {
-        save: function(next) {
-            const community = this;
 
-            //detect changes to homes array
-            if(community.isModified('homes')){
-                //check if the homes array has increase in size, 
-            }
-            next();
+    statics: {
+        async communitiesWhereResident(citizenId){
+            //returns all the communities objects where the citizen is registered in a home without being an owner
+            const distinctCommunitiesId = await this.distinct('_id', { homes: { $elemMatch: { residents: citizenId } } });
+            return this.find({ _id: { $in: distinctCommunitiesId } });
+        },
+
+        async communitiesWhereOwner(citizenId){
+            //returns all the communities objects where the citizen is registered as a home owner
+            const distinctCommunitiesId = await this.distinct('_id', { homes: { $elemMatch: { owner: citizenId } } });
+            return this.find({ _id: { $in: distinctCommunitiesId } });
+        },
+
+        async communitiesWhereCitizen(citizenId){
+            //returns all the communities objects where the citizen is registered either as a resident or home owner
+            const distinctCommunitiesId = await this.distinct('_id', { homes: { $elemMatch: { $or: [ { owner: citizenId }, { residents: citizenId } ] } } });
+            return this.find({ _id: { $in: distinctCommunitiesId } });
         }
-    },
-
+    }
 });
 
 const citizenSchema = new Schema({
@@ -542,11 +630,14 @@ const citizenSchema = new Schema({
     },
     
     secondLastName: String,
+
+    dob: {type: Date, required: true}, //date of birth
     
     email: {
         type: String,
         required: true,
         unique: true,
+        set: function(email) {return email.toLowerCase()},
     },
     
     password: {
@@ -556,29 +647,23 @@ const citizenSchema = new Schema({
 
     cellPhone: String, 
     
-    residencies: [
-
-        { 
-            community: {type: Schema.Types.ObjectId, ref : 'Community'},
-            home: { type: Schema.Types.ObjectId, ref : 'Home' },
-        }
-
-        ],
+    residencies: [{ 
+        community: {type: Schema.Types.ObjectId, ref : 'Community'},
+        home: { type: Schema.Types.ObjectId, ref : 'Home' },
+        }],
 
     badges: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.badge'}],
 
-}, 
-    {timestamps: true}, 
+    timestamps: true, 
 
-    {virtuals: {
+    virtuals: {
         fullName: {
             get() {
                 return `${this.firstName} ${this.lastName} ${this.secondLastName}`
             }
         }
     }
-    },
-);
+});
 
 const Community = mongoose.model('Community', communitySchema);
 const Citizen = mongoose.model('Citizen', citizenSchema);

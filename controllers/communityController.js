@@ -2,7 +2,7 @@ const CommunityModels = require('../models/communityModels');
 const CitizenActionsModels = require('../models/citizenActionsModels');
 
 const citizenActionsController = require('./_citizenActionsController');
-const dbController = require('./_dbController');
+const dbController = require('./dbController');
 const flatted = require('flatted');
 
 //IF USER NOT LOGGED IN, REROUTE TO /LOGIN

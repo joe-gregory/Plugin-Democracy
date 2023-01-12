@@ -1,6 +1,6 @@
 const CommunityModels = require('../models/communityModels');
 const CitizenActionsModels = require('../models/citizenActionsModels');
-const dbController = require('./_dbController');
+const dbController = require('./dbController');
 const citizenActionsController = require('./_citizenActionsController');
 
 const getCommunityFeed = async (request, response) => {
