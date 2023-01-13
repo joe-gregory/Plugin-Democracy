@@ -81,10 +81,10 @@ const communitySchema = new Schema(
         status: String, 
         home: Schema.Types.ObjectId,
     }], 
+    },
 },
-
     //Community options
-    timestamps:true, 
+    {timestamps:true, 
     
     methods: { //all methods take in an object where all the inputs reside with the same structure as the schema
         //Begin utility methods. Only utility methods throw errors. All others record warning message.
@@ -104,52 +104,26 @@ const communitySchema = new Schema(
 
         isCitizenMember: function(input){
             //returns true if citizen is member of community, false otherwise,
-            let result = false; 
-            this.homes.forEach(home => {
-                if(home.residents.includes(input.citizen._id)) result = true;
-                if(home.owner === input.citizen._id) result = true;
-            })
-            return result
+            return this.citizens.includes(input.citizen);
         },
 
         isCitizenOwner: function(input){
             //return true if citizen owns a home otherwise false
             let result = false;
-            this.homes.forEach((home) => {
-                if(home.owner === input.citizen) result = true;
-            })
+            if(this.owners.includes(input.citizen.id)) result = true;
             return result;
         },
 
-        getHomeIndex: function(input) {
-            //gets a home's index in the homes array. It accepts home's number or home.id.
-            let index = -1;
-            if(input.home._id){
-                index = this.homes.findIndex(home => home._id === input.home._id);
-            } else if(input.home.id && index === -1){
-                index = this.homes.findIndex(home => home.id === input.home.id);
-            } else if(input.homes.number && index === -1){
-                index = this.homes.findIndex(home => home.number === input.home.number);
-            } else{throw new Error('No home found with provided information')}
-            return index;
-        },
-
         getHome: function(input){
-            let home;
-            if(input.home._id){
-                home = this.homes.find(home => home._id === input.home._id);
-            } else if(input.home.id){
-                home = this.homes.find(home => home.id === input.home.id);
-            } else if(input.homes.number){
-                home = this.homes.find(home => home.number === input.home.number);
-            } 
+            let home = this.homes.find(home => home._id === input.home._id || 
+                home.id === input.home.id || home.number === input.home.number);
             if(home === undefined) throw new Error('No home found with provided information');
             return home;
         },
 
         majorityVotes: function(record){
             //checks whether a given record has enough votes to pass returns true if yes, false otherwise
-            let result;
+            let result = {};
             //check the type of voting system for community to count votes
             //for homes.owners, collect all the votes that belong to home owners
             if(this.votingUnit === 'community.citizens'){
@@ -162,16 +136,11 @@ const communitySchema = new Schema(
             }
             else if(this.votingUnit === 'homes.owners'){
                 let amountHomes = this.homes.length;
-                let ownersVotes = [];
-                //in this.vote() is where I ensure the citizen hasn't voted twice. 
-                record.votes.forEach((vote) =>{
-                if(isCitizenOwner(vote)) ownersVotes.push(vote);
-                })
-                amountOwnersVotes = record.votes.reduce((total, vote) => {
-                    if(vote.vote === 'plug') return total + 1;
+                let amountOwnersVotes = record.votes.reduce((total, vote) => {
+                    if (vote.vote === 'plug' && this.isCitizenOwner({ citizen: vote.citizen })) return total + 1;
                     return total;
                 }, 0);
-                result = (amountOwnersVotes > amountHomes/2) ? true : false;
+                result = (amountOwnersVotes > amountHomes / 2) ? true : false;
                 return result;
             }
             throw new Error('no condition was found running majorityVotes')
@@ -199,9 +168,7 @@ const communitySchema = new Schema(
             //output: result.success
             //add category to lawCategories if necessary and remove if necessary
             //conditions that get check: 
-            let result;
-            result.success = true;
-            let previous_status = record.status;
+            let result = {success: true};
             let within_proposal_time_limit = (Date.now() - record.createdAt.getTime() <= this.proposalLimit) ? true : false; //if proposal if still within the time limit that you can vote on a proposal (community.proposalLimit)
             let majorityVotes = this.majorityVotes(record); //true if it has majority votes
             
@@ -209,7 +176,7 @@ const communitySchema = new Schema(
             if(record.expirationDate) within_record_expiration = (record.expirationDate.getTime() > Date.now()) ? true : false; //when law expires
             else within_record_expiration = true;
             let after_record_effective_date;
-            if(record.effectiveDate) (record.effectiveDate.getTime() <= Date.now()) ? true : false; //when law becomes active
+            if(record.effectiveDate) after_record_effective_date = (record.effectiveDate.getTime() <= Date.now()) ? true : false; //when law becomes active
             else after_record_effective_date = true;
             
             //Determination
@@ -244,6 +211,11 @@ const communitySchema = new Schema(
             return result;
         },
 
+        updateAllRecords: async function(){
+            let records = this.records.filter(record => record.identifier !== '000001' && record.identifier !== '000002')
+            records.forEach((record) => this.updateRecord(record));
+        },
+
         reorderRecords: async function(){
             //Helper function to updateRecord();
             //Search for the newest 'active' record and update by universal number and category number
@@ -254,15 +226,17 @@ const communitySchema = new Schema(
             
             //search for the newest record.
             let newestRecord = this.records.sort((a,b) => b.updatedAt - a.updatedAt)[0];
+            //if the newest record changed was not a law, no need to do anything. 
+            if(newestRecord.type !== 'law') return;
             let activeLawRecordsInNumberOrder = this.records.filter(r => r.status === 'active' && r.type ==='law').sort((a,b) => a.number - b.number);
             //remove the current record
-            activeLawRecordsInNumberOrder = activeLawRecordsInNumberOrder.filter(r => r.identifier != newestActiveRecord.identifier);
+            activeLawRecordsInNumberOrder = activeLawRecordsInNumberOrder.filter(r => r.identifier != newestRecord.identifier);
             let activeLawRecordsInCategoryOrder = activeLawRecordsInNumberOrder.filter(r => r.category === newestRecord.category).sort((a,b) => a.categoryNumber - b.categoryNumber);
             if (newestRecord.status === 'active' && newestRecord.type === 'law'){
                 let newestActiveRecord = activeRecord;
                 //Universal Number
                 
-                biggestLawRecordNumber = activeLawRecordsInNumberOrder[activeLawRecordsInNumberOrder - 1].number;
+                let biggestLawRecordNumber = activeLawRecordsInNumberOrder[activeLawRecordsInNumberOrder.length - 1].number;
                 //fix universal numbering system
                 if(newestActiveRecord.number){
                 if(newestActiveRecord.number <= 2) newestActiveRecord.number = 3;
@@ -288,11 +262,11 @@ const communitySchema = new Schema(
                 //Universal Number
                 let index = activeLawRecordsInNumberOrder.findIndex(r => r.number == newestRecord.number + 1);
                 for(let i = index; i < activeLawRecordsInNumberOrder.length; i ++){
-                    activeLawRecordsInNumberOrder[i]--; 
+                    activeLawRecordsInNumberOrder[i].number--; 
                 }
                 //Category Number. At what index do I need to start decreasing number?
                 index = activeLawRecordsInCategoryOrder.findIndex(r => r.categoryNumber === newestRecord.categoryNumber + 1);
-                for(let i = index; i < activeLawRecordsInCategoryOrder.length; i++) activeLawRecordsInCategoryOrder[i]--;
+                for(let i = index; i < activeLawRecordsInCategoryOrder.length; i++) activeLawRecordsInCategoryOrder[i].categoryNumber--;
                 //remove category from lawCategories if no other active law has that category anymore
                 for(let i = 0; i < this.lawCategories.length; i++){
                     lawsWithCategory = activeLawRecordsInNumberOrder.filter(r => r.category === this.lawCategories[i]);
@@ -301,14 +275,10 @@ const communitySchema = new Schema(
             }
             await this.save();
         },
-
-        updateAllRecords: async function(){
-            await this.records.forEach((record) => this.updateRecord(record));
-        },
         //End utility functions
 
         addResident: async function (input){
-            let result;
+            let result = {};
             let home = this.getHome(input);
             home.residents.push(input.citizen);
             try{
@@ -335,7 +305,7 @@ const communitySchema = new Schema(
             //if a home is provided, remove from that home only. 
             //Otherwise remove from all resident locations (stays as owner)
             //if house provided, get homeIndex
-            let result;
+            let result = {};
             if(input.home) {
                 let home = this.getHome(input);
                 //if the given home does not contain the resident, provide warning message
@@ -347,7 +317,7 @@ const communitySchema = new Schema(
                 }
 
                 //remove citizen as resident from home
-                let residentIndex = home.residents.findIndex(resident => resident === input.citizen._id);
+                let residentIndex = home.residents.findIndex(resident => resident.equals(input.citizen._id));
                 //identify index
                 home.residents = home.residents.splice(residentIndex, 1);
                 try{
@@ -363,8 +333,7 @@ const communitySchema = new Schema(
             } else{
                 //check for all the places the resident resides and eliminate from all of them
                 this.homes.forEach(home => {
-                    home.residents = home.residents.filter(citizen => citizen !== input.citizen.id);
-                    home.residents = home.residents.filter(citizen => citizen !== input.citizen._id);
+                    home.residents = home.residents.filter(citizen => !citizen.equals(input.citizen._id));
                 });
                 try{
                     await this.save();
@@ -381,7 +350,7 @@ const communitySchema = new Schema(
 
         addOwner: async function(input){
             //Don't allow if home already has an owner
-            let result;
+            let result = {};
             let home = this.getHome(input);
 
             //if home already has an owner, return warning
@@ -415,7 +384,7 @@ const communitySchema = new Schema(
         removeOwner: async function(input){
             //Need to pass house number
             //if no owner return return.success = false
-            let result;
+            let result = {};
             let home = this.getHome(input);
             if(home.owner) {
                 home.owner = null;
@@ -435,7 +404,7 @@ const communitySchema = new Schema(
         }, 
 
         createProposal: async function(input){
-            let result;
+            let result = {};
             //is citizen a member of community?
             if(!this.isCitizenMember(input)){
                 result.success = false;
@@ -466,19 +435,22 @@ const communitySchema = new Schema(
         },
 
         vote: async function(input){
-            let result; 
+            let result = {}; 
             //input: input.record, input.citizen, input.vote
             //**In controller: ensure that it is the signed-in user being passed in input.vote.citizen */
             //make sure the vote is saved correctly
-            if(input.vote.vote !== 'plug' || input.vote.vote !== 'unplug'){
+            if(input.vote.vote !== 'plug' && input.vote.vote !== 'unplug'){
                 result.message = 'input.citizen.vote is not in a valid form';
                 result.success = false;
                 return result
             }
-            //update all record statuses
-            await this.updateRecord(input.record);
+
 
             let record = this.getRecord(input);
+            
+            //update all record statuses
+            await this.updateRecord(record);
+
             //if the status of the record is inactive, you cannot vote on it
             if(record.status === 'inactive'){
                 result.success = false;
@@ -486,11 +458,11 @@ const communitySchema = new Schema(
                 return result;
             }
             //has this citizen voted on this record?
-            let voteIndex = record.votes.findIndex(vote => vote.citizen === input.citizen._id);
+            let voteIndex = record.votes.findIndex(vote => vote.citizen.equals(input.citizen._id));
             input.vote.date = new Date();
             if(voteIndex === -1){ //this citizen hasn't voted on this record
                 record.votes.push(input.vote);
-                result.message = 'New vote added to record'
+                result.message = 'New vote added to records'
             } else {
                 record.votes[voteIndex].vote = input.vote.vote;
                 record.votes[voteIndex].date = input.vote.date;
@@ -526,6 +498,14 @@ const communitySchema = new Schema(
                 citizens = [...new Set(citizens)];
 
                 return citizens;
+            }
+        },
+
+        owners: {
+            //returns array of owners without repeating
+            get(){
+                const owners = this.homes.map(home => home.owners);
+                return [...new Set(owners)];
             }
         },
 
@@ -591,7 +571,7 @@ const communitySchema = new Schema(
                 //return projects in order of createdAt
                 return this.records.filter(record => record.status === 'active' && record.type === 'project').sort((a,b) => a.createdAt - b.createdAt);
             }
-        }
+        }, 
     },
 
     statics: {
@@ -616,9 +596,6 @@ const communitySchema = new Schema(
 });
 
 const citizenSchema = new Schema({
-    
-    identifier: String, 
-
     firstName: {
         type: String,
         required: true
@@ -646,15 +623,8 @@ const citizenSchema = new Schema({
     },
 
     cellPhone: String, 
-    
-    residencies: [{ 
-        community: {type: Schema.Types.ObjectId, ref : 'Community'},
-        home: { type: Schema.Types.ObjectId, ref : 'Home' },
-        }],
-
-    badges: [{type: Schema.Types.ObjectId, ref: 'CitizenActions.badge'}],
-
-    timestamps: true, 
+},    
+    {timestamps: true,
 
     virtuals: {
         fullName: {
