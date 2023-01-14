@@ -78,7 +78,7 @@ async function createCommunity(community_details){
     let result;
     try{
         await community.save();
-        result = savedCommunity
+        result = community;
     }
     catch(error){
         result = error;

@@ -21,8 +21,8 @@ const communitySchema = new Schema(
 
     lawCategories : [{type: String}],
 
-    records: {
-        type: [{
+    records: 
+        [{ type: new mongoose.Schema({
             identifier: {type: String, required: true}, //automatically assigned
 
             author: {type: Schema.Types.ObjectId, ref: 'Citizen'}, //citizen who created the proposal
@@ -64,10 +64,9 @@ const communitySchema = new Schema(
                 vote: {type: String, enum: ['plug', 'unplug'], required: true},
                 date: {type: Date, required: true}
             }],
-        }],
-        
-        timestamps: true,
-    },
+            },
+            {timestamps:true}
+        )}],
 
     history: {
         type: [{
@@ -80,7 +79,7 @@ const communitySchema = new Schema(
         record: Schema.Types.ObjectId,
         status: String, 
         home: Schema.Types.ObjectId,
-    }], 
+        }], 
     },
 },
     //Community options
@@ -168,6 +167,7 @@ const communitySchema = new Schema(
             //output: result.success
             //add category to lawCategories if necessary and remove if necessary
             //conditions that get check: 
+            console.log(record);
             let result = {success: true};
             let within_proposal_time_limit = (Date.now() - record.createdAt.getTime() <= this.proposalLimit) ? true : false; //if proposal if still within the time limit that you can vote on a proposal (community.proposalLimit)
             let majorityVotes = this.majorityVotes(record); //true if it has majority votes
@@ -278,22 +278,33 @@ const communitySchema = new Schema(
         //End utility functions
 
         addResident: async function (input){
+            //add resident to given home
+            //if citizen is already a resident of given home, it does not get added
             let result = {};
             let home = this.getHome(input);
-            home.residents.push(input.citizen);
+            //check if resident is already registered
+            if(home.residents.some(resident => resident.equals(input.citizen._id))){
+                result.success = false;
+                result.message = 'Citizen already a resident of given home';
+                return result;
+            }
+            home.residents.push(input.citizen._id);
             try{
                 await this.save();
                 await this.updateAllRecords();
-                let automaticVotes;
+                let automaticVotes = {record:{}};
                 automaticVotes.record.identifier = '000001';
                 automaticVotes.vote = {
                     citizen: input.citizen,
                     vote: 'plug',
                 }
-                await this.vote(automaticVotes);
-                automaticVotes.record.identifier = '000002';
-                await this.vote(automaticVotes);
                 result.success = true;
+                let r1 = await this.vote(automaticVotes);
+                if(r1.success == false) result = r1;
+                automaticVotes.record.identifier = '000002';
+                let r2 = await this.vote(automaticVotes);
+                if(r2.success === false) result = r2;
+                
             }catch(error){
                 result.success = false;
                 result.message = error;
@@ -310,17 +321,21 @@ const communitySchema = new Schema(
                 let home = this.getHome(input);
                 //if the given home does not contain the resident, provide warning message
                 //and return result.success = false
-                if(!home.residents.contains(input.citizen)){
+                if(!home.residents.includes(input.citizen._id.toString())){
                     result.success = false;
-                    result.message = 'Citizen not registered as resident of given residency';
+                    result.message = 'Citizen not registered as resident of given home';
                     return result
                 }
-
                 //remove citizen as resident from home
-                let residentIndex = home.residents.findIndex(resident => resident.equals(input.citizen._id));
-                //identify index
-                home.residents = home.residents.splice(residentIndex, 1);
-                try{
+                home.residents = home.residents.filter(resident => !resident.equals(input.citizen._id));
+                                
+            } else{
+                //check for all the places the resident resides and eliminate from all of them
+                this.homes.forEach(home => {
+                    home.residents = home.residents.filter(resident => !resident.equals(input.citizen._id));
+                });
+            }
+            try{
                     await this.save();
                     await this.updateAllRecords();
                     result.success = true;
@@ -329,23 +344,6 @@ const communitySchema = new Schema(
                     result.message = error;
                 }
                 return result;
-                
-            } else{
-                //check for all the places the resident resides and eliminate from all of them
-                this.homes.forEach(home => {
-                    home.residents = home.residents.filter(citizen => !citizen.equals(input.citizen._id));
-                });
-                try{
-                    await this.save();
-                    await this.updateAllRecords();
-                    result.success = true;
-                }catch(error){
-                    result.success = false;
-                    result.message = error;
-                }
-
-                return result;
-            }
         },
 
         addOwner: async function(input){
@@ -360,7 +358,7 @@ const communitySchema = new Schema(
                 return result;
             }
             //if no owner, add citizen as owner
-            home.owner = input.citizen;
+            home.owner = input.citizen._id;
 
             try{
                 await this.save();
@@ -382,7 +380,7 @@ const communitySchema = new Schema(
         }, 
 
         removeOwner: async function(input){
-            //Need to pass house number
+            //Need to pass house only. Whiuchever owner is there gets removed
             //if no owner return return.success = false
             let result = {};
             let home = this.getHome(input);
