@@ -133,7 +133,7 @@ const communitySchema = new Schema(
                 result = (amountCitizenVotes > this.citizens/2) ? true : false;
                 return result;
             }
-            else if(this.votingUnit === 'homes.owners'){
+            else if(this.votingUnit === 'homes.owner'){
                 let amountHomes = this.homes.length;
                 let amountOwnersVotes = record.votes.reduce((total, vote) => {
                     if (vote.vote === 'plug' && this.isCitizenOwner({ citizen: vote.citizen })) return total + 1;
@@ -167,7 +167,6 @@ const communitySchema = new Schema(
             //output: result.success
             //add category to lawCategories if necessary and remove if necessary
             //conditions that get check: 
-            console.log(record);
             let result = {success: true};
             let within_proposal_time_limit = (Date.now() - record.createdAt.getTime() <= this.proposalLimit) ? true : false; //if proposal if still within the time limit that you can vote on a proposal (community.proposalLimit)
             let majorityVotes = this.majorityVotes(record); //true if it has majority votes
