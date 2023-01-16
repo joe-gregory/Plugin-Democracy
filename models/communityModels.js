@@ -85,7 +85,7 @@ const communitySchema = new Schema(
             const characters = '0123456789abcdefghijklmnopqrstuvwxyz';
             let identifier = '';
 
-            for (let i = 0; i < 5; i++){
+            for (let i = 0; i < 6; i++){
                 //generate a random index between 0 and 35
                 const index = Math.floor(Math.random()*characters.length);
                 //add the random character to the combination
@@ -101,7 +101,7 @@ const communitySchema = new Schema(
 
         isCitizenOwner: function(input){
             //return true if citizen owns a home otherwise false
-            return this.owner.includes(input.citizen._id);
+            return this.owners.some((owner) => owner.equals(input.citizen._id));
         },
 
         getHome: function(input){
@@ -165,18 +165,22 @@ const communitySchema = new Schema(
                 return result;
             }
             
-            let within_proposal_time_limit = (Date.now() - record.createdAt.getTime() <= this.proposalLimit) ? true : false; //if proposal if still within the time limit that you can vote on a proposal (community.proposalLimit)
+            let within_proposal_time_limit = (Date.now() - record.createdAt.getTime() <= this.proposalLimitMilliseconds) ? true : false; //if proposal if still within the time limit that you can vote on a proposal (community.proposalLimit)
+            console.log('within proposal time limit: ', within_proposal_time_limit);
             let majorityVotes = this.majorityVotes(record); //true if it has majority votes
-            
+            console.log('majority votes: ', majorityVotes)
             let within_record_expiration;
             if(record.expirationDate) within_record_expiration = (record.expirationDate.getTime() > Date.now()) ? true : false; //when law expires
             else within_record_expiration = true;
+            console.log('within record expiration: ', within_record_expiration)
             let after_record_effective_date;
             if(record.effectiveDate) after_record_effective_date = (record.effectiveDate.getTime() <= Date.now()) ? true : false; //when law becomes active
             else after_record_effective_date = true;
+            console.log('after record effective date: ', after_record_effective_date)
             
             //Determination
             if(record.within_record_expiration === false) record.status = 'inactive';
+            console.log('record status: ', record.status)
             switch(record.status){
                 case 'inactive':
                     break;
@@ -188,7 +192,7 @@ const communitySchema = new Schema(
                 case 'passed':
                     if(!within_proposal_time_limit && !majorityVotes) record.status = 'inactive';
                     else if(within_proposal_time_limit && !majorityVotes && within_record_expiration) record.status = 'proposal';
-                    else if(majorityVotes && within_record_expiration && after_record_effective_date) record.status = 'active'
+                    else if(majorityVotes && within_record_expiration && after_record_effective_date) record.status = 'active';
                     break;
                 case 'active':
                     if(!majorityVotes) record.status = 'inactive';
@@ -289,8 +293,10 @@ const communitySchema = new Schema(
         },
 
         deleteRecord: async function(input){
+            //need to call updateCommunity afterwards to see results
             let record = this.getRecord(input);
-            return this.updateOne({_id: this._id}, {$pull: {records: {_id: record._id}}});
+            let result = await Community.findOneAndUpdate({_id: this._id}, {$pull:{records:{_id:record._id}}}, {new: true});
+            return result
         },
 
         updateCommunity: async function(){
@@ -457,6 +463,7 @@ const communitySchema = new Schema(
             try{
                 await this.save();
                 result.success = true;
+                result.message = 'Proposal created successfully.'
             } catch(error){
                 result.success = false;
                 result.message = error;
@@ -550,8 +557,14 @@ const communitySchema = new Schema(
         owners: {
             //returns array of owners without repeating
             get(){
-                const owners = this.homes.map(home => home.owners);
-                return [...new Set(owners)];
+                let owners = [];
+                for(const home of this.homes){
+                    if(home.owner){
+                        let isInArray = owners.some((owner) => owner.equals(home.owner));
+                        if(!isInArray) owners.push(home.owner);
+                    }
+                }
+                return owners;
             }
         },
 
@@ -617,7 +630,13 @@ const communitySchema = new Schema(
                 //return projects in order of createdAt
                 return this.records.filter(record => record.status === 'active' && record.type === 'project').sort((a,b) => a.createdAt - b.createdAt);
             }
-        }, 
+        },
+        
+        proposalLimitMilliseconds:{
+            get(){
+                return this.proposalLimit*86400000;
+            }
+        },
     },
 
     statics: {
