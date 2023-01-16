@@ -41,7 +41,7 @@ const communitySchema = new Schema(
 
             expirationDate : Date, //Date at which law, role, badge, permit or project expires and becomes inactive
 
-            number: {type: Number, required: true, min: 1} , //law absolute number
+            number: {type: Number, min: 1} , //law absolute number
 
             type: {type: String, enum:['law', 'role','project', 'permit','badge'], required: true}, //type of proposal
 
@@ -95,15 +95,13 @@ const communitySchema = new Schema(
         },
 
         isCitizenMember: function(input){
-            //returns true if citizen is member of community, false otherwise,
-            return this.citizens.includes(input.citizen);
+            //returns true if citizen is member of community in home or owner, false otherwise,
+            return this.citizens.some((citizen) => citizen.equals(input.citizen._id));
         },
 
         isCitizenOwner: function(input){
             //return true if citizen owns a home otherwise false
-            let result = false;
-            if(this.owners.includes(input.citizen.id)) result = true;
-            return result;
+            return this.owner.includes(input.citizen._id);
         },
 
         getHome: function(input){
@@ -289,6 +287,17 @@ const communitySchema = new Schema(
             }
             return result
         },
+
+        deleteRecord: async function(input){
+            let record = this.getRecord(input);
+            return this.updateOne({_id: this._id}, {$pull: {records: {_id: record._id}}});
+        },
+
+        updateCommunity: async function(){
+            //updates the community object with information from the database
+            const freshData = await Community.findById(this._id);
+            Object.assign(this, freshData);
+        },
         //End utility functions
 
         addResident: async function (input){
@@ -425,6 +434,7 @@ const communitySchema = new Schema(
         }, 
 
         createProposal: async function(input){
+            //create a record with proposal status. 
             let result = {};
             //is citizen a member of community?
             if(!this.isCitizenMember(input)){
@@ -433,7 +443,6 @@ const communitySchema = new Schema(
                 return result;
             }
             //create new record
-            input.proposal.status = null;
             input.proposal.votes = [];
             input.proposal.author = input.citizen._id;
             //generate identifier until there is an original one
@@ -461,6 +470,12 @@ const communitySchema = new Schema(
             //if input.vote.citizen is provided, it will use that, otherwise it will use input.citizen._id
             //**In controller: ensure that it is the signed-in user being passed in input.vote.citizen */
             //make sure the vote is saved correctly
+            //if citizen is not resident or owner, cannot vote. 
+            if(!this.isCitizenMember(input)){
+                result.success = false;
+                result.message = 'This citizen is not a member of this community';
+                return result;
+            }
             if(input.vote.vote !== 'plug' && input.vote.vote !== 'unplug'){
                 result.message = 'input.citizen.vote is not in a valid form';
                 result.success = false;
@@ -518,15 +533,16 @@ const communitySchema = new Schema(
             get() {
                 //get all the homes.residents and homes.owners
                 let citizens = [];
-                for (const home of this.homes){
-                    if(home.owner) citizens.push(home.owner);
+                for(const home of this.homes){
+                    if(home.owner){
+                        let isInArray = citizens.some((citizen) => citizen.equals(home.owner));
+                        if(!isInArray) citizens.push(home.owner);
+                    }
                     for(const resident of home.residents){
-                        citizens.push(resident);
+                        let isInArray = citizens.some((citizen) => citizen.equals(resident));
+                        if(!isInArray) citizens.push(resident);
                     }
                 }
-                //eliminate repeated citizens using the Set object and the spread operator
-                citizens = [...new Set(citizens)];
-
                 return citizens;
             }
         },
