@@ -23,7 +23,7 @@ const communitySchema = new Schema(
 
     records: 
         [{ type: new mongoose.Schema({
-            identifier: {type: String, required: true}, //automatically assigned
+            identifier: {type: String, required: true, unique: true}, //automatically assigned
 
             author: {type: Schema.Types.ObjectId, ref: 'Citizen'}, //citizen who created the proposal
         
@@ -37,15 +37,9 @@ const communitySchema = new Schema(
 
             cost: Number, //project
 
-            effectiveDate : { //Date at which law, role, badge, permit or project takes effect
-                date: Date,
-                days: Number,
-            },
+            effectiveDate : Date, //Date at which law, role, badge, permit or project takes effect
 
-            expirationDate : { //Date at which law, role, badge, permit or project expires and becomes inactive
-                date: Date,
-                days: Number,
-            },
+            expirationDate : Date, //Date at which law, role, badge, permit or project expires and becomes inactive
 
             number: {type: Number, required: true, min: 1} , //law absolute number
 
@@ -59,11 +53,10 @@ const communitySchema = new Schema(
             //proposal when it is created and within community.proposalLimit and expiration date with less votes needed for passing
             //active when passed into law, passed when got votes but active date has not reached yet and inactive when proposalLimit (without enough votes) or expiration run out
 
-            votes: [{
-                citizen: {type: Schema.Types.ObjectId, ref: 'Citizen', required: true},
+            votes: [{type: new mongoose.Schema({
+                citizen: {type: Schema.Types.ObjectId, ref: 'Citizen', required: true, unique: true},
                 vote: {type: String, enum: ['plug', 'unplug'], required: true},
-                date: {type: Date, required: true}
-            }],
+            }, {timestamps: true})}],
             },
             {timestamps:true}
         )}],
@@ -146,7 +139,7 @@ const communitySchema = new Schema(
         },
 
         getRecord: function(input){
-            //search for records with _id, id or identifiere
+            //search for records with _id, id or identifier
             let record; 
             //search for records with input.record._id
             if(input.record._id){
@@ -168,6 +161,12 @@ const communitySchema = new Schema(
             //add category to lawCategories if necessary and remove if necessary
             //conditions that get check: 
             let result = {success: true};
+            if(record.identifier === '000001' || record.identifier === '000002'){
+                result.success = false;
+                result.message = 'updateRecord will not update records 000001 & 000002';
+                return result;
+            }
+            
             let within_proposal_time_limit = (Date.now() - record.createdAt.getTime() <= this.proposalLimit) ? true : false; //if proposal if still within the time limit that you can vote on a proposal (community.proposalLimit)
             let majorityVotes = this.majorityVotes(record); //true if it has majority votes
             
@@ -211,8 +210,7 @@ const communitySchema = new Schema(
         },
 
         updateAllRecords: async function(){
-            let records = this.records.filter(record => record.identifier !== '000001' && record.identifier !== '000002')
-            records.forEach((record) => this.updateRecord(record));
+            this.records.forEach((record) => this.updateRecord(record));
         },
 
         reorderRecords: async function(){
@@ -227,18 +225,19 @@ const communitySchema = new Schema(
             let newestRecord = this.records.sort((a,b) => b.updatedAt - a.updatedAt)[0];
             //if the newest record changed was not a law, no need to do anything. 
             if(newestRecord.type !== 'law') return;
+            //get array of active law records in number order
             let activeLawRecordsInNumberOrder = this.records.filter(r => r.status === 'active' && r.type ==='law').sort((a,b) => a.number - b.number);
-            //remove the current record
+            //remove the current record being examined
             activeLawRecordsInNumberOrder = activeLawRecordsInNumberOrder.filter(r => r.identifier != newestRecord.identifier);
-            let activeLawRecordsInCategoryOrder = activeLawRecordsInNumberOrder.filter(r => r.category === newestRecord.category).sort((a,b) => a.categoryNumber - b.categoryNumber);
+            //get array of active law records that have a category in category order
+            let activeLawRecordsInCategoryOrder = activeLawRecordsInNumberOrder.filter(r => r.category === newestRecord.category).sort((a,b) => a.lawCategoryNumber - b.lawCategoryNumber);
             if (newestRecord.status === 'active' && newestRecord.type === 'law'){
-                let newestActiveRecord = activeRecord;
+                let newestActiveRecord = newestRecord;
                 //Universal Number
-                
                 let biggestLawRecordNumber = activeLawRecordsInNumberOrder[activeLawRecordsInNumberOrder.length - 1].number;
                 //fix universal numbering system
                 if(newestActiveRecord.number){
-                if(newestActiveRecord.number <= 2) newestActiveRecord.number = 3;
+                if(newestActiveRecord.number <= 2 && newestActiveRecord.identifier !== '000001' && newestActiveRecord.identifier !== '000002') newestActiveRecord.number = 3;
                 else if(newestActiveRecord.number > biggestLawRecordNumber + 1) newestActiveRecord.number = biggestLawRecordNumber + 1;
                 //fix numbering
                 let startingIndex = activeLawRecordsInNumberOrder.findIndex(r => r.number === newestActiveRecord.number);
@@ -247,32 +246,48 @@ const communitySchema = new Schema(
                     newestActiveRecord.number = biggestLawRecordNumber + 1;
                 }
                 //Category Number
-                //if category doesn't exist, add it to lawCategories
-                if(!this.lawCategories(newestRecord.category)) this.lawCategories.push(newestRecord.category);
-                let biggestCategoryNumber = activeLawRecordsInCategoryOrder[activeLawRecordsInCategoryOrder.length - 1].categoryNumber;
-                if(activeLawRecordsInCategoryOrder.length === 0) newestRecord.categoryNumber = 1;
-                else if(newestRecord.categoryNumber > biggestCategoryNumber + 1) newestRecord.categoryNumber = biggestCategoryNumber + 1;
-                else{
-                    if(newestRecord.categoryNumber < 1) newestRecord.categoryNumber = 1;
-                    let index = activeLawRecordsInCategoryOrder.findIndex(r => r.categoryNumber === newestRecord.categoryNumber);
-                    for(let i = index; i < activeLawRecordsInCategoryOrder.length; i++) activeLawRecordsInCategoryOrder[i].categoryNumber++;
+                //check if record had a category, otherwise pass
+                if(newestRecord.category && newestRecord.lawCategoryNumber){
+                    //if category doesn't exist, add it to lawCategories
+                    if(!this.lawCategories.contains(newestRecord.category)) this.lawCategories.push(newestRecord.category);
+                    let biggestCategoryNumber = activeLawRecordsInCategoryOrder[activeLawRecordsInCategoryOrder.length - 1].lawCategoryNumber;
+                    if(activeLawRecordsInCategoryOrder.length === 0) newestRecord.lawCategoryNumber = 1;
+                    else if(newestRecord.lawCategoryNumber > biggestCategoryNumber + 1) newestRecord.lawCategoryNumber = biggestCategoryNumber + 1;
+                    else{
+                        if(newestRecord.lawCategoryNumber < 1) newestRecord.lawCategoryNumber = 1;
+                        let index = activeLawRecordsInCategoryOrder.findIndex(r => r.lawCategoryNumber === newestRecord.lawCategoryNumber);
+                        for(let i = index; i < activeLawRecordsInCategoryOrder.length; i++) activeLawRecordsInCategoryOrder[i].lawCategoryNumber++;
+                    }
                 }
+                
             } else if(newestRecord.status === 'inactive' && newestRecord.type === 'law'){
                 //Universal Number
                 let index = activeLawRecordsInNumberOrder.findIndex(r => r.number == newestRecord.number + 1);
                 for(let i = index; i < activeLawRecordsInNumberOrder.length; i ++){
                     activeLawRecordsInNumberOrder[i].number--; 
                 }
-                //Category Number. At what index do I need to start decreasing number?
-                index = activeLawRecordsInCategoryOrder.findIndex(r => r.categoryNumber === newestRecord.categoryNumber + 1);
-                for(let i = index; i < activeLawRecordsInCategoryOrder.length; i++) activeLawRecordsInCategoryOrder[i].categoryNumber--;
-                //remove category from lawCategories if no other active law has that category anymore
-                for(let i = 0; i < this.lawCategories.length; i++){
-                    lawsWithCategory = activeLawRecordsInNumberOrder.filter(r => r.category === this.lawCategories[i]);
-                    if(lawsWithCategory.length === 0) this.lawCategories.splice(i,1);
+                //Category Number. 
+                //first check if the record had a category, otherwise pass
+                if(newestRecord.category && newestRecord.lawCategoryNumber){
+                    //find index at which to start decreasing number?
+                    index = activeLawRecordsInCategoryOrder.findIndex(r => r.lawCategoryNumber === newestRecord.lawCategoryNumber + 1);
+                    for(let i = index; i < activeLawRecordsInCategoryOrder.length; i++) activeLawRecordsInCategoryOrder[i].lawCategoryNumber--;
+                    //remove category from lawCategories if no other active law has that category anymore
+                    for(let i = 0; i < this.lawCategories.length; i++){
+                        lawsWithCategory = activeLawRecordsInNumberOrder.filter(r => r.category === this.lawCategories[i]);
+                        if(lawsWithCategory.length === 0) this.lawCategories.splice(i,1);
+                    }
                 }
             }
-            await this.save();
+            let result = {};
+            try{
+                await this.save();
+                result.success = true;
+            } catch(error){
+                result.success = false;
+                result.message = error;
+            }
+            return result
         },
         //End utility functions
 
@@ -294,16 +309,16 @@ const communitySchema = new Schema(
                 let automaticVotes = {record:{}};
                 automaticVotes.record.identifier = '000001';
                 automaticVotes.vote = {
-                    citizen: input.citizen,
                     vote: 'plug',
                 }
+                automaticVotes.citizen = input.citizen;
                 result.success = true;
+                result.message = 'Citizen added as resident of home. Automatic votes ran.'
                 let r1 = await this.vote(automaticVotes);
                 if(r1.success == false) result = r1;
                 automaticVotes.record.identifier = '000002';
                 let r2 = await this.vote(automaticVotes);
                 if(r2.success === false) result = r2;
-                
             }catch(error){
                 result.success = false;
                 result.message = error;
@@ -338,6 +353,7 @@ const communitySchema = new Schema(
                     await this.save();
                     await this.updateAllRecords();
                     result.success = true;
+                    result.message = 'Citizen removed as resident of home.'
                 } catch(error){
                     result.success = false;
                     result.message = error;
@@ -362,15 +378,23 @@ const communitySchema = new Schema(
             try{
                 await this.save();
                 await this.updateAllRecords();
-                let automaticVotes;
+                let automaticVotes = {
+                    record : {identifier: null},
+                    citizen: undefined,
+                    vote: undefined,
+                };
+
                 automaticVotes.record.identifier = '000001';
                 automaticVotes.vote = {
-                    citizen: input.citizen,
                     vote: 'plug',
+                    citizen: input.citizen._id,
                 }
+                automaticVotes.citizen = input.citizen;
                 await this.vote(automaticVotes);
                 automaticVotes.record.identifier = '000002';
                 await this.vote(automaticVotes);
+                result.success = true;
+                result.message = 'Owner added to home. Automatic votes 1 & 2 ran.'
             }catch(error){
                 result.success = false;
                 result.message = error;
@@ -433,7 +457,8 @@ const communitySchema = new Schema(
 
         vote: async function(input){
             let result = {}; 
-            //input: input.record, input.citizen, input.vote
+            //input: input.record, input.citizen, input.vote. If no input citizen, it will look for input.vote.citizen (_id)
+            //if input.vote.citizen is provided, it will use that, otherwise it will use input.citizen._id
             //**In controller: ensure that it is the signed-in user being passed in input.vote.citizen */
             //make sure the vote is saved correctly
             if(input.vote.vote !== 'plug' && input.vote.vote !== 'unplug'){
@@ -441,28 +466,37 @@ const communitySchema = new Schema(
                 result.success = false;
                 return result
             }
-
-
+            if(!input.citizen && !input.vote.citizen){
+                result.message = 'Missing citizen information on vote';
+                result.success = false;
+                return result;
+            } 
             let record = this.getRecord(input);
-            
             //update all record statuses
             await this.updateRecord(record);
-
             //if the status of the record is inactive, you cannot vote on it
             if(record.status === 'inactive'){
                 result.success = false;
                 result.message = 'cannot vote on an inactive record';
                 return result;
             }
+            //fix variables
+            let vote = {
+                    citizen: undefined,
+                    vote: input.vote.vote,
+                }
+                let citizen;
+                (input.vote.citizen) ? citizen = input.vote.citizen : citizen = input.citizen._id;
+                vote.citizen = citizen;
             //has this citizen voted on this record?
             let voteIndex = record.votes.findIndex(vote => vote.citizen.equals(input.citizen._id));
-            input.vote.date = new Date();
             if(voteIndex === -1){ //this citizen hasn't voted on this record
-                record.votes.push(input.vote);
+                
+                record.votes.push(vote);
                 result.message = 'New vote added to records'
             } else {
-                record.votes[voteIndex].vote = input.vote.vote;
-                record.votes[voteIndex].date = input.vote.date;
+                record.votes[voteIndex].vote = vote.vote;
+                record.votes[voteIndex].updatedAt = Date.now();
                 result.message = 'Existing vote updated'
             }
             result.success = true;
@@ -477,7 +511,6 @@ const communitySchema = new Schema(
               }
             return result;
         }
-            
     },
 
     virtuals: {

@@ -19,7 +19,12 @@ async function createCommunity(community_details){
         homes: homes,
     });
     //La primera y segunda ley se agregan a la comunidad automaticamente
-    let law1 = {title: 'Gobierno de la Comunidad', identifier: '000001', number: 1, type: 'law', status: 'active'};
+    let law1 = {title: 'Gobierno de la Comunidad', 
+        identifier: '000001', 
+        number: 1, 
+        type: 'law', 
+        status: 'active',
+    };
     if(community.votingUnit === 'homes.owner'){
         law1.body = "La comunidad operará como una democracia directa, " +
             "en la cual todos los propietarios tienen la oportunidad igual de participar " +
@@ -63,7 +68,12 @@ async function createCommunity(community_details){
             "Al residir en la comunidad, se entenderá que todos los ciudadanos han leído, comprendido y aceptado " +
             "cumplir con los términos y condiciones establecidos en esta ley.";
     }
-    let law2 = {title: 'Expiración de las Propuestas', identifier: '000002', number: 2, type: 'law', status: 'active'};
+    let law2 = {title: 'Expiración de las Propuestas', 
+        identifier: '000002', 
+        number: 2, 
+        type: 'law', 
+        status: 'active'
+    };
     law2.body = "Todas las propuestas presentadas por los ciudadanos tendrán una fecha de expiración de " +
     "`${community.proposalLimit}` días a partir de la fecha de su publicación. Los ciudadanos pueden " +
     "votar para modificar esta ley y cambiar el plazo para votar en las propuestas. Cualquier modificación " +
