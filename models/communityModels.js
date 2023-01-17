@@ -50,6 +50,8 @@ const communitySchema = new Schema(
             lawCategoryNumber:{type: Number, min: 1}, //law category number
 
             status: {type: String, enum: ['proposal', 'active', 'passed','inactive'], required: true, default :'proposal'}, //status of record
+
+            statusUpdateDate: {type: Date, required: true},
             //proposal when it is created and within community.proposalLimit and expiration date with less votes needed for passing
             //active when passed into law, passed when got votes but active date has not reached yet and inactive when proposalLimit (without enough votes) or expiration run out
 
@@ -111,6 +113,15 @@ const communitySchema = new Schema(
             return home;
         },
 
+        homesOwned: function(citizenId){
+            //return array of homes owned by given citizen Id
+            let homes = [];
+            for(const home of this.homes){
+                if(home.owner && home.owner.equals(citizenId)) homes.push(home);
+            }
+            return homes;
+        },
+
         majorityVotes: function(record){
             //checks whether a given record has enough votes to pass returns true if yes, false otherwise
             let result = {};
@@ -125,12 +136,19 @@ const communitySchema = new Schema(
                 return result;
             }
             else if(this.votingUnit === 'homes.owner'){
-                let amountHomes = this.homes.length;
-                let amountOwnersVotes = record.votes.reduce((total, vote) => {
-                    if (vote.vote === 'plug' && this.isCitizenOwner({ citizen: vote.citizen })) return total + 1;
-                    return total;
-                }, 0);
-                result = (amountOwnersVotes > amountHomes / 2) ? true : false;
+                let amountOfHomes = this.homes.length;
+                let votesInFavor = 0;
+                let votesAgainst = 0;
+                //go through each vote, see what type it is, see who the owner is and how many homes he owns
+                for(const vote of record.votes){
+                    //if it's not owner, don't do anything
+                    if(this.isCitizenOwner({citizen:vote.citizen})){
+                        let amount_homes_owned = this.homesOwned(vote.citizen).length;
+                        if(vote.vote === 'plug') votesInFavor += amount_homes_owned;
+                        else if(vote.vote ==='unplug') votesAgainst += amount_homes_owned;
+                    }
+                }
+                result = (votesInFavor > amountOfHomes/2) ? true : false;
                 return result;
             }
             throw new Error('no condition was found running majorityVotes')
@@ -166,37 +184,56 @@ const communitySchema = new Schema(
             }
             
             let within_proposal_time_limit = (Date.now() - record.createdAt.getTime() <= this.proposalLimitMilliseconds) ? true : false; //if proposal if still within the time limit that you can vote on a proposal (community.proposalLimit)
-            console.log('within proposal time limit: ', within_proposal_time_limit);
             let majorityVotes = this.majorityVotes(record); //true if it has majority votes
-            console.log('majority votes: ', majorityVotes)
             let within_record_expiration;
             if(record.expirationDate) within_record_expiration = (record.expirationDate.getTime() > Date.now()) ? true : false; //when law expires
             else within_record_expiration = true;
-            console.log('within record expiration: ', within_record_expiration)
             let after_record_effective_date;
             if(record.effectiveDate) after_record_effective_date = (record.effectiveDate.getTime() <= Date.now()) ? true : false; //when law becomes active
             else after_record_effective_date = true;
-            console.log('after record effective date: ', after_record_effective_date)
             
             //Determination
             if(record.within_record_expiration === false) record.status = 'inactive';
-            console.log('record status: ', record.status)
             switch(record.status){
                 case 'inactive':
                     break;
                 case 'proposal':
-                    if(!within_proposal_time_limit && !majorityVotes) record.status = 'inactive';
-                    else if(within_proposal_time_limit && majorityVotes && within_record_expiration && after_record_effective_date) record.status = 'active'; 
-                    else if(majorityVotes && within_record_expiration && !after_record_effective_date) record.status = 'passed';
+                    if(!within_proposal_time_limit && !majorityVotes){
+                        record.status = 'inactive';
+                        record.statusupdateDate = Date.now();
+                    } 
+                    else if(within_proposal_time_limit && majorityVotes && within_record_expiration && after_record_effective_date){
+                        record.status = 'active';
+                        record.statusUpdateDate = Date.now();
+                    } 
+                    else if(majorityVotes && within_record_expiration && !after_record_effective_date){
+                        record.status = 'passed';
+                        record.statusUpdateDate = Date.now();
+                    } 
                     break;
                 case 'passed':
-                    if(!within_proposal_time_limit && !majorityVotes) record.status = 'inactive';
-                    else if(within_proposal_time_limit && !majorityVotes && within_record_expiration) record.status = 'proposal';
-                    else if(majorityVotes && within_record_expiration && after_record_effective_date) record.status = 'active';
+                    if(!within_proposal_time_limit && !majorityVotes){
+                        record.status = 'inactive';
+                        record.statusUpdateDate = Date.now();
+                    } 
+                    else if(within_proposal_time_limit && !majorityVotes && within_record_expiration){
+                        record.status = 'proposal';
+                        record.statusUpdateDate = Date.now();
+                    } 
+                    else if(majorityVotes && within_record_expiration && after_record_effective_date){
+                        record.status = 'active';
+                        record.statusUpdateDate = Date.now();
+                    } 
                     break;
                 case 'active':
-                    if(!majorityVotes) record.status = 'inactive';
-                    else if(within_proposal_time_limit && !majorityVotes && within_record_expiration) record.status = 'proposal';
+                    if(!majorityVotes && !within_proposal_time_limit){
+                        record.status = 'inactive';
+                        record.statusUpdateDate = Date.now();
+                    } 
+                    else if(within_proposal_time_limit && !majorityVotes && within_record_expiration){
+                        record.status = 'proposal';
+                        record.statusUpdateDate = Date.now();
+                    } 
                     break;
                 default:
                     result.success = false;
@@ -224,44 +261,65 @@ const communitySchema = new Schema(
             //in this case, look at all absolute and categories and adjust accordingly
             
             //search for the newest record.
-            let newestRecord = this.records.sort((a,b) => b.updatedAt - a.updatedAt)[0];
+            let newestRecord = this.records.sort((a,b) => b.statusUpdateDate - a.statusUpdateDate)[0];
+            console.log(newestRecord);
             //if the newest record changed was not a law, no need to do anything. 
             if(newestRecord.type !== 'law') return;
             //get array of active law records in number order
             let activeLawRecordsInNumberOrder = this.records.filter(r => r.status === 'active' && r.type ==='law').sort((a,b) => a.number - b.number);
             //remove the current record being examined
-            activeLawRecordsInNumberOrder = activeLawRecordsInNumberOrder.filter(r => r.identifier != newestRecord.identifier);
+            activeLawRecordsInNumberOrder = activeLawRecordsInNumberOrder.filter(r => r.identifier !== newestRecord.identifier);
             //get array of active law records that have a category in category order
-            let activeLawRecordsInCategoryOrder = activeLawRecordsInNumberOrder.filter(r => r.category === newestRecord.category).sort((a,b) => a.lawCategoryNumber - b.lawCategoryNumber);
+            let activeLawRecordsInCategoryOrder = activeLawRecordsInNumberOrder.filter(r => r.lawCategory === newestRecord.lawCategory).sort((a,b) => a.lawCategoryNumber - b.lawCategoryNumber);
             if (newestRecord.status === 'active' && newestRecord.type === 'law'){
-                let newestActiveRecord = newestRecord;
+                console.log('inside ordering universal')
                 //Universal Number
                 let biggestLawRecordNumber = activeLawRecordsInNumberOrder[activeLawRecordsInNumberOrder.length - 1].number;
                 //fix universal numbering system
-                if(newestActiveRecord.number){
-                if(newestActiveRecord.number <= 2 && newestActiveRecord.identifier !== '000001' && newestActiveRecord.identifier !== '000002') newestActiveRecord.number = 3;
-                else if(newestActiveRecord.number > biggestLawRecordNumber + 1) newestActiveRecord.number = biggestLawRecordNumber + 1;
-                //fix numbering
-                let startingIndex = activeLawRecordsInNumberOrder.findIndex(r => r.number === newestActiveRecord.number);
-                for(let i = startingIndex; i < activeLawRecordsInNumberOrder.length; i++) activeLawRecordsInNumberOrder.number++;
+                if(newestRecord.number){
+                    console.log('inside newestActiveRecord.numberif: ', newestRecord.number);
+                    console.log('1st check', newestRecord.lawCategory);
+                    //Sanitize record.number before processing
+                    if(newestRecord.number <= 2 && newestRecord.identifier !== '000001' && newestRecord.identifier !== '000002'){
+                        newestRecord.number = 3;
+                    } 
+                    else if(newestRecord.number > biggestLawRecordNumber + 1){
+                        newestRecord.number = biggestLawRecordNumber + 1;
+                    } 
+                    //processing numbering
+                    let startingIndex = activeLawRecordsInNumberOrder.findIndex(r => r.number === newestRecord.number);
+                    console.log(startingIndex);
+                    if(startingIndex !== -1){
+                        for(let i = startingIndex; i < activeLawRecordsInNumberOrder.length; i++){
+                            console.log(activeLawRecordsInNumberOrder[i].identifier);
+                            activeLawRecordsInNumberOrder[i].number++;
+                        } 
+                    }
+                    console.log('yo ',newestRecord);
+                    console.log(newestRecord.lawCategory);
                 }else{
-                    newestActiveRecord.number = biggestLawRecordNumber + 1;
-                }
+                    newestRecord.number = biggestLawRecordNumber + 1;
+                };
                 //Category Number
                 //check if record had a category, otherwise pass
-                if(newestRecord.category && newestRecord.lawCategoryNumber){
+                console.log('newestRecord.lawCategory: ',newestRecord.lawCategory);
+                if(newestRecord.lawCategory){
+                    console.log('in law category')
                     //if category doesn't exist, add it to lawCategories
-                    if(!this.lawCategories.contains(newestRecord.category)) this.lawCategories.push(newestRecord.category);
+                    if(!this.lawCategories.contains(newestRecord.lawCategory)) this.lawCategories.push(newestRecord.lawCategory);
+                    console.log('categories contains ', !this.lawCategories.contains(newestRecord.lawCategory))
                     let biggestCategoryNumber = activeLawRecordsInCategoryOrder[activeLawRecordsInCategoryOrder.length - 1].lawCategoryNumber;
-                    if(activeLawRecordsInCategoryOrder.length === 0) newestRecord.lawCategoryNumber = 1;
+                    console.log('biggestCategoryNumber ', biggestCategoryNumber)
+                    if(!biggestCategoryNumber) biggestCategoryNumber = 0;
+                    //if it doesn't have a number, assign it the largest available
+                    if(!newestRecord.lawCategoryNumber) newestRecord.lawCategoryNumber = biggestCategoryNumber + 1;
+                    //if it has a number assigned larger than the current biggest + 1 adjust
                     else if(newestRecord.lawCategoryNumber > biggestCategoryNumber + 1) newestRecord.lawCategoryNumber = biggestCategoryNumber + 1;
-                    else{
-                        if(newestRecord.lawCategoryNumber < 1) newestRecord.lawCategoryNumber = 1;
-                        let index = activeLawRecordsInCategoryOrder.findIndex(r => r.lawCategoryNumber === newestRecord.lawCategoryNumber);
-                        for(let i = index; i < activeLawRecordsInCategoryOrder.length; i++) activeLawRecordsInCategoryOrder[i].lawCategoryNumber++;
-                    }
+                    //if it has a number less than 1 adjust
+                    else if(newestRecord.lawCategoryNumber < 1) newestRecord.lawCategoryNumber = 1;
+                    let index = activeLawRecordsInCategoryOrder.findIndex(r => r.lawCategoryNumber === newestRecord.lawCategoryNumber);
+                    for(let i = index; i < activeLawRecordsInCategoryOrder.length; i++) activeLawRecordsInCategoryOrder[i].lawCategoryNumber++;
                 }
-                
             } else if(newestRecord.status === 'inactive' && newestRecord.type === 'law'){
                 //Universal Number
                 let index = activeLawRecordsInNumberOrder.findIndex(r => r.number == newestRecord.number + 1);
@@ -440,7 +498,7 @@ const communitySchema = new Schema(
         }, 
 
         createProposal: async function(input){
-            //create a record with proposal status. 
+            //create a record with proposal status. input.proposal, input.citizen 
             let result = {};
             //is citizen a member of community?
             if(!this.isCitizenMember(input)){
@@ -449,8 +507,12 @@ const communitySchema = new Schema(
                 return result;
             }
             //create new record
+            //fix variables
             input.proposal.votes = [];
             input.proposal.author = input.citizen._id;
+            input.proposal.statusUpdateDate = Date.now();
+            if(input.proposal.number && input.proposal.number < 1) input.proposal.number = 1;
+            if(input.proposal.lawCategoryNumber && input.proposal.lawCategoryNumber < 1) input.proposal.lawCategoryNumber = 1;
             //generate identifier until there is an original one
             let success = false;
             let identifier;

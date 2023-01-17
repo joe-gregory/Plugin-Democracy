@@ -24,6 +24,7 @@ async function createCommunity(community_details){
         number: 1, 
         type: 'law', 
         status: 'active',
+        statusUpdateDate: Date.now(),
     };
     if(community.votingUnit === 'homes.owner'){
         law1.body = "La comunidad operará como una democracia directa, " +
@@ -72,7 +73,8 @@ async function createCommunity(community_details){
         identifier: '000002', 
         number: 2, 
         type: 'law', 
-        status: 'active'
+        status: 'active',
+        statusUpdateDate: Date.now(),
     };
     law2.body = "Todas las propuestas presentadas por los ciudadanos tendrán una fecha de expiración de " +
     "`${community.proposalLimit}` días a partir de la fecha de su publicación. Los ciudadanos pueden " +
