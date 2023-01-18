@@ -19,8 +19,6 @@ const communitySchema = new Schema(
         owner: {type: Schema.Types.ObjectId, ref: 'Citizen'},
         }],
 
-    lawCategories : [{type: String}],
-
     records: 
         [{ type: new mongoose.Schema({
             identifier: {type: String, required: true, unique: true}, //automatically assigned
@@ -174,7 +172,6 @@ const communitySchema = new Schema(
         updateRecord: async function(record){
             //input: record, output: result.success
             //output: result.success
-            //add category to lawCategories if necessary and remove if necessary
             //conditions that get check: 
             let result = {success: true};
             if(record.identifier === '000001' || record.identifier === '000002'){
@@ -193,7 +190,7 @@ const communitySchema = new Schema(
             else after_record_effective_date = true;
             
             //Determination
-            if(record.within_record_expiration === false) record.status = 'inactive';
+            if(within_record_expiration === false) record.status = 'inactive';
             switch(record.status){
                 case 'inactive':
                     break;
@@ -249,100 +246,126 @@ const communitySchema = new Schema(
         },
 
         updateAllRecords: async function(){
-            this.records.forEach((record) => this.updateRecord(record));
+            this.records.forEach(async (record) => await this.updateRecord(record));
         },
 
         reorderRecords: async function(){
             //Helper function to updateRecord();
-            //Search for the newest 'active' record and update by universal number and category number
-            //or if no numbers are provided, a new number at the end is given.
-            //in the above cases, look for the newest record, and use that information to determine what to do 
-            //if one became inactive, all the records need to get organize to fill the missing number
-            //in this case, look at all absolute and categories and adjust accordingly
+            //Search for the newest 'active' record and update by universal number or category number
             
-            //search for the newest record.
             let newestRecord = this.records.sort((a,b) => b.statusUpdateDate - a.statusUpdateDate)[0];
-            //if the newest record changed was not a law, no need to do anything. 
             if(newestRecord.type !== 'law') return;
-            //get array of active law records in number order
-            let activeLawRecordsInNumberOrder = this.records.filter(r => r.status === 'active' && r.type ==='law').sort((a,b) => a.number - b.number);
-            //remove the current record being examined
-            activeLawRecordsInNumberOrder = activeLawRecordsInNumberOrder.filter(r => r.identifier !== newestRecord.identifier);
-            //get array of active law records that have a category in category order
-            let activeLawRecordsInCategoryOrder = activeLawRecordsInNumberOrder.filter(r => r.lawCategory === newestRecord.lawCategory).sort((a,b) => a.lawCategoryNumber - b.lawCategoryNumber);
+            
+            let numberOrder = this.records.filter(r => r.status === 'active' && r.type ==='law' && !r.lawCategory)
+            numberOrder = numberOrder.filter(r => r.identifier !== newestRecord.identifier);
+            numberOrder.sort((a,b) => a.number - b.number);
+            
+            let categoryOrder = this.records.filter(r => r.lawCategory === newestRecord.lawCategory)
+            categoryOrder = categoryOrder.filter(r => r.identifier !== newestRecord.identifier)
+            categoryOrder.sort((a,b) => a.lawCategoryNumber - b.lawCategoryNumber);
+
+            if(newestRecord.lawCategory){
+
+            }else{
+                
+            }
+            ///OLD
+            
             if (newestRecord.status === 'active' && newestRecord.type === 'law'){
                 //Universal Number
                 if(!newestRecord.lawCategory){
-                    let biggestLawRecordNumber = activeLawRecordsInNumberOrder[activeLawRecordsInNumberOrder.length - 1].number;
-                //fix universal numbering system
+                    //Sanitize record.number before processing
+                    let biggestLawRecordNumber = numberOrder[numberOrder.length - 1].number;
                     if(newestRecord.number){
-                        //Sanitize record.number before processing
+                        
                         if(newestRecord.number <= 2 && newestRecord.identifier !== '000001' && newestRecord.identifier !== '000002'){
                             newestRecord.number = 3;
                         } 
                         else if(newestRecord.number > biggestLawRecordNumber + 1){
                             newestRecord.number = biggestLawRecordNumber + 1;
                         } 
-                        //processing numbering
-                        let startingIndex = activeLawRecordsInNumberOrder.findIndex(r => r.number === newestRecord.number);
+                    }else{
+                        newestRecord.number = biggestLawRecordNumber + 1;
+                    };
+                        //processing numbering find at which index to insert newestRecord
+                        for(let i = 0; i < numberOrder.length; i++){
+                            if(numberOrder[i].number < newestRecord.number && (newestRecord.number <= numberOrder[i + 1].number || numberOrder[i+1] === undefined)){
+                                numberOrder.splice(i+1, 0, newestRecord);
+                                break;
+                            }
+                        }
+                        for(let i = 0; i < numberOrder.length; i++){
+                            numberOrder[i].number = i + 1;
+                        }
+                        ///old:
+                        /*let startingIndex = activeLawRecordsInNumberOrder.findIndex(r => r.number === newestRecord.number);
                         
                         if(startingIndex !== -1 && activeLawRecordsInNumberOrder.length > 0){
                             for(let i = startingIndex; i < activeLawRecordsInNumberOrder.length; i++){
                                 activeLawRecordsInNumberOrder[i].number++;
                             } 
-                        }
-                    }else{
-                        newestRecord.number = biggestLawRecordNumber + 1;
-                    };
-                }
-                //Category Number
-                //check if record had a category, otherwise pass
-                else if(newestRecord.lawCategory){
-                    //if category doesn't exist, add it to lawCategories
-                    if(!this.lawCategories.includes(newestRecord.lawCategory)) this.lawCategories.push(newestRecord.lawCategory);
+                        }*/
+                }else if(newestRecord.lawCategory){
+                    //Category Number
+                    //Sanitize incoming number
                     let biggestCategoryNumber;
-                    if(activeLawRecordsInCategoryOrder.length === 0){
+                    if(categoryOrder.length === 0){
                         biggestCategoryNumber = 0;
                     }else{
-                        biggestCategoryNumber = activeLawRecordsInCategoryOrder[activeLawRecordsInCategoryOrder.length - 1].lawCategoryNumber;
+                        biggestCategoryNumber = categoryOrder[categoryOrder.length - 1].lawCategoryNumber;
                     }
-                    //if it doesn't have a number or one bigger than current biggest, assign it the largest available
                     if(!newestRecord.lawCategoryNumber || newestRecord.lawCategoryNumber > biggestCategoryNumber + 1){
                         newestRecord.lawCategoryNumber = biggestCategoryNumber + 1;
                     }
-                    //if it has a number less than 1 adjust
                     else if(newestRecord.lawCategoryNumber < 1){
                         newestRecord.lawCategoryNumber = 1;
                     } 
-                    if(activeLawRecordsInCategoryOrder.length !== 0){
-                        let index = activeLawRecordsInCategoryOrder.findIndex(r => r.lawCategoryNumber === newestRecord.lawCategoryNumber);
+                    //fix numbering
+                    for(let i = 0; i< categoryOrder.length; i++){
+                        if(categoryOrder[i].lawCategorynumber < newestRecord.lawCategoryNumber &&
+                            (newestRecord.lawCategoryNumber <= categoryOrder[i+1].lawCategoryNumber ||
+                                categoryOrder[i + 1] === undefined)){
+                                    categoryOrder.splice(i+1,0,newestRecord);
+                                }
+                    }
+                    ///Example: DEL
+                    //processing numbering find at which index to insert newestRecord
+                    for(let i = 0; i < numberOrder.length; i++){
+                        if(numberOrder[i].number < newestRecord.number && 
+                            (newestRecord.number <= numberOrder[i + 1].number || 
+                                numberOrder[i+1] === undefined)){
+                            numberOrder.splice(i+1, 0, newestRecord);
+                            break;
+                        }
+                    }
+                    for(let i = 0; i < numberOrder.length; i++){
+                        categoryOrder[i].number = i + 1;
+                    }
+                    ///old:
+                    if(categoryOrder.length !== 0){
+                        let index = categoryOrder.findIndex(r => r.lawCategoryNumber === newestRecord.lawCategoryNumber);
                         if(index !== -1){
-                            for(let i = index; i < activeLawRecordsInCategoryOrder.length; i++){
-                                activeLawRecordsInCategoryOrder[i].lawCategoryNumber++;
+                            for(let i = index; i < categoryOrder.length; i++){
+                                categoryOrder[i].lawCategoryNumber++;
                             } 
                         }
                     }
                 }
-            } else if(newestRecord.status === 'inactive' && newestRecord.type === 'law'){
+            } else if((newestRecord.status === 'inactive' || newestRecord.status === 'passed') && newestRecord.type === 'law'){
                 //Universal Number
-                let index = activeLawRecordsInNumberOrder.findIndex(r => r.number == newestRecord.number + 1);
-                if(index !== -1){
-                    for(let i = index; i < activeLawRecordsInNumberOrder.length; i ++){
-                    activeLawRecordsInNumberOrder[i].number--; 
-                    }
-                }
-                //Category Number. 
-                //first check if the record had a category, otherwise pass
-                if(newestRecord.category && newestRecord.lawCategoryNumber){
-                    //find index at which to start decreasing number?
-                    index = activeLawRecordsInCategoryOrder.findIndex(r => r.lawCategoryNumber === newestRecord.lawCategoryNumber + 1);
+                if(newestRecord.lawCategory){
+                     //find index at which to start decreasing number?
+                    index = categoryOrder.findIndex(r => r.lawCategoryNumber === newestRecord.lawCategoryNumber + 1);
                     if(index !== -1){
-                        for(let i = index; i < activeLawRecordsInCategoryOrder.length; i++) activeLawRecordsInCategoryOrder[i].lawCategoryNumber--;
+                        console.log('index is not -1');
+                        for(let i = index; i < categoryOrder.length; i++) categoryOrder[i].lawCategoryNumber--;
                     }
-                    //remove category from lawCategories if no other active law has that category anymore
-                    for(let i = 0; i < this.lawCategories.length; i++){
-                        lawsWithCategory = activeLawRecordsInNumberOrder.filter(r => r.category === this.lawCategories[i]);
-                        if(lawsWithCategory.length === 0) this.lawCategories.splice(i,1);
+                } else{
+                    let index = numberOrder.findIndex(r => r.number == newestRecord.number + 1);
+                    if(index !== -1){
+                        for(let i = index; i < numberOrder.length; i ++){
+                        numberOrder[i].number--; 
+                        }
                     }
                 }
             }
@@ -641,7 +664,7 @@ const communitySchema = new Schema(
                 return owners;
             }
         },
-
+        
         laws: {
             get(){
                 //return all laws sorted by record.number
@@ -651,14 +674,27 @@ const communitySchema = new Schema(
             }
         },
 
+        lawCategories: {
+            get(){
+                let categories = [];
+                let activeLawsWithCategory = this.laws.filter(record => record.lawCategory);
+                for(const record of activeLawsWithCategory){
+                    if(!categories.includes(record.lawCategory)) categories.push(record.lawCategory);
+                }
+                return categories;
+            }
+        },
+
         constitution: {
             //return an object that contains law categories with the laws in each category sorted by record.categoryNumber. 
             //The first element of the array is the laws that don't have a category ordered by record.Number
             get(){
                 let constitution = {};
-                constitution[''] = this.records.filter(record => record.status === 'active' && !record.category).sort((a,b) => a.number - b.number);
+                let lawCategories = this.lawCategories;
+                constitution[''] = this.records.filter(record => record.status === 'active' && !record.lawCategory).sort((a,b) => a.number - b.number);
                 for(let i = 0; i < this.lawCategories.length; i++){
-                    constitution[this.lawCategories[i]] = this.records.filter(record => record.status === 'active' && record.category === this.lawCategories[i]);
+                    constitution[lawCategories[i]] = this.records.filter(record => record.status === 'active' && record.lawCategory === lawCategories[i]);
+                    constitution[lawCategories[i]].sort((a,b) => a.lawCategoryNumber - b.lawCategoryNumber);
                 }
                 return constitution;
             }
