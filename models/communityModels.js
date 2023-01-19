@@ -249,64 +249,20 @@ const communitySchema = new Schema(
             this.records.forEach(async (record) => await this.updateRecord(record));
         },
 
-        reorderRecords: async function(){
-            //Helper function to updateRecord();
+        reorderRecords: async function(type = 'law'){
+            //Helper function to updateRecord(); type is law, role, project, permit, badge
             //Search for the newest 'active' record and update by universal number or category number
-            
             let newestRecord = this.records.sort((a,b) => b.statusUpdateDate - a.statusUpdateDate)[0];
-            if(newestRecord.type !== 'law') return;
             
-            let numberOrder = this.records.filter(r => r.status === 'active' && r.type ==='law' && !r.lawCategory)
-            numberOrder = numberOrder.filter(r => r.identifier !== newestRecord.identifier);
-            numberOrder.sort((a,b) => a.number - b.number);
-            
-            let categoryOrder = this.records.filter(r => r.lawCategory === newestRecord.lawCategory)
-            categoryOrder = categoryOrder.filter(r => r.identifier !== newestRecord.identifier)
-            categoryOrder.sort((a,b) => a.lawCategoryNumber - b.lawCategoryNumber);
+            if(newestRecord.type !== type) return;
 
-            if(newestRecord.lawCategory){
-
-            }else{
+            if(newestRecord.lawCategory && type === 'law'){
                 
-            }
-            ///OLD
-            
-            if (newestRecord.status === 'active' && newestRecord.type === 'law'){
-                //Universal Number
-                if(!newestRecord.lawCategory){
-                    //Sanitize record.number before processing
-                    let biggestLawRecordNumber = numberOrder[numberOrder.length - 1].number;
-                    if(newestRecord.number){
-                        
-                        if(newestRecord.number <= 2 && newestRecord.identifier !== '000001' && newestRecord.identifier !== '000002'){
-                            newestRecord.number = 3;
-                        } 
-                        else if(newestRecord.number > biggestLawRecordNumber + 1){
-                            newestRecord.number = biggestLawRecordNumber + 1;
-                        } 
-                    }else{
-                        newestRecord.number = biggestLawRecordNumber + 1;
-                    };
-                        //processing numbering find at which index to insert newestRecord
-                        for(let i = 0; i < numberOrder.length; i++){
-                            if(numberOrder[i].number < newestRecord.number && (newestRecord.number <= numberOrder[i + 1].number || numberOrder[i+1] === undefined)){
-                                numberOrder.splice(i+1, 0, newestRecord);
-                                break;
-                            }
-                        }
-                        for(let i = 0; i < numberOrder.length; i++){
-                            numberOrder[i].number = i + 1;
-                        }
-                        ///old:
-                        /*let startingIndex = activeLawRecordsInNumberOrder.findIndex(r => r.number === newestRecord.number);
-                        
-                        if(startingIndex !== -1 && activeLawRecordsInNumberOrder.length > 0){
-                            for(let i = startingIndex; i < activeLawRecordsInNumberOrder.length; i++){
-                                activeLawRecordsInNumberOrder[i].number++;
-                            } 
-                        }*/
-                }else if(newestRecord.lawCategory){
-                    //Category Number
+                let categoryOrder = this.records.filter(r => r.lawCategory === newestRecord.lawCategory && r.status ==='active');
+                categoryOrder = categoryOrder.filter(r => r.identifier !== newestRecord.identifier);
+                categoryOrder.sort((a,b) => a.lawCategoryNumber - b.lawCategoryNumber);
+
+                if(newestRecord.status === 'active'){
                     //Sanitize incoming number
                     let biggestCategoryNumber;
                     if(categoryOrder.length === 0){
@@ -314,61 +270,68 @@ const communitySchema = new Schema(
                     }else{
                         biggestCategoryNumber = categoryOrder[categoryOrder.length - 1].lawCategoryNumber;
                     }
-                    if(!newestRecord.lawCategoryNumber || newestRecord.lawCategoryNumber > biggestCategoryNumber + 1){
+                    if(!newestRecord.lawCategoryNumber){
                         newestRecord.lawCategoryNumber = biggestCategoryNumber + 1;
                     }
                     else if(newestRecord.lawCategoryNumber < 1){
                         newestRecord.lawCategoryNumber = 1;
-                    } 
-                    //fix numbering
-                    for(let i = 0; i< categoryOrder.length; i++){
-                        if(categoryOrder[i].lawCategorynumber < newestRecord.lawCategoryNumber &&
-                            (newestRecord.lawCategoryNumber <= categoryOrder[i+1].lawCategoryNumber ||
-                                categoryOrder[i + 1] === undefined)){
-                                    categoryOrder.splice(i+1,0,newestRecord);
+                    }
+                    //find where to insert newest record
+                    for(let i = 0; i < categoryOrder.length; i++){
+                        if(categoryOrder[i].lawCategoryNumber < newestRecord.lawCategoryNumber &&
+                            (categoryOrder[i + 1] === undefined || newestRecord.lawCategoryNumber <= categoryOrder[i+1].lawCategoryNumber)){
+                                    categoryOrder.splice(i + 1 , 0, newestRecord);
+                                    break;
                                 }
                     }
-                    ///Example: DEL
-                    //processing numbering find at which index to insert newestRecord
-                    for(let i = 0; i < numberOrder.length; i++){
-                        if(numberOrder[i].number < newestRecord.number && 
-                            (newestRecord.number <= numberOrder[i + 1].number || 
-                                numberOrder[i+1] === undefined)){
-                            numberOrder.splice(i+1, 0, newestRecord);
-                            break;
-                        }
+                    //Reorder Category Numbers
+                    for(let i = 0; i < categoryOrder.length; i++){
+                        categoryOrder[i].lawCategoryNumber = i + 1;
                     }
-                    for(let i = 0; i < numberOrder.length; i++){
-                        categoryOrder[i].number = i + 1;
-                    }
-                    ///old:
-                    if(categoryOrder.length !== 0){
-                        let index = categoryOrder.findIndex(r => r.lawCategoryNumber === newestRecord.lawCategoryNumber);
-                        if(index !== -1){
-                            for(let i = index; i < categoryOrder.length; i++){
-                                categoryOrder[i].lawCategoryNumber++;
-                            } 
-                        }
+
+                }else if(newestRecord.status === 'inactive' || newestRecord.status === 'passed'){
+                    for(let i = 0; i < categoryOrder.length; i++){
+                        categoryOrder[i].lawCategoryNumber = i + 1;
                     }
                 }
-            } else if((newestRecord.status === 'inactive' || newestRecord.status === 'passed') && newestRecord.type === 'law'){
-                //Universal Number
-                if(newestRecord.lawCategory){
-                     //find index at which to start decreasing number?
-                    index = categoryOrder.findIndex(r => r.lawCategoryNumber === newestRecord.lawCategoryNumber + 1);
-                    if(index !== -1){
-                        console.log('index is not -1');
-                        for(let i = index; i < categoryOrder.length; i++) categoryOrder[i].lawCategoryNumber--;
+            }else{
+                
+                let numberOrder = this.records.filter(r => r.status === 'active' && r.type === type && !r.lawCategory)
+                numberOrder = numberOrder.filter(r => r.identifier !== newestRecord.identifier);
+                numberOrder.sort((a,b) => a.number - b.number);
+
+                if(newestRecord.status === 'active'){
+                    //Sanitize incoming number
+                    let biggestNumber;
+                    if(numberOrder.length === 0){
+                        biggestNumber = 0;
+                    }else{
+                        biggestNumber = numberOrder[numberOrder.length - 1].number;
                     }
-                } else{
-                    let index = numberOrder.findIndex(r => r.number == newestRecord.number + 1);
-                    if(index !== -1){
-                        for(let i = index; i < numberOrder.length; i ++){
-                        numberOrder[i].number--; 
-                        }
+                    if(!newestRecord.number){
+                        newestRecord.number = biggestNumber + 1;
+                    }
+                    else if(newestRecord.number <= 2){
+                        newestRecord.number = 3;
+                    } 
+                    //Reorder Numbers
+                    for(let i = 0; i< numberOrder.length; i++){
+                        if(numberOrder[i].number < newestRecord.number &&
+                            (numberOrder[i + 1] === undefined || newestRecord.number <= numberOrder[i+1].number)){
+                                    numberOrder.splice(i + 1 , 0, newestRecord);
+                                    break;
+                                }
+                    }
+                    for(let i = 0; i < numberOrder.length; i++){
+                        numberOrder[i].number = i + 1;
+                    }
+                }else if(newestRecord.status === 'inactive' || newestRecord.status === 'passed'){
+                    for(let i = 0; i < numberOrder.length; i++){
+                        numberOrder[i].number = i + 1;
                     }
                 }
             }
+            
             let result = {};
             try{
                 await this.save();
