@@ -77,7 +77,7 @@ async function createCommunity(community_details){
         statusUpdateDate: Date.now(),
     };
     law2.body = "Todas las propuestas presentadas por los ciudadanos tendrán una fecha de expiración de " +
-    "`${community.proposalLimit}` días a partir de la fecha de su publicación. Los ciudadanos pueden " +
+    "30 días a partir de la fecha de su publicación. Los ciudadanos pueden " +
     "votar para modificar esta ley y cambiar el plazo para votar en las propuestas. Cualquier modificación " +
     "debe ser aprobada por la mayoría de la comunidad. Si la modificación es aprobada, la nueva fecha de " +
     "expiración entrará en vigor de inmediato.";

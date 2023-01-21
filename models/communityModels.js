@@ -6,6 +6,8 @@ const communitySchema = new Schema(
     name : {type: String, required: true,},
 
     address : { type: String, required: true, unique: true, },
+
+    language: {type: String, enum:['ES','EN'], default: 'ES'},
     
     votingUnit: {type: String, enum:['community.citizens', 'homes.owner'], required: true},
 
@@ -35,13 +37,19 @@ const communitySchema = new Schema(
 
             cost: Number, //project
 
+            adminRole: {type: Boolean, default: false}, //role
+
             effectiveDate : Date, //Date at which law, role, badge, permit or project takes effect
 
             expirationDate : Date, //Date at which law, role, badge, permit or project expires and becomes inactive
 
             number: {type: Number, min: 1} , //law absolute number
 
-            type: {type: String, enum:['law', 'role','project', 'permit','badge'], required: true}, //type of proposal
+            type: {type: String, enum:['law', 'role','project', 'permit','badge', 'law2'], required: true}, //type of proposal
+
+            proposalLimit: Number, //for proposals of type law2 to change the length of proposal limits
+
+            previousProposalLimit: {type: Number, default: 30},//place to store original this.proposalLimit in case records goes from active to passed during voting period
 
             lawCategory: {type: String,}, //law category
 
@@ -165,8 +173,30 @@ const communitySchema = new Schema(
             } else if(input.record.identifier){
                 record = this.records.find(record => record.identifier === input.record.identifier);
             }
-            if(record !== undefined) return record;
+            if(record) return record;
             else throw new Error('Record not found');
+        },
+
+        law2Proposal: async function(record){
+            if(record.proposalLimit < 1 || record.previousProposalLimit < 1){
+                throw new Error('Proposed proposal limit below 1 or wrong type');
+            } 
+            if (record.status === 'active'){
+                this.proposalLimit = record.proposalLimit;
+            } 
+            else if(record.status === 'proposal'){
+                this.proposalLimit = record.previousProposalLimit;
+            }else if(record.status === 'inactive'){
+                this.proposalLimit = 30;
+            }
+            let law2 = this.getRecord({record:{identifier:'000002'}});
+            law2.body = "Todas las propuestas presentadas por los ciudadanos tendrán una fecha de expiración de " +
+            this.proposalLimit + " días a partir de la fecha de su publicación. Los ciudadanos pueden " +
+            "votar para modificar esta ley y cambiar el plazo para votar en las propuestas. Cualquier modificación " +
+            "debe ser aprobada por la mayoría de la comunidad. Si la modificación es aprobada, la nueva fecha de " +
+            "expiración entrará en vigor de inmediato.";
+            
+            await this.save();
         },
 
         updateRecord: async function(record){
@@ -202,6 +232,7 @@ const communitySchema = new Schema(
                     else if(within_proposal_time_limit && majorityVotes && within_record_expiration && after_record_effective_date){
                         record.status = 'active';
                         record.statusUpdateDate = Date.now();
+                        if(record.type === 'law2') this.law2Proposal(record);
                     } 
                     else if(majorityVotes && within_record_expiration && !after_record_effective_date){
                         record.status = 'passed';
@@ -230,6 +261,7 @@ const communitySchema = new Schema(
                     else if(within_proposal_time_limit && !majorityVotes && within_record_expiration){
                         record.status = 'proposal';
                         record.statusUpdateDate = Date.now();
+                        if(record.type === 'law2') this.law2Proposal(record);
                     } 
                     break;
                 default:
@@ -346,7 +378,17 @@ const communitySchema = new Schema(
         deleteRecord: async function(input){
             //need to call updateCommunity afterwards to see results
             let record = this.getRecord(input);
-            let result = await Community.findOneAndUpdate({_id: this._id}, {$pull:{records:{_id:record._id}}}, {new: true});
+            await Community.findOneAndUpdate({_id: this._id}, {$pull:{records:{_id:record._id}}}, {new: true});
+            let result = {};
+            try{
+                this.save();
+                result.success = true;
+                result.message = 'Record deleted from database. Need to run this.updateCommunity() to see changes'
+            }catch(error){
+                result.success = false;
+                result.message = error;
+            }
+            
             return result
         },
 
@@ -501,15 +543,25 @@ const communitySchema = new Schema(
             }
             //create new record
             //sanitize variables
-            input.proposal.votes = [];
-            input.proposal.author = input.citizen._id;
-            input.proposal.statusUpdateDate = Date.now();
-            if(input.proposal.lawCategory){
-                input.proposal.number = null;
-                if(input.proposal.lawCategoryNumber && input.proposal.lawCategoryNumber < 1) input.proposal.lawCategoryNumber = 1;
-            }else{
-                if(input.proposal.number && input.proposal.number < 1) input.proposal.number = 1;
-            }
+            let newRecord = {};
+ 
+            newRecord.author = input.citizen._id;
+            newRecord.title = input.proposal.title;
+            newRecord.body = input.proposal.body;
+            newRecord.description = input.proposal.description;
+            newRecord.salary = input.proposal.salary;
+            newRecord.cost = input.proposal.cost;
+            newRecord.adminRole = input.proposal.adminRole;
+            newRecord.effectiveDate = input.proposal.effectiveDate;
+            newRecord.expirationDate = input.proposal.expirationDate;
+            newRecord.number = input.proposal.number;
+            newRecord.type = input.proposal.type;
+            newRecord.proposalLimit = input.proposal.proposalLimit;
+            newRecord.previousProposalLimit = input.proposal.previousProposalLimit;
+            newRecord.lawCategory = input.proposal.lawCategory;
+            newRecord.lawCategoryNumber = input.proposal.lawCategoryNumber;
+            newRecord.statusUpdateDate = Date.now();       
+            newRecord.votes = []
             
             //generate identifier until there is an original one
             let success = false;
@@ -518,12 +570,13 @@ const communitySchema = new Schema(
                 identifier = this.generateIdentifier();
                 if(!this.records.find(record => record.identifier === identifier)) success = true;
             }
-            input.proposal.identifier = identifier;
-            this.records.push(input.proposal);
+            newRecord.identifier = identifier;
+            this.records.push(newRecord);
             try{
                 await this.save();
                 result.success = true;
                 result.message = 'Proposal created successfully.'
+                result.record = newRecord;
             } catch(error){
                 result.success = false;
                 result.message = error;
@@ -582,6 +635,7 @@ const communitySchema = new Schema(
                 result.message = 'Existing vote updated'
             }
             result.success = true;
+            result.record = record;
             //save changes
             try {
                 await this.save();
@@ -670,7 +724,7 @@ const communitySchema = new Schema(
             }
         },
 
-        inactive: {
+        inactives: {
             get(){
                 //return inactive records from oldest to newest
                 return this.records.filter(record => record.status === 'inactive').sort((a,b) => a.createdAt - b.createdAt);
