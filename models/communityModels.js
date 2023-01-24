@@ -20,10 +20,12 @@ const communitySchema = new Schema(
 
         owner: {type: Schema.Types.ObjectId, ref: 'Citizen'},
         }],
+    
+    reservedIdentifiers: [{type: String}],
 
     records: 
         [{ type: new mongoose.Schema({
-            identifier: {type: String, required: true, unique: true}, //automatically assigned
+            identifier: {type: String, required: true}, //automatically assigned
 
             author: {type: Schema.Types.ObjectId, ref: 'Citizen'}, //citizen who created the proposal
         
@@ -37,6 +39,8 @@ const communitySchema = new Schema(
 
             cost: Number, //project
 
+            citizen: {type: Schema.Types.ObjectId, ref: 'Citizen'}, //for role
+            
             adminRole: {type: Boolean, default: false}, //role
 
             effectiveDate : Date, //Date at which law, role, badge, permit or project takes effect
@@ -100,6 +104,20 @@ const communitySchema = new Schema(
                 identifier += characters[index];
             }
             return identifier;
+        },
+
+        generateUniqueIdentifier: function(){
+            //provides an identifier that is not on the reservedIdentifiers list or used by another record
+            //generate identifier until there is an original one
+            let success = false;
+            let identifier;
+            while(!success){
+                identifier = this.generateIdentifier();
+                if(!this.records.find(record => record.identifier === identifier) && 
+                !this.reservedIdentifiers.includes(identifier)) success = true;
+            }
+            return identifier;
+
         },
 
         isCitizenMember: function(input){
@@ -563,14 +581,7 @@ const communitySchema = new Schema(
             newRecord.statusUpdateDate = Date.now();       
             newRecord.votes = []
             
-            //generate identifier until there is an original one
-            let success = false;
-            let identifier;
-            while(!success){
-                identifier = this.generateIdentifier();
-                if(!this.records.find(record => record.identifier === identifier)) success = true;
-            }
-            newRecord.identifier = identifier;
+            newRecord.identifier = this.generateUniqueIdentifier();
             this.records.push(newRecord);
             try{
                 await this.save();
@@ -738,6 +749,14 @@ const communitySchema = new Schema(
             }
         }, 
 
+        admins:{
+            get(){
+                let adminRecords = this.records.filter(record => record.type === 'role' && record.adminRole === true);
+                let admins = adminRecords.map(record => record.citizen);
+                return admins
+            }
+        },
+        
         badges:{
             get(){
                 //return badges in order of createdAt
@@ -787,6 +806,30 @@ const communitySchema = new Schema(
     }
 });
 
+const communityRequestSchema = new Schema({
+    //community information
+    name: {type: String, required: true},
+
+    votingUnit: {type: String, enum:['community.citizens', 'homes.owner'], required: true},
+
+    address: {type: String, required: true},
+
+    homesStartingNumber: {type: Number, required: true},
+
+    homesEndingNumber: {type: Number, required: true},
+
+    //information regarding temporary admin role
+    citizen: {type: Schema.Types.ObjectId, ref: 'Citizen'},
+
+    title: String,
+
+    body: String,
+
+    //information regarding current status of request
+    status: {type: String, enum:['new','approved', 'denied'], default: 'new' },
+}, 
+{timestamps: true});
+
 const citizenSchema = new Schema({
     firstName: {
         type: String,
@@ -815,6 +858,8 @@ const citizenSchema = new Schema({
     },
 
     cellPhone: String, 
+
+    superAdmin: {type: Boolean, default: false},
 },    
     {timestamps: true,
 
@@ -829,8 +874,10 @@ const citizenSchema = new Schema({
 
 const Community = mongoose.model('Community', communitySchema);
 const Citizen = mongoose.model('Citizen', citizenSchema);
+const communityRequest = mongoose.model('communityRequest', communityRequestSchema);
 
 module.exports = {
     Community,
     Citizen,
+    communityRequest,
 };

@@ -1,22 +1,34 @@
 const CommunityModels = require('../models/communityModels');
 
-async function createCommunity(community_details){
+async function createCommunity(communityRequest, superAdminCitizen){
     //function creates a community and saves it or returns an error
     //in community_details: name, address, votingUnit, homesStartingNumber, homesEndingNumber,
+    let result = {success: false,};
     
-    //generate homes objects
-    let homes = [];
-    for(let i = community_details.homesStartingNumber; i <= community_details.homesEndingNumber; i++){
-        homes.push({number: i});
+    if(superAdminCitizen.superAdmin !== true){
+        result.success = false;
+        result.message = "Need to be a super admin to create community"
+        return result;
     }
 
+    //generate homes objects
+    let homes = [];
+    for(let i = communityRequest.homesStartingNumber; i <= communityRequest.homesEndingNumber; i++){
+        homes.push({number: i});
+    }
+    let reservedIdentifiers = [];
+    let beginningReservedString = '00000';
+    for(let i = 0; i < 10; i++){
+        reservedIdentifiers.push(beginningReservedString + i)
+    }
     //create community
     let community = new CommunityModels.Community({
 
-        name: community_details.name,
-        votingUnit: community_details.votingUnit,
-        address: community_details.address,
+        name: communityRequest.name,
+        votingUnit: communityRequest.votingUnit,
+        address: communityRequest.address,
         homes: homes,
+        reservedIdentifiers: reservedIdentifiers,
     });
     //La primera y segunda ley se agregan a la comunidad automaticamente
     let law1 = {title: 'Gobierno de la Comunidad', 
@@ -86,15 +98,34 @@ async function createCommunity(community_details){
     community.records.push(law1);
     community.records.push(law2);
     
+    //add citizen as temporary admin for community 90 days
+    let recordRole = {
+        identifier: '000003',
+        title: communityRequest.title,
+        body: communityRequest.body,
+        citizen: communityRequest.citizen,
+        adminRole: true,
+        expirationDate: Date.now() + 90*24*60*60*1000,
+        statusUpdateDate: Date.now(),
+        type: 'role',
+    };
+
+    community.records.push(recordRole);
+
     //save community
-    let result;
     try{
         await community.save();
-        result = community;
+        communityRequest.status = 'approved';
+        await communityRequest.save();
+        result.success = true;
+        result.message = `Community ${community._id} created successfully`
+        result.community = community;
     }
     catch(error){
-        result = error;
+        result.success = false;
+        result.message = error;
     }
+
     return result;
 }
 
