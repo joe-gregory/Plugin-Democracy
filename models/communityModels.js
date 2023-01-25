@@ -80,6 +80,11 @@ const communitySchema = new Schema(
         status: {type: String, enum:['new','approved','denied'], default: 'new'}
     }],
 
+    posts: [{
+        body: String,
+        date: Date,
+    }],
+
 },
     //Community options
     {timestamps:true, 
@@ -210,6 +215,7 @@ const communitySchema = new Schema(
             
             await this.save();
         },
+        //End utility methods
 
         updateRecord: async function(record){
             //input: record, output: result.success
@@ -409,7 +415,6 @@ const communitySchema = new Schema(
             const freshData = await Community.findById(this._id);
             Object.assign(this, freshData);
         },
-        //End utility functions
 
         addResident: async function (input){
             //add resident to given home
