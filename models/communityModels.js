@@ -80,19 +80,6 @@ const communitySchema = new Schema(
         status: {type: String, enum:['new','approved','denied'], default: 'new'}
     }],
 
-    history: {
-        type: [{
-        event: {type: String, enum: ['community-created', 'home-added','home-removed',
-        'resident-added','resident-removed','owner-added', 'owner-removed','record-created',
-        'vote', 'record-status','record-edit']},
-        date: Date,
-        citizen: {type: Schema.Types.ObjectId, ref: 'Citizen'},
-        vote: String,
-        record: Schema.Types.ObjectId,
-        status: String, 
-        home: Schema.Types.ObjectId,
-        }], 
-    },
 },
     //Community options
     {timestamps:true, 
@@ -428,12 +415,6 @@ const communitySchema = new Schema(
             //add resident to given home
             //if citizen is already a resident of given home, it does not get added
             let result = {};
-            
-            if(input.approver.admin !== true){
-                result.success = false;
-                result.message = "Only admin can add resident"
-                return result;
-            }
             
             let home = this.getHome(input);
             //check if resident is already registered

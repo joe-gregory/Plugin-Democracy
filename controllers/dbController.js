@@ -6,12 +6,6 @@ async function createCommunity(input){
     //requires a superAdmin approver
     let result = {success: false,};
     
-    if(input.approver.superAdmin !== true){
-        result.success = false;
-        result.message = "Need to be a super admin to create community"
-        return result;
-    }
-
     //generate homes objects
     let homes = [];
     for(let i = input.communityRequest.homesStartingNumber; i <= input.communityRequest.homesEndingNumber; i++){
