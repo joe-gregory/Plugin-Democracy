@@ -41,7 +41,7 @@ const communitySchema = new Schema(
 
             citizen: {type: Schema.Types.ObjectId, ref: 'Citizen'}, //for role
             
-            adminRole: {type: Boolean, default: false}, //role
+            admin: {type: Boolean, default: false}, //role
 
             effectiveDate : Date, //Date at which law, role, badge, permit or project takes effect
 
@@ -569,7 +569,7 @@ const communitySchema = new Schema(
             newRecord.description = input.proposal.description;
             newRecord.salary = input.proposal.salary;
             newRecord.cost = input.proposal.cost;
-            newRecord.adminRole = input.proposal.adminRole;
+            newRecord.admin = input.proposal.admin;
             newRecord.effectiveDate = input.proposal.effectiveDate;
             newRecord.expirationDate = input.proposal.expirationDate;
             newRecord.number = input.proposal.number;
@@ -751,7 +751,7 @@ const communitySchema = new Schema(
 
         admins:{
             get(){
-                let adminRecords = this.records.filter(record => record.type === 'role' && record.adminRole === true);
+                let adminRecords = this.records.filter(record => record.type === 'role' && record.admin === true);
                 let admins = adminRecords.map(record => record.citizen);
                 return admins
             }

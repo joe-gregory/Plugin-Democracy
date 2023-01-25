@@ -1,11 +1,12 @@
 const CommunityModels = require('../models/communityModels');
 
-async function createCommunity(communityRequest, superAdminCitizen){
+async function createCommunity(input){
+    //input.communityRequest & input.approver
     //function creates a community and saves it or returns an error
-    //in community_details: name, address, votingUnit, homesStartingNumber, homesEndingNumber,
+    //requires a superAdmin approver
     let result = {success: false,};
     
-    if(superAdminCitizen.superAdmin !== true){
+    if(input.approver.superAdmin !== true){
         result.success = false;
         result.message = "Need to be a super admin to create community"
         return result;
@@ -13,7 +14,7 @@ async function createCommunity(communityRequest, superAdminCitizen){
 
     //generate homes objects
     let homes = [];
-    for(let i = communityRequest.homesStartingNumber; i <= communityRequest.homesEndingNumber; i++){
+    for(let i = input.communityRequest.homesStartingNumber; i <= input.communityRequest.homesEndingNumber; i++){
         homes.push({number: i});
     }
     let reservedIdentifiers = [];
@@ -24,9 +25,9 @@ async function createCommunity(communityRequest, superAdminCitizen){
     //create community
     let community = new CommunityModels.Community({
 
-        name: communityRequest.name,
-        votingUnit: communityRequest.votingUnit,
-        address: communityRequest.address,
+        name: input.communityRequest.name,
+        votingUnit: input.communityRequest.votingUnit,
+        address: input.communityRequest.address,
         homes: homes,
         reservedIdentifiers: reservedIdentifiers,
     });
@@ -101,10 +102,10 @@ async function createCommunity(communityRequest, superAdminCitizen){
     //add citizen as temporary admin for community 90 days
     let recordRole = {
         identifier: '000003',
-        title: communityRequest.title,
-        body: communityRequest.body,
-        citizen: communityRequest.citizen,
-        adminRole: true,
+        title: input.communityRequest.title,
+        body: input.communityRequest.body,
+        citizen: input.communityRequest.citizen,
+        admin: true,
         expirationDate: Date.now() + 90*24*60*60*1000,
         statusUpdateDate: Date.now(),
         type: 'role',
@@ -115,8 +116,8 @@ async function createCommunity(communityRequest, superAdminCitizen){
     //save community
     try{
         await community.save();
-        communityRequest.status = 'approved';
-        await communityRequest.save();
+        input.communityRequest.status = 'approved';
+        await input.communityRequest.save();
         result.success = true;
         result.message = `Community ${community._id} created successfully`
         result.community = community;
