@@ -66,12 +66,19 @@ const communitySchema = new Schema(
             //active when passed into law, passed when got votes but active date has not reached yet and inactive when proposalLimit (without enough votes) or expiration run out
 
             votes: [{type: new mongoose.Schema({
-                citizen: {type: Schema.Types.ObjectId, ref: 'Citizen', required: true, unique: true},
+                citizen: {type: Schema.Types.ObjectId, ref: 'Citizen', required: true},
                 vote: {type: String, enum: ['plug', 'unplug'], required: true},
             }, {timestamps: true})}],
             },
             {timestamps:true}
         )}],
+
+    joinRequests: [{
+        citizen: {type: Schema.Types.ObjectId, ref: 'Citizen', required: true},
+        homeNumber: {type: Number, required: true},
+        type: {type: String, enum: ['resident','owner'], required: true, default: 'resident'},
+        status: {type: String, enum:['new','approved','denied'], default: 'new'}
+    }],
 
     history: {
         type: [{
@@ -421,6 +428,13 @@ const communitySchema = new Schema(
             //add resident to given home
             //if citizen is already a resident of given home, it does not get added
             let result = {};
+            
+            if(input.approver.admin !== true){
+                result.success = false;
+                result.message = "Only admin can add resident"
+                return result;
+            }
+            
             let home = this.getHome(input);
             //check if resident is already registered
             if(home.residents.some(resident => resident.equals(input.citizen._id))){
