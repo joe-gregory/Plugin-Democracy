@@ -103,6 +103,7 @@ async function createCommunity(input){
         expirationDate: Date.now() + 90*24*60*60*1000,
         statusUpdateDate: Date.now(),
         type: 'role',
+        status: 'active',
     };
 
     community.records.push(recordRole);
