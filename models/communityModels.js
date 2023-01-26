@@ -136,6 +136,13 @@ const communitySchema = new Schema(
             return home;
         },
 
+        getCitizen: function(input){
+            //returns the full citizen object. Required _id
+            let citizen = Citizen.findById(input.citizen._id);
+            if(!citizen) throw new Error('No citizen found with given _id');
+            return citizen;
+        },
+
         homesOwned: function(citizenId){
             //return array of homes owned by given citizen Id
             let homes = [];
@@ -216,6 +223,27 @@ const communitySchema = new Schema(
             await this.save();
         },
         //End utility methods
+
+        addPost: async function(input){
+            //input. type, record, citizen
+            let post = {};
+
+            switch(input.type){
+                case 'addResident':
+                    post.body = `${input.citizen.fullName} se ha agregado como residente de la vivienda #${input.home.number}`;
+                    break;
+                case 'removeResident':
+
+                    break;
+                default:
+                    throw new Error('No post type determined');
+            }
+            
+            post.date = Date.now();
+            this.posts.push(post);
+            await this.save();
+            return post; 
+        },
 
         updateRecord: async function(record){
             //input: record, output: result.success
@@ -421,14 +449,15 @@ const communitySchema = new Schema(
             //if citizen is already a resident of given home, it does not get added
             let result = {};
             
-            let home = this.getHome(input);
+            input.home = this.getHome(input);
+            input.citizen = this.getCitizen(input);
             //check if resident is already registered
-            if(home.residents.some(resident => resident.equals(input.citizen._id))){
+            if(input.home.residents.some(resident => resident.equals(input.citizen._id))){
                 result.success = false;
                 result.message = 'Citizen already a resident of given home';
                 return result;
             }
-            home.residents.push(input.citizen._id);
+            input.home.residents.push(input.citizen._id);
             try{
                 await this.save();
                 await this.updateAllRecords();
@@ -441,10 +470,12 @@ const communitySchema = new Schema(
                 result.success = true;
                 result.message = 'Citizen added as resident of home. Automatic votes ran.'
                 let r1 = await this.vote(automaticVotes);
-                if(r1.success == false) result = r1;
+                if(r1.success === false) result = r1;
                 automaticVotes.record.identifier = '000002';
                 let r2 = await this.vote(automaticVotes);
                 if(r2.success === false) result = r2;
+                input.type = 'addResident';
+                this.addPost(input);
             }catch(error){
                 result.success = false;
                 result.message = error;
