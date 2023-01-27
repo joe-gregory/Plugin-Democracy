@@ -1,14 +1,14 @@
 const CommunityModels = require('../models/communityModels');
 
-async function createCommunity(input){
-    //input.communityRequest & input.approver
+async function createCommunity(communityRequest){
+    //communityRequest
     //function creates a community and saves it or returns an error
     //requires a superAdmin approver
     let result = {success: false,};
     
     //generate homes objects
     let homes = [];
-    for(let i = input.communityRequest.homesStartingNumber; i <= input.communityRequest.homesEndingNumber; i++){
+    for(let i = communityRequest.homesStartingNumber; i <= communityRequest.homesEndingNumber; i++){
         homes.push({number: i});
     }
     let reservedIdentifiers = [];
@@ -19,9 +19,9 @@ async function createCommunity(input){
     //create community
     let community = new CommunityModels.Community({
 
-        name: input.communityRequest.name,
-        votingUnit: input.communityRequest.votingUnit,
-        address: input.communityRequest.address,
+        name: communityRequest.name,
+        votingUnit: communityRequest.votingUnit,
+        address: communityRequest.address,
         homes: homes,
         reservedIdentifiers: reservedIdentifiers,
     });
@@ -96,9 +96,9 @@ async function createCommunity(input){
     //add citizen as temporary admin for community 90 days
     let recordRole = {
         identifier: '000003',
-        title: input.communityRequest.title,
-        body: input.communityRequest.body,
-        citizen: input.communityRequest.citizen,
+        title: communityRequest.title,
+        body: communityRequest.body,
+        citizen: communityRequest.citizen,
         admin: true,
         expirationDate: Date.now() + 90*24*60*60*1000,
         statusUpdateDate: Date.now(),
@@ -111,8 +111,8 @@ async function createCommunity(input){
     //save community
     try{
         await community.save();
-        input.communityRequest.status = 'approved';
-        await input.communityRequest.save();
+        communityRequest.status = 'approved';
+        await communityRequest.save();
         result.success = true;
         result.message = `Community ${community._id} created successfully`
         result.community = community;

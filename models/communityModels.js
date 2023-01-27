@@ -49,7 +49,7 @@ const communitySchema = new Schema(
 
             number: {type: Number, min: 1} , //law absolute number
 
-            type: {type: String, enum:['law', 'role','project', 'permit','badge', 'law2'], required: true}, //type of proposal
+            type: {type: String, enum:['law', 'role','project', 'permit','badge', 'law2'], required: true, default: 'law'}, //type of proposal
 
             proposalLimit: Number, //for proposals of type law2 to change the length of proposal limits
 
@@ -125,14 +125,18 @@ const communitySchema = new Schema(
 
         },
 
-        isCitizenMember: function(input){
+        isCitizenMember: function(citizen_id){
             //returns true if citizen is member of community in home or owner, false otherwise,
-            return this.citizens.some((citizen) => citizen.equals(input.citizen._id));
+            return this.citizens.some((citizen) => citizen.equals(citizen_id));
         },
 
-        isCitizenOwner: function(input){
+        isCitizenResident: function(citizen_id){
+            return this.residents.some((resident) => resident.equals(citizen_id));
+        },
+
+        isCitizenOwner: function(citizen_id){
             //return true if citizen owns a home otherwise false
-            return this.owners.some((owner) => owner.equals(input.citizen._id));
+            return this.owners.some((owner) => owner.equals(citizen_id));
         },
 
         getHome: function(input){
@@ -179,7 +183,7 @@ const communitySchema = new Schema(
                 //go through each vote, see what type it is, see who the owner is and how many homes he owns
                 for(const vote of record.votes){
                     //if it's not owner, don't do anything
-                    if(this.isCitizenOwner({citizen:vote.citizen})){
+                    if(this.isCitizenOwner(vote.citizen)){
                         let amount_homes_owned = this.homesOwned(vote.citizen).length;
                         if(vote.vote === 'plug') votesInFavor += amount_homes_owned;
                         else if(vote.vote ==='unplug') votesAgainst += amount_homes_owned;
@@ -295,27 +299,27 @@ const communitySchema = new Schema(
                     break;
                 case 'removeResident':
                     if(input.home){
-                        post.body = `${input.citizen.fullName} se ha removido como residente de la casa #${input.home.number}`
+                        post.body = `${input.citizen.fullName} se ha quitado como residente de la casa #${input.home.number}`
                     }else{
-                        post.body = `${input.citizen.fullName} se ha removido como residente de esta comunidad.`
+                        post.body = `${input.citizen.fullName} se ha quitado como residente de esta comunidad.`
                     }
                     break;
                 case 'addOwner':
                     post.body = `${input.citizen.fullName} se ha agregado como propietario de casa #${input.home.number}`
                     break;
                 case 'removeOwner':
-                    post.body = `${input.citizen.fullName} se ha removido como propietario de casa #${input.home.number}`;
+                    post.body = `${input.citizen.fullName} se ha quitado como propietario de casa #${input.home.number}`;
                     break;
                 case 'vote':
                     post.body = `${input.citizen.fullName} ha ${coneccion} su voto a `;
                     if(estatus === 'propuesta') post.body += `la propuesta para `;
-                    post.body += `${tipo} record #${input.record.number}`;  
+                    post.body += `${tipo} record #${input.record.identifier}`;  
                     break;
                 case 'createProposal':
-                    post.body  = `Propuesta ${input.record.identifier} para un(a) nuevo(a) ${tipo} presentada por ${input.record.author.fullName}. \n
-                    Titulo de la propuesta: ${input.record.title}\n
-                    Propuesta: \n
-                    ${input.record.body}`;
+                    post.body  = `Propuesta ${input.record.identifier} para un(a) nuevo(a) ${tipo} presentada por ${input.record.author.fullName}. ` +
+                    `Titulo de la propuesta: ${input.record.title}. ` +
+                    `Propuesta: ` +
+                    `${input.record.body}`;
                     break;
                 case 'updateRecord':
                     post.body = `${tipo} con numero de record #${input.record.identifier} cambio a estatus ${estatus}`
@@ -329,7 +333,7 @@ const communitySchema = new Schema(
             
             post.date = Date.now();
             this.posts.push(post);
-            await this.save();
+            if(input.post.type === 'custom') this.save();
             return post; 
         },
 
@@ -338,9 +342,11 @@ const communitySchema = new Schema(
             //output: result.success
             //conditions that get check: 
             let result = {success: true};
+            let originalStatus = record.status; //for posts
+
             if(this.reservedIdentifiers.includes(record.identifier)){
                 result.success = false;
-                result.message = 'updateRecord will not update records 000001 & 000002';
+                result.message = 'updateRecord will not update records with reserved identifiers';
                 return result;
             }
             
@@ -402,17 +408,22 @@ const communitySchema = new Schema(
                     result.success = false;
             }
             try{
+                //for posts
+                if(record.status !== originalStatus){
+                    let postInput ={
+                        post: {
+                            type: 'updateRecord'
+                        },
+                        record: record,
+                    }
+                    this.addPost(postInput);
+                }
+
+                //save doc
                 await this.save();
                 await this.reorderRecords();
 
-                //for posts
-                let input = {};
-                input.post = {};
-                input.post.type = 'updateRecord';
-                input.record = record;
-                this.addPost(input);
-
-            } catch(error){
+            }catch(error){
                 result.success = false;
                 result.message = error;
             }
@@ -520,12 +531,12 @@ const communitySchema = new Schema(
         deleteRecord: async function(input){
             //need to call updateCommunity afterwards to see results
             let record = this.getRecord(input);
-            await Community.findOneAndUpdate({_id: this._id}, {$pull:{records:{_id:record._id}}}, {new: true});
             let result = {};
+
             try{
-                this.save();
+                this.records = this.records.filter(r => r._id !== record._id);
                 result.success = true;
-                result.message = 'Record deleted from database. Need to run this.updateCommunity() to see changes'
+                result.message = 'Record removed from community. Need to save community'
             }catch(error){
                 result.success = false;
                 result.message = error;
@@ -583,32 +594,25 @@ const communitySchema = new Schema(
             }
             home.residents.push(input.citizen._id);
             try{
+                //for post
+                let postInput = {
+                    post: {
+                        type: 'addResident',
+                    },
+                    citizen: input.citizen,
+                    home: home
+                }
+                await this.addPost(postInput);
+
+                //save doc
                 await this.save();
                 await this.updateAllRecords();
-                /*
-                let automaticVotes = {record:{}};
-                automaticVotes.record.identifier = '000001';
-                automaticVotes.vote = {
-                    vote: 'plug',
-                }
-                automaticVotes.citizen = input.citizen;
-                */
-
-                await this.automaticVotes(input.citizen);
 
                 result.success = true;
                 result.message = 'Citizen added as resident of home. Automatic votes ran.'
-                /*
-                let r1 = await this.vote(automaticVotes);
-                if(r1.success === false) result = r1;
-                automaticVotes.record.identifier = '000002';
-                let r2 = await this.vote(automaticVotes);
-                if(r2.success === false) result = r2;
-                */
-                //for post
-                input.post = {};
-                input.post.type = 'addResident';
-                await this.addPost(input);
+                
+                let automaticVotesResult =  this.automaticVotes(input.citizen);
+                if(automaticVotesResult.success === false) result = automaticVotesResult;
 
             }catch(error){
                 result.success = false;
@@ -622,11 +626,10 @@ const communitySchema = new Schema(
             //Otherwise remove from all resident locations (stays as owner)
             //if house provided, get homeIndex
             let result = {};
-
-            let citizen = await this.getCitizen(input);
+            let home = undefined;
 
             if(input.home) {
-                let home = this.getHome(input);
+                home = this.getHome(input);
                 //if the given home does not contain the resident, provide warning message
                 //and return result.success = false
                 if(!home.residents.includes(input.citizen._id.toString())){
@@ -639,25 +642,30 @@ const communitySchema = new Schema(
                                 
             } else{
                 //check for all the places the resident resides and eliminate from all of them
+                
                 this.homes.forEach(home => {
                     home.residents = home.residents.filter(resident => !resident.equals(input.citizen._id));
                 });
             }
             try{
-                    await this.save();
-                    await this.updateAllRecords();
-                    result.success = true;
-                    result.message = 'Citizen removed as resident of home.'
                     //for posts
+                    if(!home) home = 'todas las registradas';
                     let postInput = {
-                        type: 'removeResident',
+                        post:{
+                            type: 'removeResident',
+                        },
                         home: home,
                         citizen: {
                             _id: input.citizen._id
                         }
                     }
-
                     await this.addPost(postInput);
+                    
+                    //save doc
+                    await this.save();
+                    await this.updateAllRecords();
+                    result.success = true;
+                    result.message = 'Citizen removed as resident of home.'
 
                 } catch(error){
                     result.success = false;
@@ -681,31 +689,8 @@ const communitySchema = new Schema(
             home.owner = input.citizen._id;
 
             try{
-                await this.save();
-                await this.updateAllRecords();
-                let votesResult = await this.automaticVotes(input.citizen);
-                /*
-                //empty carcass 
-                let automaticVotes = {
-                    record : {identifier: null},
-                    citizen: undefined,
-                    vote: undefined,
-                };
-
-                automaticVotes.record.identifier = '000001';
-                automaticVotes.vote = {
-                    vote: 'plug',
-                    citizen: input.citizen._id,
-                }
-                
-                await this.vote(automaticVotes);
-                
-                automaticVotes.record.identifier = '000002';
-                await this.vote(automaticVotes);
-                */
                 result.success = true;
                 result.message = 'Owner added to home'
-                if(!votesResult) result = votesResult;
                 
                 //for posts
                 let postInput = {
@@ -719,6 +704,13 @@ const communitySchema = new Schema(
                 }
                 await this.addPost(postInput);
 
+                //automatic votes
+                let automaticVotesResult = await this.automaticVotes(input.citizen);
+                if(automaticVotesResult.success === false) result = automaticVotesResult;
+
+                //save doc
+                await this.save();
+                await this.updateAllRecords();
             }catch(error){
                 result.success = false;
                 result.message = error;
@@ -737,10 +729,6 @@ const communitySchema = new Schema(
             if(home.owner) {
                 home.owner = null;
                 try{
-                    await this.save();
-                    await this.updateAllRecords();
-                    result.success = true;
-
                     //for posts
                     postInput = {
                         post: {
@@ -750,6 +738,12 @@ const communitySchema = new Schema(
                         citizen: previousOwner
                     }
                     await this.addPost(postInput);
+
+                    //save doc
+                    await this.save();
+                    await this.updateAllRecords();
+                    result.success = true;
+                    result.message = 'Owner removed'
                 }catch(error){
                     result.success = false;
                     result.message = error;
@@ -765,7 +759,7 @@ const communitySchema = new Schema(
             //create a record with proposal status. input.proposal, input.citizen 
             let result = {};
             //is citizen a member of community?
-            if(!this.isCitizenMember(input)){
+            if(!this.isCitizenMember(input.citizen._id)){
                 result.success = false;
                 result.message = 'This citizen is not a member of this community';
                 return result;
@@ -795,16 +789,25 @@ const communitySchema = new Schema(
             newRecord.identifier = this.generateUniqueIdentifier();
             this.records.push(newRecord);
             try{
+                //for post
+                let postInput = {
+                    post:{
+                        type: 'createProposal'
+                    },
+                    record:{
+                        identifier: newRecord.identifier
+                    },
+                    citizen:{
+                        _id: input.citizen._id
+                    }
+                }
+                this.addPost(postInput);
+
+                //save doc
                 await this.save();
                 result.success = true;
                 result.message = 'Proposal created successfully.'
                 result.record = newRecord;
-                
-                //for post
-                input.record.identifier = newRecord.identifier;
-                input.post = {};
-                input.post.type = 'createProposal';
-                this.addPost(input);
             } catch(error){
                 result.success = false;
                 result.message = error;
@@ -819,7 +822,7 @@ const communitySchema = new Schema(
             //**In controller: ensure that it is the signed-in user being passed in input.vote.citizen */
             //make sure the vote is saved correctly
             //if citizen is not resident or owner, cannot vote. 
-            if(!this.isCitizenMember(input)){
+            if(!this.isCitizenMember(input.citizen._id)){
                 result.success = false;
                 result.message = 'This citizen is not a member of this community';
                 return result;
@@ -834,6 +837,7 @@ const communitySchema = new Schema(
                 result.success = false;
                 return result;
             } 
+
             let record = this.getRecord(input);
             if(!record){
                 result.success = false;
@@ -849,7 +853,7 @@ const communitySchema = new Schema(
                 result.message = 'cannot vote on an inactive record';
                 return result;
             }
-            //fix variables
+            //sanitize variables
             let vote = {
                     citizen: input.citizen._id,
                     vote: input.vote.vote,
@@ -860,28 +864,31 @@ const communitySchema = new Schema(
             if(voteIndex === -1){ //this citizen hasn't voted on this record
                 
                 record.votes.push(vote);
-                result.message = 'New vote added to records'
+                result.message = `New vote added to record ${record.identifier}`;
             } else {
                 record.votes[voteIndex].vote = vote.vote;
                 record.votes[voteIndex].updatedAt = Date.now();
-                result.message = 'Existing vote updated'
+                result.message = `Existing vote updated on record ${record.identifier}`;
             }
             result.success = true;
             result.record = record;
             //save changes
             try {
-                await this.save();
-                //update record
-                await this.updateRecord(input.record);
-                
                 //for post:
                 postInput = {
                     vote: vote,
                     post: {
                         type: 'vote'
-                    }
+                    },
+                    citizen: input.citizen,
+                    record: record,
                 }
                 this.addPost(postInput);
+
+                //save doc
+                await this.save();
+                //update record
+                await this.updateRecord(record);
 
               } catch (error) {
                 result.message = error;
@@ -910,6 +917,18 @@ const communitySchema = new Schema(
             }
         },
 
+        residents: {
+            get(){
+                let residents = [];
+                for(const home of this.homes){
+                    for(const resident of home.residents){
+                        if(!residents.includes(resident)) residents.push(resident);
+                    }
+                }
+                return residents;
+            }
+        },
+        
         owners: {
             //returns array of owners without repeating
             get(){

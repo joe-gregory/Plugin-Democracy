@@ -7,13 +7,20 @@ const dbURI = 'mongodb+srv://'+key+'@ddcluster.z8oz5ye.mongodb.net/?retryWrites=
 
 let citizenId = '63c0b62a37c2ac98aaa515cc';
 let garyId = '63c0e0c19a434a642af0a86f';
-let communityId = '63d0662ee8fd029a343da3b1';
+let communityId = '63d3d550d184a439f8e7e4fc';
 let communityRequestId = '63d05c2bdfe949b409ffed07';
 let community = {};
 let communityRequest = {};
 let pepin = {};
 let gary = {};
 let input = {};
+let proposalExample = {
+    title: 'titulo propuesta',
+    body: 'cuerpo propuesta',
+}
+let vote = {
+    vote: 'plug',
+}
 
 let communityExample = {
     name: 'comunidad homes owners',
@@ -72,13 +79,7 @@ async function test(){
     pepin = await CommunityModels.Citizen.findById(citizenId);
     gary = await CommunityModels.Citizen.findById(garyId);
     communityRequest = await CommunityModels.communityRequest.findById(communityRequestId);
-    //console.log('finished assignments');
-    //console.log('community: ');
-    //console.log(community);
-    //console.log('citizen: ');
-    //console.log(pepin);
-    //console.log('gary: ');
-    //console.log(gary);
+
 
     input.citizen = pepin;
     let result = {
@@ -88,21 +89,8 @@ async function test(){
         communityRequest: communityRequest,
         input: input,
     };
-    //test creating citizen with citizen constructor in dbController
-    //test creating community with community constructor in dbController
-    //test adding citizen as resident and having votes on law 1 and 2 added
-    //test adding citizen as owner and having votes on law 1 and 2 added
-    //test creating a proposal
-    //test voting on new proposal
-    //test passing proposal
-    //test having proposal get correctly numbered when passed
-    //test having a proposal with category and have it correctly numbered. Pass one, then insert the other after
-        //first pass one with negative number
-
     return result;
-    //console.log('add Owner citizen: ')
-    //let result = await community.addOwner(input);
-    //console.log(result);
+
 
 }
 //connect to mongoDB
@@ -122,4 +110,7 @@ module.exports = {
     gary,
     community,
     lore,
+    proposalExample,
+    vote,
 }
+
