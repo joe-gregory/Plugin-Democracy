@@ -1,6 +1,6 @@
-node_modules/
-keys.js
-demo.js
-demoData.js
-DDapp2.js
-del.js
+backend/node_modules/
+backend/keys.js
+backend/demo.js
+backend/demoData.js
+backend/DDapp2.js
+backend/del.js
