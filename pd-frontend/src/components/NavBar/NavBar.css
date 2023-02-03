@@ -1,0 +1,13 @@
+.navbar .navbar-nav .nav-link {
+	color: #ffffff;
+	border-radius: 0.25rem;
+	margin: 0 0.25em;
+}
+
+.navbar .navbar-text {
+	color: #ffffff;
+}
+
+.navbar .navbar-link {
+	color: #ffffff;
+}
