@@ -11,9 +11,9 @@ import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
-import AdbIcon from "@mui/icons-material/Adb";
 
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
+import { Link } from "react-router-dom";
 
 const signedOutPages = [
 	{
@@ -37,7 +37,7 @@ const signedInPages = [
 	},
 ];
 
-export default function Navbar() {
+export default function NavBar() {
 	const [signedIn, setSignedIn] = React.useState(false);
 
 	const [anchorElNav, setAnchorElNav] = React.useState(null);
@@ -61,8 +61,8 @@ export default function Navbar() {
 					<Typography
 						variant="h6"
 						noWrap
-						component="a"
-						href="/"
+						component={Link}
+						to="/"
 						sx={{
 							mr: 2,
 							display: { xs: "none", md: "flex" },
@@ -117,7 +117,8 @@ export default function Navbar() {
 								? signedInPages.map((page) => (
 										<MenuItem
 											key={page.text}
-											href={page.href}
+											component={Link}
+											to={page.href}
 										>
 											<Typography textAlign="center">
 												{page.text}
@@ -127,8 +128,8 @@ export default function Navbar() {
 								: signedOutPages.map((page) => (
 										<MenuItem
 											key={page.text}
-											href={page.href}
-											onClick={() => setSignedIn(true)}
+											component={Link}
+											to={page.href}
 										>
 											<Typography textAlign="center">
 												{page.text}
@@ -146,8 +147,8 @@ export default function Navbar() {
 					<Typography
 						variant="h5"
 						noWrap
-						component="a"
-						href=""
+						component={Link}
+						to="/"
 						sx={{
 							mr: 2,
 							display: { xs: "flex", md: "none" },
@@ -188,7 +189,6 @@ export default function Navbar() {
 									<Button
 										key={page.text}
 										href={page.href}
-										onClick={() => setSignedIn(true)}
 										sx={{
 											my: 2,
 											color: "white",

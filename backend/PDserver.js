@@ -132,9 +132,9 @@ PDserver.use((request, response, next) => {
 	next();
 });
 
-PDserver.get("/test", (request, response) => {
+PDserver.post("/login", (request, response) => {
 	//response.render('index', request.user);
-	response.json({ data: "Hello from the express server" });
+	console.log(request);
 });
 /*
 PDserver.use(authRoutes);

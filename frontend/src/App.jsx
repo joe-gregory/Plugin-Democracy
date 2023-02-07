@@ -11,7 +11,7 @@ import Footer from "./components/Footer";
 //Pages
 import Home from "./pages/Home";
 import Community from "./pages/Community";
-import SignIn from "./pages/SignIn";
+import LogIn from "./pages/LogIn";
 
 function App() {
 	return (
@@ -20,7 +20,7 @@ function App() {
 			<Routes>
 				<Route path="/" element={<Home />} />
 				<Route path="/community" element={<Community />} />
-				<Route path="/signin" element={<SignIn />} />
+				<Route path="/login" element={<LogIn />} />
 			</Routes>
 			<Footer />
 		</>
