@@ -14,6 +14,7 @@ import MenuItem from "@mui/material/MenuItem";
 
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
 import { Link } from "react-router-dom";
+import { AuthContext } from "../context/auth-context";
 
 const signedOutPages = [
 	{
@@ -38,7 +39,7 @@ const signedInPages = [
 ];
 
 export default function NavBar() {
-	const [signedIn, setSignedIn] = React.useState(false);
+	const auth = React.useContext(AuthContext);
 
 	const [anchorElNav, setAnchorElNav] = React.useState(null);
 
@@ -113,12 +114,13 @@ export default function NavBar() {
 							}}
 						>
 							{/*Hamburger Menu Pages*/}
-							{signedIn
+							{auth.isLoggedIn
 								? signedInPages.map((page) => (
 										<MenuItem
 											key={page.text}
 											component={Link}
 											to={page.href}
+											onClick={handleCloseNavMenu}
 										>
 											<Typography textAlign="center">
 												{page.text}
@@ -130,6 +132,7 @@ export default function NavBar() {
 											key={page.text}
 											component={Link}
 											to={page.href}
+											onClick={handleCloseNavMenu}
 										>
 											<Typography textAlign="center">
 												{page.text}
@@ -146,7 +149,6 @@ export default function NavBar() {
 					/>
 					<Typography
 						variant="h5"
-						noWrap
 						component={Link}
 						to="/"
 						sx={{
@@ -171,7 +173,7 @@ export default function NavBar() {
 						}}
 					>
 						{/*Pages that show on top bar NOT in hamburger*/}
-						{signedIn
+						{auth.isLoggedIn
 							? signedInPages.map((page) => (
 									<Button
 										key={page.text}
@@ -201,11 +203,7 @@ export default function NavBar() {
 					</Box>{" "}
 					{/*End box for when Navbar is NOT compressed*/}
 					{/* User Menu Box begin*/}
-					{signedIn ? (
-						<CitizenBubble signInChangerFunction={setSignedIn} />
-					) : (
-						""
-					)}
+					{auth.isLoggedIn ? <CitizenBubble /> : ""}
 					{/*End user menu Box*/}
 				</Toolbar>
 			</Container>
@@ -213,8 +211,9 @@ export default function NavBar() {
 	);
 }
 
-function CitizenBubble({ signInChangerFunction }) {
+function CitizenBubble() {
 	const [anchorElUser, setAnchorElUser] = React.useState(null);
+
 	const handleOpenUserMenu = (event) => {
 		setAnchorElUser(event.currentTarget);
 	};
@@ -245,13 +244,10 @@ function CitizenBubble({ signInChangerFunction }) {
 				open={Boolean(anchorElUser)}
 				onClose={handleCloseUserMenu}
 			>
-				<MenuItem key={"Perfil"} onClick={""}>
+				<MenuItem key={"Perfil"} onClick={handleCloseUserMenu}>
 					<Typography textAlign="center">Perfil</Typography>
 				</MenuItem>
-				<MenuItem
-					key="Cerrar sesion"
-					onClick={() => signInChangerFunction(false)}
-				>
+				<MenuItem key="Cerrar sesion" onClick={handleCloseUserMenu}>
 					<Typography textAlign="center">Cerrar sesión</Typography>
 				</MenuItem>
 			</Menu>

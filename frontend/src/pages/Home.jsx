@@ -1,3 +1,9 @@
+import { Container, Typography } from "@mui/material";
+
 export default function Home() {
-	return <h1>At Home Page</h1>;
+	return (
+		<Container>
+			<Typography variant="h1">At Home Page</Typography>
+		</Container>
+	);
 }

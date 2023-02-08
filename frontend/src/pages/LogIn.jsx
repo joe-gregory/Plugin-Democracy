@@ -1,7 +1,6 @@
 import * as React from "react";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
-import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
@@ -12,9 +11,12 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import CircularProgress from "@mui/material/CircularProgress";
+import { AuthContext } from "../context/auth-context";
 
 export default function LogIn() {
 	const [loading, setLoading] = React.useState(false);
+
+	const auth = React.useContext(AuthContext);
 
 	const handleSubmit = async (event) => {
 		setLoading(true);
@@ -22,23 +24,30 @@ export default function LogIn() {
 
 		const data = new FormData(event.currentTarget);
 
-		const response = await fetch("http://localhost:8080/login", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				email: data.get("email"),
-				password: data.get("password"),
-			}),
-		});
+		try {
+			const response = await fetch("http://localhost:8080/login", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					email: data.get("email"),
+					password: data.get("password"),
+				}),
+			});
 
-		const responseData = await response.json();
+			const responseData = await response.json();
+			alert(responseData.data);
+
+			auth.login();
+			setLoading(false);
+		} catch (error) {
+			console.log(error);
+		}
 	};
 
 	return (
 		<Container component="main" maxWidth="xs">
-			<CssBaseline />
 			<Box
 				sx={{
 					marginTop: 8,
@@ -102,7 +111,7 @@ export default function LogIn() {
 							</Link>
 						</Grid>
 						<Grid item>
-							<Link href="#" variant="body2">
+							<Link href="/signup" variant="body2">
 								{"¿No tienes cuenta? Registrate"}
 							</Link>
 						</Grid>

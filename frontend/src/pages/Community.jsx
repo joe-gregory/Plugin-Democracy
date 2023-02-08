@@ -1,5 +1,7 @@
+import { Typography } from "@mui/material";
+
 const CommunityFeed = () => {
-	return <h1>My Community</h1>;
+	return <Typography variant="h3">My Community</Typography>;
 };
 
 export default CommunityFeed;

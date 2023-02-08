@@ -69,6 +69,7 @@ PDserver.use((request, response, next) => {
 	next();
 });
 
+//Passport
 PDserver.use(passport.initialize());
 PDserver.use(passport.session());
 
@@ -134,7 +135,8 @@ PDserver.use((request, response, next) => {
 
 PDserver.post("/login", (request, response) => {
 	//response.render('index', request.user);
-	console.log(request);
+	console.log(request.body);
+	response.json({ data: "hello from the server nigrou" });
 });
 /*
 PDserver.use(authRoutes);
