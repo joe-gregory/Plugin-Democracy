@@ -1,9 +1,12 @@
 const express = require("express");
+const passport = require("passport");
+const passportLocal = require("passport-local").Strategy;
+const session = require("express-session");
+const bcrypt = require("bcrypt");
+
 const mongoose = require("mongoose");
 const CommunityModels = require("./models/communityModels");
-const passport = require("passport");
-const LocalStrategy = require("passport-local").Strategy;
-const session = require("express-session");
+
 const key = require("./keys");
 
 //routes
@@ -53,12 +56,12 @@ PDserver.use((request, response, next) => {
 	next();
 });
 
-//DDapp.use(cookieParser());
 PDserver.use(
 	session({
 		secret: "plugindemocracy",
-		resave: false,
-		saveUninitialized: false,
+		resave: true,
+		saveUninitialized: true,
+		cookie: { secure: true },
 	})
 );
 
@@ -73,22 +76,23 @@ PDserver.use((request, response, next) => {
 PDserver.use(passport.initialize());
 PDserver.use(passport.session());
 
-//serializeUser function
+//serializeUser function. This function stores a cookie inside of the browser
 passport.serializeUser((citizen, done) => {
-	done(null, citizen._id);
+	done(null, citizen.id);
 });
 
-//deserializeUser function
+//deserializeUser function. This function takes a cookie and unravels and returns a user from it.
 passport.deserializeUser((id, done) => {
 	CommunityModels.Citizen.findById(id, function (err, citizen) {
 		if (err) return done(err);
-		done(null, citizen);
+		console.log("deserializedUser: ", citizen.firstName);
+		done(null, citizen); //no error, citizen
 	});
 });
 
 //local Strategy
 passport.use(
-	new LocalStrategy(
+	new passportLocal(
 		{
 			usernameField: "email",
 			passwordField: "password",
@@ -106,7 +110,7 @@ passport.use(
 					//if user not found, return null and false in callback
 					if (!citizen) {
 						console.log("!citizen");
-						return done(null, false);
+						return done(null, false); //error = null, user = false. There is no error but there is no used
 					}
 					//if user found, but password not valid, return err and false in callback
 					if (password != citizen.password) {
