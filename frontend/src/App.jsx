@@ -2,7 +2,7 @@
 import CssBaseline from "@mui/material/CssBaseline";
 
 //React
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 //Routes
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -31,6 +31,40 @@ function App() {
 	const logout = useCallback(() => {
 		setIsLoggedIn(false);
 	}, []);
+
+	useEffect(() => {
+		async function fetchStatus() {
+			const response = await fetch(
+				"http://localhost:8080/session-status"
+			);
+			const responseData = await response.json();
+			console.log("Session-status: ", responseData.isAuthenticated);
+			setIsLoggedIn(responseData.isAuthenticated);
+		}
+
+		fetchStatus();
+	}); /*
+	useEffect(() => {
+		async function fetchStatus() {
+			const response = await fetch(
+				"http://localhost:8080/session-status"
+			);
+			const responseData = await response.json();
+			console.log("SeSSion-StatUs : ", responseData.isAuthenticated);
+			setIsLoggedIn(responseData.isAuthenticated);
+		}
+		fetchStatus();
+
+		/*
+		fetch("http://localhost:8080/session-status")
+			.then((response) => {
+				response.json().then((data) => {
+					console.log("session-status ", data.isAuthenticated);
+					setIsLoggedIn(data.isAuthenticated);
+				});
+			})
+			.catch((error) => console.error(error));
+	});*/
 
 	return (
 		<CssBaseline>

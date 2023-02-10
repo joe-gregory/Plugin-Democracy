@@ -1,18 +1,13 @@
 const express = require("express");
 const passport = require("passport");
-const passportLocal = require("passport-local").Strategy;
 const session = require("express-session");
-const bcrypt = require("bcrypt");
-
 const mongoose = require("mongoose");
+const cors = require("cors");
+
+const localStrategy = require("passport-local").Strategy;
 const CommunityModels = require("./models/communityModels");
 
 const key = require("./keys");
-
-//routes
-/*const authRoutes = require('./routes/authRoutes');
-const errorsRoutes = require('./routes/errorsRoutes');
-const myCommunityRoutes = require('./routes/myCommunityRoutes');*/
 
 //express app
 const PDserver = express();
@@ -21,8 +16,28 @@ const dbURI =
 	key +
 	"@ddcluster.z8oz5ye.mongodb.net/?retryWrites=true&w=majority";
 
+//CORS
+
+/*
+PDserver.use((request, response, next) => {
+	response.setHeader("Access-Control-Allow-Origin", "*");
+	response.setHeader(
+		"Access-Control-Allow-Headers",
+		"Origin, x-Requested-With, Content-Type, Accept, Authorization"
+	);
+	response.setHeader(
+		"Access-Control-Allow-Methods",
+		"GET, POST, PATCH, DELETE"
+	);
+	next();
+});*/
+
+/*
+const errorsRoutes = require('./routes/errorsRoutes');
+const myCommunityRoutes = require('./routes/myCommunityRoutes');*/
+
 //register view engine
-PDserver.set("view engine", "ejs");
+//PDserver.set("view engine", "ejs");
 
 //connect to mongoDB
 mongoose
@@ -41,58 +56,38 @@ mongoose
 //middleware
 PDserver.use(express.json()); //parse request body as JSON
 PDserver.use(express.urlencoded({ extended: true }));
-PDserver.use(express.static("public")); //static files
-
-PDserver.use((request, response, next) => {
-	response.setHeader("Access-Control-Allow-Origin", "*");
-	response.setHeader(
-		"Access-Control-Allow-Headers",
-		"Origin, x-Requested-With, Content-Type, Accept, Authorization"
-	);
-	response.setHeader(
-		"Access-Control-Allow-Methods",
-		"GET, POST, PATCH, DELETE"
-	);
-	next();
-});
-
 PDserver.use(
-	session({
-		secret: "plugindemocracy",
-		resave: true,
-		saveUninitialized: true,
-		cookie: { secure: true },
+	cors({
+		origin: "http://localhost:5173",
+		credentials: true,
 	})
 );
+PDserver.use(express.static("public")); //static files
 
 //flash message middleware
+/*
 PDserver.use((request, response, next) => {
 	response.locals.message = request.session.message;
 	delete request.session.message;
 	next();
 });
-
-//Passport
+*/
 PDserver.use(passport.initialize());
+PDserver.use(
+	session({
+		secret: "plugindemocracy",
+		resave: true,
+		saveUninitialized: true,
+	})
+);
+//Passport
+
 PDserver.use(passport.session());
 
-//serializeUser function. This function stores a cookie inside of the browser
-passport.serializeUser((citizen, done) => {
-	done(null, citizen.id);
-});
+//require("./passportConfig")(passport);
 
-//deserializeUser function. This function takes a cookie and unravels and returns a user from it.
-passport.deserializeUser((id, done) => {
-	CommunityModels.Citizen.findById(id, function (err, citizen) {
-		if (err) return done(err);
-		console.log("deserializedUser: ", citizen.firstName);
-		done(null, citizen); //no error, citizen
-	});
-});
-
-//local Strategy
 passport.use(
-	new passportLocal(
+	new localStrategy(
 		{
 			usernameField: "email",
 			passwordField: "password",
@@ -127,22 +122,92 @@ passport.use(
 		}
 	)
 );
+//serializeUser function. This function stores a cookie inside of the browser
+passport.serializeUser((citizen, cb) => {
+	process.nextTick(function () {
+		console.log("serializing");
+		console.log(citizen);
+		return cb(null, { id: citizen._id });
+	});
+});
+
+//deserializeUser function. This function takes a cookie and unravels and returns a user from it.
+passport.deserializeUser((id, cb) => {
+	process.nextTick(function () {
+		return cb(null, id);
+	});
+	/*CommunityModels.Citizen.findById(id, function (err, citizen) {
+		if (err) return done(err);
+		console.log("deserializedUser: ", citizen.firstName);
+		done(null, citizen); //no error, citizen
+	});*/
+});
 
 //console log incoming requests
 PDserver.use((request, response, next) => {
 	console.log(
-		`Request Method: "${request.method}" => Request URL: "${request.url}"`
+		`Request Method: "${request.method}" => Request URL: "${
+			request.url
+		}". Session: ${request.isAuthenticated()}`
 	);
-	response.locals.user = request.user;
+	console.log("request.user all : ", request.user);
+	//response.locals.user = request.user;
 	next();
 });
+PDserver.use(passport.authenticate("session"));
+//routes
+PDserver.get("/", (request, response) => {
+	let output = {};
+	output.isAuthenticated = request.isAuthenticated();
+	output.citizen = request.user;
+	response.json(output);
+});
 
+PDserver.post("/login", (request, response, next) => {
+	passport.authenticate("local", (error, citizen) => {
+		let output = {};
+		output.where = "api/post/login";
+
+		if (error) {
+			output.success = false;
+			output.message = error;
+			output.isAuthenticated = request.isAuthenticated();
+			console.log(output);
+			response.json(output);
+		} else if (!citizen) {
+			output.success = false;
+			output.message = "No user exists with given credentials";
+			output.isAuthenticated = request.isAuthenticated();
+			console.log(output);
+			response.json(output);
+		} else {
+			request.logIn(citizen, (error) => {
+				if (error) {
+					output.success = false;
+					output.message = error;
+				} else {
+					output.success = true;
+					output.message = "User authenticated";
+				}
+				output.isAuthenticated = request.isAuthenticated();
+				console.log("output from /login: ", output);
+				console.log("Citizen output in /login: ");
+				console.log(citizen);
+				response.json(output);
+			});
+		}
+	})(request, response, next);
+});
+
+const authRoutes = require("./routes/authRoutes");
+PDserver.use(authRoutes);
+/*
 PDserver.post("/login", (request, response) => {
 	//response.render('index', request.user);
 	console.log(request.body);
 	response.json({ data: "hello from the server nigrou" });
 });
 /*
-PDserver.use(authRoutes);
+
 PDserver.use(myCommunityRoutes);
 PDserver.use(errorsRoutes);*/

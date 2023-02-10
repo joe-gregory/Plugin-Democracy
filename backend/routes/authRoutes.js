@@ -2,8 +2,58 @@ const express = require("express");
 const router = express.Router();
 
 const passport = require("passport");
-const Community = require("../models/communityModels");
 
+router.get("/session-status", (request, response) => {
+	let output = {};
+	console.log("Is Authenticated? ", request.isAuthenticated());
+	request.isAuthenticated()
+		? (output.isAuthenticated = true)
+		: (output.isAuthenticated = false);
+	response.json(output);
+});
+
+router.post("/login", (request, response, next) => {
+	passport.authenticate("local", (error, citizen) => {
+		let output = {};
+		output.where = "api/post/login";
+
+		if (error) {
+			output.success = false;
+			output.message = error;
+			output.isAuthenticated = request.isAuthenticated();
+			console.log(output);
+			response.json(output);
+		} else if (!citizen) {
+			output.success = false;
+			output.message = "No user exists with given credentials";
+			output.isAuthenticated = request.isAuthenticated();
+			console.log(output);
+			response.json(output);
+		} else {
+			request.logIn(citizen, (error) => {
+				if (error) {
+					output.success = false;
+					output.message = error;
+				} else {
+					output.success = true;
+					output.message = "User authenticated";
+				}
+				output.isAuthenticated = request.isAuthenticated();
+				console.log("output from /login: ", output);
+				console.log("Citizen output in /login: ");
+				console.log(citizen);
+				response.json(output);
+			});
+		}
+	})(request, response, next);
+});
+/*
+router.post('/login', passport.authenticate('local', {failureRedirect: '/404', failureMessage: true}),
+    (request, response) => {        
+            response.redirect('/mycommunity');
+    }
+);
+/*
 router.get("/signup", (request, response) => {
 	response.render("signup", function (err, html) {
 		if (err) {
@@ -45,19 +95,8 @@ router.post('/login', passport.authenticate('local', {failureRedirect: '/404', f
     (request, response) => {        
             response.redirect('/mycommunity');
     }
-);*/
-router.post("/login", (request, response) => {
-	passport.authenticate("local", (error, citizen, info) => {
-		if (error) throw error;
-		if (!citizen) response.send("no user exists");
-		else {
-			request.logIn(citizen, (error) => {
-				if (error) throw error;
-				response.send("Successfully authenticated");
-			});
-		}
-	})(request, response, next);
-});
+);
+
 
 router.get("/profile", (request, response) => {
 	if (!request.user) {
@@ -88,5 +127,5 @@ router.post("/logout", function (request, response, next) {
 		response.redirect("/");
 	});
 });
-
+*/
 module.exports = router;

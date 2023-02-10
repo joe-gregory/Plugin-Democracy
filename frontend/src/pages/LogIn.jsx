@@ -37,9 +37,8 @@ export default function LogIn() {
 			});
 
 			const responseData = await response.json();
-			alert(responseData.data);
-
-			auth.login();
+			console.log(responseData);
+			if (responseData.isAuthenticated === true) auth.login();
 			setLoading(false);
 		} catch (error) {
 			console.log(error);
