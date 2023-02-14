@@ -25,7 +25,7 @@ export default function LogIn() {
 		const data = new FormData(event.currentTarget);
 
 		try {
-			const response = await fetch("http://localhost:8080/login", {
+			const response = await fetch("https://192.168.1.68:8080/login", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -34,6 +34,8 @@ export default function LogIn() {
 					email: data.get("email"),
 					password: data.get("password"),
 				}),
+				mode: "cors",
+				credentials: "include",
 			});
 
 			const responseData = await response.json();

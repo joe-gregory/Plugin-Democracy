@@ -4,48 +4,39 @@ const session = require("express-session");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
+const https = require("https");
+const fs = require("fs");
+
 const localStrategy = require("passport-local").Strategy;
 const CommunityModels = require("./models/communityModels");
 
 const key = require("./keys");
 
 //express app
-const PDserver = express();
+const server = express();
+
+//MongoDB connection URL
 const dbURI =
 	"mongodb+srv://" +
 	key +
 	"@ddcluster.z8oz5ye.mongodb.net/?retryWrites=true&w=majority";
 
-//CORS
-
-/*
-PDserver.use((request, response, next) => {
-	response.setHeader("Access-Control-Allow-Origin", "*");
-	response.setHeader(
-		"Access-Control-Allow-Headers",
-		"Origin, x-Requested-With, Content-Type, Accept, Authorization"
-	);
-	response.setHeader(
-		"Access-Control-Allow-Methods",
-		"GET, POST, PATCH, DELETE"
-	);
-	next();
-});*/
-
-/*
-const errorsRoutes = require('./routes/errorsRoutes');
-const myCommunityRoutes = require('./routes/myCommunityRoutes');*/
-
-//register view engine
-//PDserver.set("view engine", "ejs");
+//https options
+const httpsOptions = {
+	key: fs.readFileSync("./SSLSecurity/cert.key"),
+	cert: fs.readFileSync("./SSLSecurity/cert.pem"),
+};
 
 //connect to mongoDB
 mongoose
 	.connect(dbURI)
 	.then((result) => {
 		console.log(`Connected to Data Base`);
-		PDserver.listen(8080); //listen for requests
-		console.log("listening on port 8080...");
+		//PDserver.listen(8080, "192.168.1.68" || "localhost"); //listen for requests
+		https.createServer(httpsOptions, server).listen(8080, () => {
+			console.log("server is running at port 8080!");
+		});
+		//console.log("listening on port 8080...");
 	})
 	.catch((error) => {
 		console.log(`Error connecting to DB: ${error}`);
@@ -54,16 +45,17 @@ mongoose
 	});
 
 //middleware
-PDserver.use(express.json()); //parse request body as JSON
-PDserver.use(express.urlencoded({ extended: true }));
-PDserver.use(
+server.use(express.json()); //parse request body as JSON
+server.use(express.urlencoded({ extended: true }));
+server.use(
 	cors({
-		origin: "http://localhost:5173",
+		origin: true,
+		preflightContinue: true,
+		methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
 		credentials: true,
 	})
 );
-PDserver.use(express.static("public")); //static files
-
+//server.use(express.static("public")); //static files
 //flash message middleware
 /*
 PDserver.use((request, response, next) => {
@@ -72,17 +64,22 @@ PDserver.use((request, response, next) => {
 	next();
 });
 */
-PDserver.use(passport.initialize());
-PDserver.use(
+
+//Passport & sessions
+server.use(passport.initialize());
+server.use(
 	session({
 		secret: "plugindemocracy",
-		resave: true,
-		saveUninitialized: true,
+		name: "sessionID",
+		cookie: {
+			sameSite: "none",
+			secure: true,
+		},
+		resave: false,
+		saveUninitialized: false,
 	})
 );
-//Passport
-
-PDserver.use(passport.session());
+server.use(passport.session());
 
 //require("./passportConfig")(passport);
 
@@ -96,26 +93,50 @@ passport.use(
 			//look up user in DB
 			CommunityModels.Citizen.findOne(
 				{ email: email },
-				(err, citizen) => {
+				(error, citizen) => {
+					let info = {};
+					info.success = false;
+					info.messages = [];
+
 					//if there's an error in db lookup, return err callback
-					if (err) {
-						console.log(err);
-						return done(err);
+					if (error) {
+						info.messages.push({
+							type: "error",
+							message: error.message,
+						});
+						return done(error, false, info);
 					}
 					//if user not found, return null and false in callback
-					if (!citizen) {
-						console.log("!citizen");
-						return done(null, false); //error = null, user = false. There is no error but there is no used
+					else if (!citizen) {
+						info.messages.push({
+							type: "error",
+							message:
+								"No hay ciudadano registrado con este correo",
+						});
+						return done(null, false, info); //error = null, user = false. There is no error but there is no used
 					}
 					//if user found, but password not valid, return err and false in callback
-					if (password != citizen.password) {
-						console.log("wrong password");
-						return done(null, false);
+					else if (password != citizen.password) {
+						info.messages.push({
+							type: "error",
+							message: "Contraseña equivocada",
+						});
+						return done(null, false, info);
 					}
 					//if user found and password valid, return user object in callback
-					if (password == citizen.password) {
-						console.log("User authenticated");
-						return done(null, citizen);
+					else if (password == citizen.password) {
+						info.success = true;
+						info.messages.push({
+							type: "success",
+							message: "Ciudadano autenticado",
+						});
+						return done(null, citizen, info);
+					} else {
+						info.messages.push({
+							type: "error",
+							message: "Check passport.use localStrategy",
+						});
+						return done(null, false, info);
 					}
 				}
 			);
@@ -124,90 +145,98 @@ passport.use(
 );
 //serializeUser function. This function stores a cookie inside of the browser
 passport.serializeUser((citizen, cb) => {
-	process.nextTick(function () {
-		console.log("serializing");
-		console.log(citizen);
-		return cb(null, { id: citizen._id });
-	});
+	console.log("serializing");
+	console.log(citizen);
+	return cb(null, { id: citizen._id });
 });
 
 //deserializeUser function. This function takes a cookie and unravels and returns a user from it.
-passport.deserializeUser((id, cb) => {
-	process.nextTick(function () {
-		return cb(null, id);
-	});
-	/*CommunityModels.Citizen.findById(id, function (err, citizen) {
+passport.deserializeUser((citizen, done) => {
+	CommunityModels.Citizen.findById(citizen.id, function (err, citizen) {
 		if (err) return done(err);
-		console.log("deserializedUser: ", citizen.firstName);
+		console.log("deserializedUser: ");
+		console.log(citizen.firstName);
 		done(null, citizen); //no error, citizen
-	});*/
+	});
 });
 
 //console log incoming requests
-PDserver.use((request, response, next) => {
+server.use((request, response, next) => {
+	console.log("//------------//-----------//");
 	console.log(
-		`Request Method: "${request.method}" => Request URL: "${
-			request.url
-		}". Session: ${request.isAuthenticated()}`
+		`Request Method: "${request.method}" => Request URL: "${request.url}".`
 	);
-	console.log("request.user all : ", request.user);
-	//response.locals.user = request.user;
+	console.log("request.session.id", request.session.id);
+	console.log("request.user : ", request.user);
+	console.log("//------------//-----------//");
 	next();
 });
-PDserver.use(passport.authenticate("session"));
-//routes
-PDserver.get("/", (request, response) => {
-	let output = {};
-	output.isAuthenticated = request.isAuthenticated();
-	output.citizen = request.user;
-	response.json(output);
-});
+server.use(passport.authenticate("session"));
 
-PDserver.post("/login", (request, response, next) => {
-	passport.authenticate("local", (error, citizen) => {
+//routes
+server.post("/login", (request, response, next) => {
+	passport.authenticate("local", (error, citizen, info) => {
 		let output = {};
-		output.where = "api/post/login";
+		output.where = "post: /login";
+		output.authenticated = request.isAuthenticated();
+		output.success = info.success;
+		output.messages = [...info.messages];
 
 		if (error) {
 			output.success = false;
-			output.message = error;
-			output.isAuthenticated = request.isAuthenticated();
+			output.messages.push({ type: "error", message: error.message });
 			console.log(output);
-			response.json(output);
-		} else if (!citizen) {
-			output.success = false;
-			output.message = "No user exists with given credentials";
-			output.isAuthenticated = request.isAuthenticated();
-			console.log(output);
-			response.json(output);
-		} else {
-			request.logIn(citizen, (error) => {
+			response.status(401).json(output);
+		}
+		if (citizen) {
+			request.login(citizen, (error) => {
 				if (error) {
-					output.success = false;
-					output.message = error;
-				} else {
-					output.success = true;
-					output.message = "User authenticated";
+					output.messages.push({
+						type: "error",
+						message: error.message,
+					});
 				}
-				output.isAuthenticated = request.isAuthenticated();
+				output.authenticated = request.isAuthenticated();
+				output.citizen = citizen;
 				console.log("output from /login: ", output);
 				console.log("Citizen output in /login: ");
 				console.log(citizen);
 				response.json(output);
 			});
-		}
+		} else {
+			output.success = false;
+			response.json(output);
+		} /* else if (!citizen) {
+			console.log(output);
+			response.json(output);
+		} else {
+			request.login(citizen, (error) => {
+				if (error) {
+					output.success = false;
+					//output.message = error;
+				} else {
+					output.success = true;
+					//output.message = "User authenticated";
+				}
+				output.authenticated = request.isAuthenticated();
+				output.citizen = citizen;
+				console.log("output from /login: ", output);
+				console.log("Citizen output in /login: ");
+				console.log(citizen);
+				response.json(output);
+			});
+		} //*/
 	})(request, response, next);
 });
 
+const unprotectedRoutes = require("./routes/unprotectedRoutes");
+server.use(unprotectedRoutes);
 const authRoutes = require("./routes/authRoutes");
-PDserver.use(authRoutes);
-/*
-PDserver.post("/login", (request, response) => {
-	//response.render('index', request.user);
-	console.log(request.body);
-	response.json({ data: "hello from the server nigrou" });
-});
-/*
+server.use(authRoutes);
 
+/*
 PDserver.use(myCommunityRoutes);
-PDserver.use(errorsRoutes);*/
+PDserver.use(errorsRoutes);
+const errorsRoutes = require('./routes/errorsRoutes');
+const myCommunityRoutes = require('./routes/myCommunityRoutes');
+*/

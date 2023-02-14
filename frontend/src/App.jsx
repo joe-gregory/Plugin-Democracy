@@ -32,10 +32,13 @@ function App() {
 		setIsLoggedIn(false);
 	}, []);
 
-	useEffect(() => {
+	/*useEffect(() => {
 		async function fetchStatus() {
 			const response = await fetch(
-				"http://localhost:8080/session-status"
+				"http://localhost:8080/session-status",
+				{
+					mode: "cors",
+				}
 			);
 			const responseData = await response.json();
 			console.log("Session-status: ", responseData.isAuthenticated);

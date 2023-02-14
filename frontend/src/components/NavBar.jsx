@@ -213,6 +213,7 @@ export default function NavBar() {
 
 function CitizenBubble() {
 	const [anchorElUser, setAnchorElUser] = React.useState(null);
+	const auth = React.useContext(AuthContext);
 
 	const handleOpenUserMenu = (event) => {
 		setAnchorElUser(event.currentTarget);
@@ -221,6 +222,11 @@ function CitizenBubble() {
 	const handleCloseUserMenu = () => {
 		setAnchorElUser(null);
 	};
+
+	function logout() {
+		handleCloseUserMenu();
+		auth.logout();
+	}
 	return (
 		<Box sx={{ flexGrow: 0 }}>
 			<Tooltip title="Open settings">
@@ -247,7 +253,7 @@ function CitizenBubble() {
 				<MenuItem key={"Perfil"} onClick={handleCloseUserMenu}>
 					<Typography textAlign="center">Perfil</Typography>
 				</MenuItem>
-				<MenuItem key="Cerrar sesion" onClick={handleCloseUserMenu}>
+				<MenuItem key="Cerrar sesion" onClick={logout}>
 					<Typography textAlign="center">Cerrar sesión</Typography>
 				</MenuItem>
 			</Menu>

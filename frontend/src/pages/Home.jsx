@@ -1,25 +1,32 @@
-import { useState, useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
 import { Container, Typography } from "@mui/material";
+import { AuthContext } from "../context/auth-context";
 
 export default function Home() {
-	const [data, setData] = useState({ isAuthenticated: false });
+	const [data, setData] = useState({ authenticated: false });
+
+	const auth = useContext(AuthContext);
 
 	useEffect(() => {
 		async function fetchData() {
-			const response = await fetch("http://localhost:8080/");
+			const response = await fetch("https://192.168.1.68:8080/", {
+				mode: "cors",
+				credentials: "include",
+			});
 			const responseData = await response.json();
-			console.log("Home Auth: ", responseData.isAuthenticated);
+			console.log("Home Auth: ", responseData.authenticated);
 			setData(responseData);
+			if (responseData.authenticated === true) auth.login();
 		}
 
 		fetchData();
-	});
+	}, []);
 
 	return (
 		<Container>
 			<Typography variant="h1">At Home Page</Typography>
 			<Typography>
-				Authenticated: {data.isAuthenticated.toString()}
+				Authenticated: {data.authenticated.toString()}
 			</Typography>
 		</Container>
 	);

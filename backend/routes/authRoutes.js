@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const CommunityModels = require("../models/communityModels");
 
 const passport = require("passport");
 
@@ -9,9 +10,10 @@ router.get("/session-status", (request, response) => {
 	request.isAuthenticated()
 		? (output.isAuthenticated = true)
 		: (output.isAuthenticated = false);
+	output.citizen = request.user;
 	response.json(output);
 });
-
+/* sessionID=s%3AMzIQqK0mPaBJd6nT3Mqiod8awILWU-3t.XoA6OZepfSwEj2%2FX8WIwb4tymQF9NiWWleHI%2FKLlZzM; Path=/; HttpOnly;
 router.post("/login", (request, response, next) => {
 	passport.authenticate("local", (error, citizen) => {
 		let output = {};
@@ -65,9 +67,9 @@ router.get("/signup", (request, response) => {
 		}
 	});
 });
-
+*/
 router.post("/signup", (request, response) => {
-	const citizen = new Community.Citizen({
+	const citizen = new CommunityModels.Citizen({
 		firstName: request.body.firstName,
 		lastName: request.body.lastName,
 		secondLastName: request.body.secondLastName,
@@ -77,10 +79,10 @@ router.post("/signup", (request, response) => {
 	});
 	citizen
 		.save()
-		.then((result) => response.redirect("/profile"))
+		.then((result) => response.json(citizen))
 		.catch((error) => response.send(error));
 });
-
+/*
 router.get("/login", (request, response) => {
 	response.render("login", (err, html) => {
 		if (err) {
