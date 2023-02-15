@@ -40,7 +40,7 @@ export default function LogIn() {
 
 			const responseData = await response.json();
 			console.log(responseData);
-			if (responseData.isAuthenticated === true) auth.login();
+			if (responseData.authenticated === true) auth.login();
 			setLoading(false);
 		} catch (error) {
 			console.log(error);

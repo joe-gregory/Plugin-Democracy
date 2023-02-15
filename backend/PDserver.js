@@ -34,7 +34,7 @@ mongoose
 		console.log(`Connected to Data Base`);
 		//PDserver.listen(8080, "192.168.1.68" || "localhost"); //listen for requests
 		https.createServer(httpsOptions, server).listen(8080, () => {
-			console.log("server is running at port 8080!");
+			console.log("server is running at port 8080");
 		});
 		//console.log("listening on port 8080...");
 	})
@@ -155,7 +155,8 @@ passport.deserializeUser((citizen, done) => {
 	CommunityModels.Citizen.findById(citizen.id, function (err, citizen) {
 		if (err) return done(err);
 		console.log("deserializedUser: ");
-		console.log(citizen.firstName);
+		citizen.password = null;
+		console.log(citizen);
 		done(null, citizen); //no error, citizen
 	});
 });
@@ -174,63 +175,8 @@ server.use((request, response, next) => {
 server.use(passport.authenticate("session"));
 
 //routes
-server.post("/login", (request, response, next) => {
-	passport.authenticate("local", (error, citizen, info) => {
-		let output = {};
-		output.where = "post: /login";
-		output.authenticated = request.isAuthenticated();
-		output.success = info.success;
-		output.messages = [...info.messages];
-
-		if (error) {
-			output.success = false;
-			output.messages.push({ type: "error", message: error.message });
-			console.log(output);
-			response.status(401).json(output);
-		}
-		if (citizen) {
-			request.login(citizen, (error) => {
-				if (error) {
-					output.messages.push({
-						type: "error",
-						message: error.message,
-					});
-				}
-				output.authenticated = request.isAuthenticated();
-				output.citizen = citizen;
-				console.log("output from /login: ", output);
-				console.log("Citizen output in /login: ");
-				console.log(citizen);
-				response.json(output);
-			});
-		} else {
-			output.success = false;
-			response.json(output);
-		} /* else if (!citizen) {
-			console.log(output);
-			response.json(output);
-		} else {
-			request.login(citizen, (error) => {
-				if (error) {
-					output.success = false;
-					//output.message = error;
-				} else {
-					output.success = true;
-					//output.message = "User authenticated";
-				}
-				output.authenticated = request.isAuthenticated();
-				output.citizen = citizen;
-				console.log("output from /login: ", output);
-				console.log("Citizen output in /login: ");
-				console.log(citizen);
-				response.json(output);
-			});
-		} //*/
-	})(request, response, next);
-});
-
-const unprotectedRoutes = require("./routes/unprotectedRoutes");
-server.use(unprotectedRoutes);
+const openRoutes = require("./routes/openRoutes");
+server.use(openRoutes);
 const authRoutes = require("./routes/authRoutes");
 server.use(authRoutes);
 
