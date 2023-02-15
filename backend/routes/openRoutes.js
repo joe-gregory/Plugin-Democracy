@@ -46,4 +46,33 @@ router.post("/login", (request, response, next) => {
 	})(request, response, next);
 });
 
+router.post("/logout", (request, response) => {
+	console.log("logging out ", request.user);
+	let output = {
+		where: "post: /logout",
+	};
+	request.logout((error) => {
+		if (error) {
+			output.success = false;
+			output.messages = [{ type: "error", message: error.message }];
+			output.authenticated = request.isAuthenticated();
+		} else {
+			output.success = true;
+			output.messages = [{ type: "info", message: "Sesión cerrada " }];
+			output.authenticated = request.isAuthenticated();
+		}
+		response.json(output);
+	});
+});
+
+router.get("/session-status", (request, response) => {
+	let output = {};
+	console.log("Is Authenticated? ", request.isAuthenticated());
+	request.isAuthenticated()
+		? (output.authenticated = true)
+		: (output.authenticated = false);
+	output.citizen = request.user;
+	response.json(output);
+});
+
 module.exports = router;

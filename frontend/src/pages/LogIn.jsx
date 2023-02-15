@@ -13,6 +13,8 @@ import Container from "@mui/material/Container";
 import CircularProgress from "@mui/material/CircularProgress";
 import { AuthContext } from "../context/auth-context";
 
+import { request } from "../utilities";
+
 export default function LogIn() {
 	const [loading, setLoading] = React.useState(false);
 
@@ -23,9 +25,18 @@ export default function LogIn() {
 		event.preventDefault();
 
 		const data = new FormData(event.currentTarget);
+		let body = JSON.stringify({
+			email: data.get("email"),
+			password: data.get("password"),
+		});
+		//console.log(body); //DEL
 
 		try {
-			const response = await fetch("https://192.168.1.68:8080/login", {
+			const response = await request("post", "login", body);
+			console.log(response); //DEL
+			if (response.authenticated === true) auth.login();
+			setLoading(false);
+			/*const response = await fetch("https://192.168.1.68:8080/login", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -41,7 +52,7 @@ export default function LogIn() {
 			const responseData = await response.json();
 			console.log(responseData);
 			if (responseData.authenticated === true) auth.login();
-			setLoading(false);
+			setLoading(false);*/
 		} catch (error) {
 			console.log(error);
 		}

@@ -10,6 +10,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 //Components
 import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
+import AuthChecker from "./components/AuthChecker";
 
 //Pages
 import Home from "./pages/Home";
@@ -20,9 +21,11 @@ import NotFound404 from "./pages/NotFound404";
 
 //context
 import { AuthContext } from "./context/auth-context";
+import { AlertContext } from "./context/alert-context";
 
 function App() {
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
+	const [alertMessage, setAlertMessage] = useState([]);
 
 	const login = useCallback(() => {
 		setIsLoggedIn(true);
@@ -74,42 +77,44 @@ function App() {
 			<AuthContext.Provider
 				value={{ isLoggedIn: isLoggedIn, login: login, logout: logout }}
 			>
-				<NavBar />
-				<Routes>
-					<Route path="/" element={<Home />} />
-					<Route
-						path="/community"
-						element={
-							isLoggedIn ? (
-								<Community />
-							) : (
-								<Navigate to="/login" />
-							)
-						}
-					/>
-					<Route
-						path="/login"
-						element={
-							isLoggedIn ? (
-								<Navigate to="/community" />
-							) : (
-								<LogIn />
-							)
-						}
-					/>
-					<Route
-						path="/signup"
-						element={
-							isLoggedIn ? (
-								<Navigate to="/community" />
-							) : (
-								<SignUp />
-							)
-						}
-					/>
-					<Route path="*" element={<NotFound404 />} />
-				</Routes>
-				<Footer />
+				<AuthChecker>
+					<NavBar />
+					<Routes>
+						<Route path="/" element={<Home />} />
+						<Route
+							path="/community"
+							element={
+								isLoggedIn ? (
+									<Community />
+								) : (
+									<Navigate to="/login" />
+								)
+							}
+						/>
+						<Route
+							path="/login"
+							element={
+								isLoggedIn ? (
+									<Navigate to="/community" />
+								) : (
+									<LogIn />
+								)
+							}
+						/>
+						<Route
+							path="/signup"
+							element={
+								isLoggedIn ? (
+									<Navigate to="/community" />
+								) : (
+									<SignUp />
+								)
+							}
+						/>
+						<Route path="*" element={<NotFound404 />} />
+					</Routes>
+					<Footer />
+				</AuthChecker>
 			</AuthContext.Provider>
 		</CssBaseline>
 	);

@@ -177,8 +177,6 @@ server.use(passport.authenticate("session"));
 //routes
 const openRoutes = require("./routes/openRoutes");
 server.use(openRoutes);
-const authRoutes = require("./routes/authRoutes");
-server.use(authRoutes);
 
 /*
 PDserver.use(myCommunityRoutes);

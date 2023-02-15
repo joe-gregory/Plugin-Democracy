@@ -15,6 +15,7 @@ import MenuItem from "@mui/material/MenuItem";
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/auth-context";
+import { request } from "../utilities";
 
 const signedOutPages = [
 	{
@@ -225,7 +226,8 @@ function CitizenBubble() {
 
 	function logout() {
 		handleCloseUserMenu();
-		auth.logout();
+		request("post", "logout");
+		//auth.logout();
 	}
 	return (
 		<Box sx={{ flexGrow: 0 }}>
