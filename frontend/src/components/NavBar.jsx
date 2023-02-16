@@ -15,6 +15,7 @@ import MenuItem from "@mui/material/MenuItem";
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/auth-context";
+import { AlertContext } from "../context/alert-context";
 import { request } from "../utilities";
 
 const signedOutPages = [
@@ -41,6 +42,7 @@ const signedInPages = [
 
 export default function NavBar() {
 	const auth = React.useContext(AuthContext);
+	const alertMessages = React.useContext(AlertContext);
 
 	const [anchorElNav, setAnchorElNav] = React.useState(null);
 
@@ -227,7 +229,7 @@ function CitizenBubble() {
 	function logout() {
 		handleCloseUserMenu();
 		request("post", "logout");
-		//auth.logout();
+		auth.logout();
 	}
 	return (
 		<Box sx={{ flexGrow: 0 }}>

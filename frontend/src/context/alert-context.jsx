@@ -1,3 +1,9 @@
 import { createContext } from "react";
 
-export const AlertContext = createContext([]);
+const AlertContext = createContext({
+	alertMessages: [],
+	setAlertMessages: () => {},
+	clearAlertMessages: () => {},
+});
+
+export { AlertContext };

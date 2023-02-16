@@ -22,11 +22,14 @@ import NotFound404 from "./pages/NotFound404";
 //context
 import { AuthContext } from "./context/auth-context";
 import { AlertContext } from "./context/alert-context";
+import { RequestContext } from "./context/requests-context";
 
 function App() {
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
-	const [alertMessage, setAlertMessage] = useState([]);
+	const [alertMessages, setAlertMessages] = useState([]);
+	const [requestOutput, setRequestOutput] = useState({});
 
+	//AuthContext
 	const login = useCallback(() => {
 		setIsLoggedIn(true);
 	}, []);
@@ -35,50 +38,83 @@ function App() {
 		setIsLoggedIn(false);
 	}, []);
 
-	/*useEffect(() => {
-		async function fetchStatus() {
-			const response = await fetch(
-				"http://localhost:8080/session-status",
-				{
-					mode: "cors",
-				}
-			);
-			const responseData = await response.json();
-			console.log("Session-status: ", responseData.isAuthenticated);
-			setIsLoggedIn(responseData.isAuthenticated);
+	//AlertMessages
+	const setMessages = (messages) => {
+		setAlertMessages(messages);
+	};
+
+	const clearMessages = () => {
+		setAlertMessages([]);
+	};
+
+	//RequestContext
+	async function request(method = "get", subdirectory = "/", body) {
+		//fetches and returns json response
+		method = method.toLowerCase();
+		subdirectory = subdirectory.toLowerCase();
+		if (subdirectory[0] !== "/") subdirectory = "/" + subdirectory;
+		let methods = ["get", "post"];
+		if (!methods.includes(method)) throw new Error("Unknown http method");
+		const domain = "https://192.168.1.68:8080";
+		const url = domain + subdirectory;
+
+		let output = {};
+
+		try {
+			const response = await fetch(url, {
+				method: method,
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: body,
+				mode: "cors",
+				credentials: "include",
+			});
+
+			output = await response.json();
+		} catch (error) {
+			output.success = false;
+			output.messages.push({ type: "error", message: error.message });
 		}
 
-		fetchStatus();
-	}); /*
-	useEffect(() => {
-		async function fetchStatus() {
-			const response = await fetch(
-				"http://localhost:8080/session-status"
-			);
-			const responseData = await response.json();
-			console.log("SeSSion-StatUs : ", responseData.isAuthenticated);
-			setIsLoggedIn(responseData.isAuthenticated);
-		}
-		fetchStatus();
+		if (output.messages) setAlertMessages(output.messages);
+		console.log("Messags : ", alertMessages); //DEL
 
-		/*
-		fetch("http://localhost:8080/session-status")
-			.then((response) => {
-				response.json().then((data) => {
-					console.log("session-status ", data.isAuthenticated);
-					setIsLoggedIn(data.isAuthenticated);
-				});
-			})
-			.catch((error) => console.error(error));
-	});*/
+		//Output Reroutes:
+		setRequestOutput(output);
+	}
+
+	const clearRequestOutput = () => {
+		setRequestOutput({});
+	};
 
 	return (
 		<CssBaseline>
-			<AuthContext.Provider
-				value={{ isLoggedIn: isLoggedIn, login: login, logout: logout }}
+			<RequestContext.Provider
+				value={{
+					output: requestOutput,
+					request: request,
+					clearOutput: clearRequestOutput,
+				}}
 			>
-				<AuthChecker>
-					<NavBar />
+				<AuthContext.Provider
+					value={{
+						isLoggedIn: isLoggedIn,
+						login: login,
+						logout: logout,
+					}}
+				>
+					<AuthChecker />
+					<AlertContext.Provider
+						value={{
+							alertMessages: alertMessages,
+							setAlertMessages: setMessages,
+							clearAlertMessages: clearMessages,
+						}}
+					>
+						<NavBar />
+					</AlertContext.Provider>
+
 					<Routes>
 						<Route path="/" element={<Home />} />
 						<Route
@@ -114,8 +150,8 @@ function App() {
 						<Route path="*" element={<NotFound404 />} />
 					</Routes>
 					<Footer />
-				</AuthChecker>
-			</AuthContext.Provider>
+				</AuthContext.Provider>
+			</RequestContext.Provider>
 		</CssBaseline>
 	);
 }

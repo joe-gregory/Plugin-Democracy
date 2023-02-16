@@ -11,10 +11,10 @@ export default function AuthChecker(props) {
 				const response = await request("get", "/session-status");
 				if (response.authenticated === true) {
 					auth.login();
-					console.log("loggedin");
+					console.log("/session-status report: loggedin");
 				} else {
 					auth.logout();
-					console.log("loggedout");
+					console.log("/session-status report: loggedout");
 				}
 			} catch (error) {
 				console.error("Error checking authentication status: ", error);

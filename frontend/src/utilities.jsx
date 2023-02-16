@@ -19,7 +19,7 @@ async function request(method = "get", subdirectory = "/", body) {
 	});
 
 	const jsonresponse = await response.json();
-	console.log(jsonresponse);
+	//console.log(jsonresponse);
 
 	return jsonresponse;
 }

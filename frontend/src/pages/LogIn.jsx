@@ -11,14 +11,15 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import CircularProgress from "@mui/material/CircularProgress";
-import { AuthContext } from "../context/auth-context";
 
-import { request } from "../utilities";
+import { RequestContext } from "../context/requests-context";
+import { AuthContext } from "../context/auth-context";
 
 export default function LogIn() {
 	const [loading, setLoading] = React.useState(false);
 
 	const auth = React.useContext(AuthContext);
+	const request = React.useContext(RequestContext);
 
 	const handleSubmit = async (event) => {
 		setLoading(true);
@@ -29,33 +30,10 @@ export default function LogIn() {
 			email: data.get("email"),
 			password: data.get("password"),
 		});
-		//console.log(body); //DEL
 
-		try {
-			const response = await request("post", "login", body);
-			console.log(response); //DEL
-			if (response.authenticated === true) auth.login();
-			setLoading(false);
-			/*const response = await fetch("https://192.168.1.68:8080/login", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					email: data.get("email"),
-					password: data.get("password"),
-				}),
-				mode: "cors",
-				credentials: "include",
-			});
-
-			const responseData = await response.json();
-			console.log(responseData);
-			if (responseData.authenticated === true) auth.login();
-			setLoading(false);*/
-		} catch (error) {
-			console.log(error);
-		}
+		await request.request("post", "login", body);
+		if (request.output.authenticated === true) auth.login();
+		setLoading(false);
 	};
 
 	return (
