@@ -31,8 +31,9 @@ function App() {
 
 	useEffect(() => {
 		async function getSession() {
-			const response = await request("get", "/session-status");
-			response.authenticated ? setIsLoggedIn(true) : setIsLoggedIn(false);
+			const output = await request("get", "/session-status");
+			output.authenticated ? setIsLoggedIn(true) : setIsLoggedIn(false);
+			console.log("app initial authenticated: ", output.authenticated);
 		}
 		getSession();
 	}, []);
@@ -85,17 +86,16 @@ function App() {
 			output.messages.push({ type: "error", message: error.message });
 		}
 
-		//Desmenuzando
-		console.log(output);
+		//Desmenuzando output. Rerouting output
+		//isLoggedIn status
 		output.authenticated === true
 			? setIsLoggedIn(true)
 			: setIsLoggedIn(false);
+		//NavBar alert messages
 		if (output.messages) setMessages(output.messages);
-		console.log("Messags : ", alertMessages); //DEL
-
-		//Output Reroutes:
+		//The entire request output object
 		setRequestOutput(output);
-		console.log("requestOutput: ", requestOutput);
+		return output;
 	}
 
 	const clearRequestOutput = () => {
@@ -118,7 +118,7 @@ function App() {
 						logout: logout,
 					}}
 				>
-					{/*<AuthChecker />*/}
+					<AuthChecker />
 					<AlertContext.Provider
 						value={{
 							alertMessages: alertMessages,

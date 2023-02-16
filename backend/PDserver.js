@@ -64,7 +64,6 @@ PDserver.use((request, response, next) => {
 	next();
 });
 */
-
 //Passport & sessions
 server.use(passport.initialize());
 server.use(
@@ -173,6 +172,20 @@ server.use((request, response, next) => {
 	next();
 });
 server.use(passport.authenticate("session"));
+/*
+server.use(
+	//adding authenticated to every request
+	(request, response, next) => {
+		/*let output = {
+			authenticated: request.isAuthenticated(),
+			citize: request.user,
+		};
+		response = { ...response, ...output };////
+		response.authenticated = request.isAuthenticated();
+		response.citizen = request.user;
+		next();
+	}
+);*/
 
 //routes
 const openRoutes = require("./routes/openRoutes");

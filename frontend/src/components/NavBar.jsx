@@ -1,4 +1,7 @@
 import * as React from "react";
+
+import { Link } from "react-router-dom";
+
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -13,7 +16,11 @@ import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
-import { Link } from "react-router-dom";
+
+import Alert from "@mui/material/Alert";
+import Collapse from "@mui/material/Collapse";
+import CloseIcon from "@mui/icons-material/Close";
+
 import { AuthContext } from "../context/auth-context";
 import { AlertContext } from "../context/alert-context";
 import { RequestContext } from "../context/requests-context";
@@ -42,8 +49,6 @@ const signedInPages = [
 
 export default function NavBar() {
 	const auth = React.useContext(AuthContext);
-	const alertMessages = React.useContext(AlertContext);
-
 	const [anchorElNav, setAnchorElNav] = React.useState(null);
 
 	const handleOpenNavMenu = (event) => {
@@ -55,162 +60,165 @@ export default function NavBar() {
 	};
 
 	return (
-		<AppBar position="static">
-			<Container maxWidth="xl">
-				<Toolbar disableGutters>
-					{/*Icon and Title when navbar is expanded */}
-					<PowerOutlinedIcon
-						sx={{ display: { xs: "none", md: "flex" }, mr: 1 }}
-					/>
-					<Typography
-						variant="h6"
-						noWrap
-						component={Link}
-						to="/"
-						sx={{
-							mr: 2,
-							display: { xs: "none", md: "flex" },
-							fontFamily: "monospace",
-							fontWeight: 700,
-							letterSpacing: ".3rem",
-							color: "inherit",
-							textDecoration: "none",
-						}}
-					>
-						DEMOCRACIA CONECTADA
-					</Typography>
-					{/*End icon and title when navbar is expanded*/}
-					{/*Hamburger menu box begin*/}
-					<Box
-						sx={{
-							flexGrow: 1,
-							display: { xs: "flex", md: "none" },
-						}}
-					>
-						<IconButton
-							size="large"
-							aria-label="account of current user"
-							aria-controls="menu-appbar"
-							aria-haspopup="true"
-							onClick={handleOpenNavMenu}
-							color="inherit"
-						>
-							<MenuIcon />
-						</IconButton>
-						{/*Hamburger Menu*/}
-						<Menu
-							id="menu-appbar"
-							anchorEl={anchorElNav}
-							anchorOrigin={{
-								vertical: "bottom",
-								horizontal: "left",
-							}}
-							keepMounted
-							transformOrigin={{
-								vertical: "top",
-								horizontal: "left",
-							}}
-							open={Boolean(anchorElNav)}
-							onClose={handleCloseNavMenu}
+		<>
+			<AppBar position="static">
+				<Container maxWidth="xl">
+					<Toolbar disableGutters>
+						{/*Icon and Title when navbar is expanded */}
+						<PowerOutlinedIcon
+							sx={{ display: { xs: "none", md: "flex" }, mr: 1 }}
+						/>
+						<Typography
+							variant="h6"
+							noWrap
+							component={Link}
+							to="/"
 							sx={{
-								display: { xs: "block", md: "none" },
+								mr: 2,
+								display: { xs: "none", md: "flex" },
+								fontFamily: "monospace",
+								fontWeight: 700,
+								letterSpacing: ".3rem",
+								color: "inherit",
+								textDecoration: "none",
 							}}
 						>
-							{/*Hamburger Menu Pages*/}
+							DEMOCRACIA CONECTADA
+						</Typography>
+						{/*End icon and title when navbar is expanded*/}
+						{/*Hamburger menu box begin*/}
+						<Box
+							sx={{
+								flexGrow: 1,
+								display: { xs: "flex", md: "none" },
+							}}
+						>
+							<IconButton
+								size="large"
+								aria-label="account of current user"
+								aria-controls="menu-appbar"
+								aria-haspopup="true"
+								onClick={handleOpenNavMenu}
+								color="inherit"
+							>
+								<MenuIcon />
+							</IconButton>
+							{/*Hamburger Menu*/}
+							<Menu
+								id="menu-appbar"
+								anchorEl={anchorElNav}
+								anchorOrigin={{
+									vertical: "bottom",
+									horizontal: "left",
+								}}
+								keepMounted
+								transformOrigin={{
+									vertical: "top",
+									horizontal: "left",
+								}}
+								open={Boolean(anchorElNav)}
+								onClose={handleCloseNavMenu}
+								sx={{
+									display: { xs: "block", md: "none" },
+								}}
+							>
+								{/*Hamburger Menu Pages*/}
+								{auth.isLoggedIn
+									? signedInPages.map((page) => (
+											<MenuItem
+												key={page.text}
+												component={Link}
+												to={page.href}
+												onClick={handleCloseNavMenu}
+											>
+												<Typography textAlign="center">
+													{page.text}
+												</Typography>
+											</MenuItem>
+									  ))
+									: signedOutPages.map((page) => (
+											<MenuItem
+												key={page.text}
+												component={Link}
+												to={page.href}
+												onClick={handleCloseNavMenu}
+											>
+												<Typography textAlign="center">
+													{page.text}
+												</Typography>
+											</MenuItem>
+									  ))}
+							</Menu>{" "}
+							{/*Ends hamburger Menu */}
+						</Box>{" "}
+						{/*Ends hamburger menu Box*/}
+						{/*Icon and title when NavBar is compressed start*/}
+						<PowerOutlinedIcon
+							sx={{ display: { xs: "flex", md: "none" }, mr: 1 }}
+						/>
+						<Typography
+							variant="h5"
+							component={Link}
+							to="/"
+							sx={{
+								mr: 2,
+								display: { xs: "flex", md: "none" },
+								flexGrow: 1,
+								fontFamily: "monospace",
+								fontWeight: 700,
+								letterSpacing: ".3rem",
+								color: "inherit",
+								textDecoration: "none",
+							}}
+						>
+							DEMOCRACIA CONECTADA
+						</Typography>
+						{/*Icon and title when NavBar is compressed end*/}
+						{/*Box for when navbar is NOT compressed */}
+						<Box
+							sx={{
+								flexGrow: 1,
+								display: { xs: "none", md: "flex" },
+							}}
+						>
+							{/*Pages that show on top bar NOT in hamburger*/}
 							{auth.isLoggedIn
 								? signedInPages.map((page) => (
-										<MenuItem
+										<Button
 											key={page.text}
-											component={Link}
-											to={page.href}
-											onClick={handleCloseNavMenu}
+											href={page.href}
+											sx={{
+												my: 2,
+												color: "white",
+												display: "block",
+											}}
 										>
-											<Typography textAlign="center">
-												{page.text}
-											</Typography>
-										</MenuItem>
+											{page.text}
+										</Button>
 								  ))
 								: signedOutPages.map((page) => (
-										<MenuItem
+										<Button
 											key={page.text}
-											component={Link}
-											to={page.href}
-											onClick={handleCloseNavMenu}
+											href={page.href}
+											sx={{
+												my: 2,
+												color: "white",
+												display: "block",
+											}}
 										>
-											<Typography textAlign="center">
-												{page.text}
-											</Typography>
-										</MenuItem>
+											{page.text}
+										</Button>
 								  ))}
-						</Menu>{" "}
-						{/*Ends hamburger Menu */}
-					</Box>{" "}
-					{/*Ends hamburger menu Box*/}
-					{/*Icon and title when NavBar is compressed start*/}
-					<PowerOutlinedIcon
-						sx={{ display: { xs: "flex", md: "none" }, mr: 1 }}
-					/>
-					<Typography
-						variant="h5"
-						component={Link}
-						to="/"
-						sx={{
-							mr: 2,
-							display: { xs: "flex", md: "none" },
-							flexGrow: 1,
-							fontFamily: "monospace",
-							fontWeight: 700,
-							letterSpacing: ".3rem",
-							color: "inherit",
-							textDecoration: "none",
-						}}
-					>
-						DEMOCRACIA CONECTADA
-					</Typography>
-					{/*Icon and title when NavBar is compressed end*/}
-					{/*Box for when navbar is NOT compressed */}
-					<Box
-						sx={{
-							flexGrow: 1,
-							display: { xs: "none", md: "flex" },
-						}}
-					>
-						{/*Pages that show on top bar NOT in hamburger*/}
-						{auth.isLoggedIn
-							? signedInPages.map((page) => (
-									<Button
-										key={page.text}
-										href={page.href}
-										sx={{
-											my: 2,
-											color: "white",
-											display: "block",
-										}}
-									>
-										{page.text}
-									</Button>
-							  ))
-							: signedOutPages.map((page) => (
-									<Button
-										key={page.text}
-										href={page.href}
-										sx={{
-											my: 2,
-											color: "white",
-											display: "block",
-										}}
-									>
-										{page.text}
-									</Button>
-							  ))}
-					</Box>{" "}
-					{/*End box for when Navbar is NOT compressed*/}
-					{/* User Menu Box begin*/}
-					{auth.isLoggedIn ? <CitizenBubble /> : ""}
-					{/*End user menu Box*/}
-				</Toolbar>
-			</Container>
-		</AppBar>
+						</Box>{" "}
+						{/*End box for when Navbar is NOT compressed*/}
+						{/* User Menu Box begin*/}
+						{auth.isLoggedIn ? <CitizenBubble /> : ""}
+						{/*End user menu Box*/}
+					</Toolbar>
+				</Container>
+			</AppBar>
+			<Messages />
+		</>
 	);
 }
 
@@ -262,6 +270,39 @@ function CitizenBubble() {
 					<Typography textAlign="center">Cerrar sesión</Typography>
 				</MenuItem>
 			</Menu>
+		</Box>
+	);
+}
+
+function Messages() {
+	const [open, setOpen] = React.useState(true);
+	const alerts = React.useContext(AlertContext);
+
+	let result = <></>;
+
+	React.useEffect(() => {}, [alerts.alertMessages]);
+
+	return (
+		<Box sx={{ width: "100%" }}>
+			<Collapse in={open}>
+				<Alert
+					action={
+						<IconButton
+							aria-label="close"
+							color="inherit"
+							size="small"
+							onClick={() => {
+								setOpen(false);
+							}}
+						>
+							<CloseIcon fontSize="inherit" />
+						</IconButton>
+					}
+					sx={{ mb: 2 }}
+				>
+					Close me!
+				</Alert>
+			</Collapse>
 		</Box>
 	);
 }
