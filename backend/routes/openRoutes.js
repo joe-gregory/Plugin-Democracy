@@ -10,6 +10,14 @@ router.get("/", (request, response) => {
 });
 
 router.post("/login", (request, response, next) => {
+	if (request.isAuthenticated()) {
+		let output = {
+			success: false,
+			messages: [{ type: "info", message: "User is already signed in" }],
+			where: "post: login",
+		};
+		response.json(output);
+	}
 	passport.authenticate("local", (error, citizen, info) => {
 		let output = {};
 		output.where = "post: /login";
@@ -47,7 +55,7 @@ router.post("/login", (request, response, next) => {
 });
 
 router.post("/logout", (request, response) => {
-	console.log("logging out ", request.user);
+	console.log("logging out ", request.user._id);
 	let output = {
 		where: "post: /logout",
 	};
@@ -58,9 +66,10 @@ router.post("/logout", (request, response) => {
 			output.authenticated = request.isAuthenticated();
 		} else {
 			output.success = true;
-			output.messages = [{ type: "info", message: "Sesión cerrada " }];
+			output.messages = [{ type: "success", message: "Sesión cerrada " }];
 			output.authenticated = request.isAuthenticated();
 		}
+		console.log("logged out output : ", output);
 		response.json(output);
 	});
 });

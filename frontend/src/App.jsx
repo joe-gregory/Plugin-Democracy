@@ -29,14 +29,22 @@ function App() {
 	const [alertMessages, setAlertMessages] = useState([]);
 	const [requestOutput, setRequestOutput] = useState({});
 
-	//AuthContext
-	const login = useCallback(() => {
-		setIsLoggedIn(true);
+	useEffect(() => {
+		async function getSession() {
+			const response = await request("get", "/session-status");
+			response.authenticated ? setIsLoggedIn(true) : setIsLoggedIn(false);
+		}
+		getSession();
 	}, []);
 
-	const logout = useCallback(() => {
+	//AuthContext
+	const login = () => {
+		setIsLoggedIn(true);
+	};
+
+	const logout = () => {
 		setIsLoggedIn(false);
-	}, []);
+	};
 
 	//AlertMessages
 	const setMessages = (messages) => {
@@ -59,7 +67,6 @@ function App() {
 		const url = domain + subdirectory;
 
 		let output = {};
-
 		try {
 			const response = await fetch(url, {
 				method: method,
@@ -72,16 +79,23 @@ function App() {
 			});
 
 			output = await response.json();
+			console.log("output in request in app: ", output);
 		} catch (error) {
 			output.success = false;
 			output.messages.push({ type: "error", message: error.message });
 		}
 
-		if (output.messages) setAlertMessages(output.messages);
+		//Desmenuzando
+		console.log(output);
+		output.authenticated === true
+			? setIsLoggedIn(true)
+			: setIsLoggedIn(false);
+		if (output.messages) setMessages(output.messages);
 		console.log("Messags : ", alertMessages); //DEL
 
 		//Output Reroutes:
 		setRequestOutput(output);
+		console.log("requestOutput: ", requestOutput);
 	}
 
 	const clearRequestOutput = () => {
@@ -104,7 +118,7 @@ function App() {
 						logout: logout,
 					}}
 				>
-					<AuthChecker />
+					{/*<AuthChecker />*/}
 					<AlertContext.Provider
 						value={{
 							alertMessages: alertMessages,

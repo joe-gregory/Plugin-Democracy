@@ -13,10 +13,10 @@ export default function Home() {
 				mode: "cors",
 				credentials: "include",
 			});
-			const responseData = await response.json();
-			console.log("Home Auth: ", responseData.authenticated);
-			setData(responseData);
-			if (responseData.authenticated === true) auth.login();
+			const output = await response.json();
+			console.log("Home Auth: ", output.authenticated);
+			setData(output);
+			//if (output.authenticated === true) auth.login();
 		}
 
 		fetchData();
@@ -27,6 +27,9 @@ export default function Home() {
 			<Typography variant="h1">At Home Page</Typography>
 			<Typography>
 				Authenticated: {data.authenticated.toString()}
+			</Typography>
+			<Typography>
+				Auth.isLoggedIn: {auth.isLoggedIn.toString()}
 			</Typography>
 		</Container>
 	);

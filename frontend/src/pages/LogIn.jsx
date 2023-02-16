@@ -30,9 +30,8 @@ export default function LogIn() {
 			email: data.get("email"),
 			password: data.get("password"),
 		});
-
-		await request.request("post", "login", body);
-		if (request.output.authenticated === true) auth.login();
+		request.request("post", "login", body);
+		//if (request.output.authenticated === true) auth.login();
 		setLoading(false);
 	};
 
