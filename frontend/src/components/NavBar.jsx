@@ -309,7 +309,6 @@ function Message({ severity, message }) {
 							<CloseIcon fontSize="inherit" />
 						</IconButton>
 					}
-					sx={{ mb: 2 }}
 				>
 					{message}
 				</Alert>
