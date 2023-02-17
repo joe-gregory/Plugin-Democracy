@@ -13,12 +13,10 @@ import Container from "@mui/material/Container";
 import CircularProgress from "@mui/material/CircularProgress";
 
 import { RequestContext } from "../context/requests-context";
-import { AuthContext } from "../context/auth-context";
 
 export default function LogIn() {
 	const [loading, setLoading] = React.useState(false);
 
-	const auth = React.useContext(AuthContext);
 	const request = React.useContext(RequestContext);
 
 	const handleSubmit = async (event) => {

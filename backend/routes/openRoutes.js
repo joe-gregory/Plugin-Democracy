@@ -89,4 +89,18 @@ router.get("/session-status", (request, response) => {
 	response.json(output);
 });
 
+router.get("/test-messages", (request, response) => {
+	let severities = ["success", "error", "warning", "info"];
+	let messages = [];
+	for (let i = 0; i < severities.length; i++) {
+		messages.push({
+			severity: severities[i],
+			message: `This is a ${severities[i]} message`,
+		});
+	}
+	let output = {};
+	output.messages = messages;
+	response.json(output);
+});
+
 module.exports = router;

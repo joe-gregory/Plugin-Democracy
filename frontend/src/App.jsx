@@ -19,10 +19,14 @@ import LogIn from "./pages/LogIn";
 import SignUp from "./pages/SignUp";
 import NotFound404 from "./pages/NotFound404";
 
+import TestMessages from "./pages/TestMessages";
+
 //context
 import { AuthContext } from "./context/auth-context";
 import { AlertContext } from "./context/alert-context";
 import { RequestContext } from "./context/requests-context";
+
+import { v4 as uuid } from "uuid";
 
 function App() {
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -93,7 +97,12 @@ function App() {
 			? setIsLoggedIn(true)
 			: setIsLoggedIn(false);
 		//NavBar alert messages
-		if (output.messages) setMessages(output.messages);
+		if (output.messages) {
+			for (let i = 0; i < output.messages.length; i++) {
+				output.messages[i].uuid = uuid();
+			}
+			setMessages(output.messages);
+		}
 		//The entire request output object
 		setRequestOutput(output);
 		return output;
@@ -161,6 +170,10 @@ function App() {
 									<SignUp />
 								)
 							}
+						/>
+						<Route
+							path="/test-messages"
+							element={<TestMessages />}
 						/>
 						<Route path="*" element={<NotFound404 />} />
 					</Routes>

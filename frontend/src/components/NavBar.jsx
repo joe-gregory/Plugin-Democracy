@@ -28,22 +28,30 @@ import { RequestContext } from "../context/requests-context";
 const signedOutPages = [
 	{
 		text: "Acceder",
-		href: "/login",
+		link: "/login",
 	},
 	{
 		text: "Inscribirse",
-		href: "/signup",
+		link: "/signup",
+	},
+	{
+		text: "Test Messages",
+		link: "/test-messages",
 	},
 ];
 
 const signedInPages = [
 	{
 		text: "Mi Comunidad",
-		href: "/community",
+		link: "/community",
 	},
 	{
 		text: "Crear Propuesta",
-		href: "createproposal",
+		link: "createproposal",
+	},
+	{
+		text: "Test Messages",
+		link: "/test-messages",
 	},
 ];
 
@@ -129,7 +137,7 @@ export default function NavBar() {
 											<MenuItem
 												key={page.text}
 												component={Link}
-												to={page.href}
+												to={page.link}
 												onClick={handleCloseNavMenu}
 											>
 												<Typography textAlign="center">
@@ -141,7 +149,7 @@ export default function NavBar() {
 											<MenuItem
 												key={page.text}
 												component={Link}
-												to={page.href}
+												to={page.link}
 												onClick={handleCloseNavMenu}
 											>
 												<Typography textAlign="center">
@@ -187,7 +195,7 @@ export default function NavBar() {
 								? signedInPages.map((page) => (
 										<Button
 											key={page.text}
-											href={page.href}
+											href={page.link}
 											sx={{
 												my: 2,
 												color: "white",
@@ -200,7 +208,7 @@ export default function NavBar() {
 								: signedOutPages.map((page) => (
 										<Button
 											key={page.text}
-											href={page.href}
+											href={page.link}
 											sx={{
 												my: 2,
 												color: "white",
@@ -220,7 +228,7 @@ export default function NavBar() {
 			</AppBar>
 			{alerts.alertMessages.map((message, index) => (
 				<Message
-					key={index}
+					key={message.uuid}
 					severity={message.severity}
 					message={message.message}
 				/>
