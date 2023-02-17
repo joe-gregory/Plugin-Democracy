@@ -14,7 +14,9 @@ router.post("/login", (request, response, next) => {
 	if (request.isAuthenticated()) {
 		let output = {
 			success: false,
-			messages: [{ type: "info", message: "User is already signed in" }],
+			messages: [
+				{ severity: "info", message: "User is already signed in" },
+			],
 			where: "post: login",
 		};
 		response.json({ ...output });
@@ -28,7 +30,7 @@ router.post("/login", (request, response, next) => {
 
 		if (error) {
 			output.success = false;
-			output.messages.push({ type: "error", message: error.message });
+			output.messages.push({ severity: "error", message: error.message });
 			console.log(output);
 			response.status(401).json(output);
 		}
@@ -36,7 +38,7 @@ router.post("/login", (request, response, next) => {
 			request.login(citizen, (error) => {
 				if (error) {
 					output.messages.push({
-						type: "error",
+						severity: "error",
 						message: error.message,
 					});
 				}
@@ -63,11 +65,13 @@ router.post("/logout", (request, response) => {
 	request.logout((error) => {
 		if (error) {
 			output.success = false;
-			output.messages = [{ type: "error", message: error.message }];
+			output.messages = [{ severity: "error", message: error.message }];
 			output.authenticated = request.isAuthenticated();
 		} else {
 			output.success = true;
-			output.messages = [{ type: "success", message: "Sesión cerrada " }];
+			output.messages = [
+				{ severity: "success", message: "Sesión cerrada " },
+			];
 			output.authenticated = request.isAuthenticated();
 		}
 		console.log("logged out output : ", output);

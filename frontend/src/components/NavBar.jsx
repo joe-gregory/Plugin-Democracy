@@ -50,6 +50,7 @@ const signedInPages = [
 export default function NavBar() {
 	const auth = React.useContext(AuthContext);
 	const [anchorElNav, setAnchorElNav] = React.useState(null);
+	const alerts = React.useContext(AlertContext);
 
 	const handleOpenNavMenu = (event) => {
 		setAnchorElNav(event.currentTarget);
@@ -217,7 +218,13 @@ export default function NavBar() {
 					</Toolbar>
 				</Container>
 			</AppBar>
-			<Messages />
+			{alerts.alertMessages.map((message, index) => (
+				<Message
+					key={index}
+					severity={message.severity}
+					message={message.message}
+				/>
+			))}
 		</>
 	);
 }
@@ -274,18 +281,14 @@ function CitizenBubble() {
 	);
 }
 
-function Messages() {
+function Message({ severity, message }) {
 	const [open, setOpen] = React.useState(true);
-	const alerts = React.useContext(AlertContext);
-
-	let result = <></>;
-
-	React.useEffect(() => {}, [alerts.alertMessages]);
 
 	return (
 		<Box sx={{ width: "100%" }}>
 			<Collapse in={open}>
 				<Alert
+					severity={severity}
 					action={
 						<IconButton
 							aria-label="close"
@@ -300,7 +303,7 @@ function Messages() {
 					}
 					sx={{ mb: 2 }}
 				>
-					Close me!
+					{message}
 				</Alert>
 			</Collapse>
 		</Box>

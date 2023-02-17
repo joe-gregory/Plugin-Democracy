@@ -2,7 +2,7 @@
 import CssBaseline from "@mui/material/CssBaseline";
 
 //React
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 //Routes
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -68,6 +68,7 @@ function App() {
 		const url = domain + subdirectory;
 
 		let output = {};
+		output.messages = [];
 		try {
 			const response = await fetch(url, {
 				method: method,

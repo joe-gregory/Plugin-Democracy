@@ -100,7 +100,7 @@ passport.use(
 					//if there's an error in db lookup, return err callback
 					if (error) {
 						info.messages.push({
-							type: "error",
+							severity: "error",
 							message: error.message,
 						});
 						return done(error, false, info);
@@ -108,7 +108,7 @@ passport.use(
 					//if user not found, return null and false in callback
 					else if (!citizen) {
 						info.messages.push({
-							type: "error",
+							severity: "error",
 							message:
 								"No hay ciudadano registrado con este correo",
 						});
@@ -117,7 +117,7 @@ passport.use(
 					//if user found, but password not valid, return err and false in callback
 					else if (password != citizen.password) {
 						info.messages.push({
-							type: "error",
+							severity: "error",
 							message: "Contraseña equivocada",
 						});
 						return done(null, false, info);
@@ -126,13 +126,13 @@ passport.use(
 					else if (password == citizen.password) {
 						info.success = true;
 						info.messages.push({
-							type: "success",
+							severity: "success",
 							message: "Ciudadano autenticado",
 						});
 						return done(null, citizen, info);
 					} else {
 						info.messages.push({
-							type: "error",
+							severity: "error",
 							message: "Check passport.use localStrategy",
 						});
 						return done(null, false, info);
