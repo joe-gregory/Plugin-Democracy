@@ -29,14 +29,14 @@ import { RequestContext } from "./context/requests-context";
 import { v4 as uuid } from "uuid";
 
 function App() {
-	const [isLoggedIn, setIsLoggedIn] = useState(false);
+	const [authenticated, setAuthenticated] = useState(false);
 	const [alertMessages, setAlertMessages] = useState([]);
 	const [requestOutput, setRequestOutput] = useState({});
 
 	useEffect(() => {
 		async function getSession() {
 			const output = await request("get", "/session-status");
-			output.authenticated ? setIsLoggedIn(true) : setIsLoggedIn(false);
+			output.authenticated ? setAuthenticated(true) : setAuthenticated(false);
 			console.log("app initial authenticated: ", output.authenticated);
 		}
 		getSession();
@@ -44,11 +44,11 @@ function App() {
 
 	//AuthContext
 	const login = () => {
-		setIsLoggedIn(true);
+		setAuthenticated(true);
 	};
 
 	const logout = () => {
-		setIsLoggedIn(false);
+		setAuthenticated(false);
 	};
 
 	//AlertMessages
@@ -68,7 +68,7 @@ function App() {
 		if (subdirectory[0] !== "/") subdirectory = "/" + subdirectory;
 		let methods = ["get", "post"];
 		if (!methods.includes(method)) throw new Error("Unknown http method");
-		const domain = "https://192.168.1.68:8080";
+		const domain = "https://localhost:8080";
 		const url = domain + subdirectory;
 
 		let output = {};
@@ -88,14 +88,14 @@ function App() {
 			console.log("output in request in app: ", output);
 		} catch (error) {
 			output.success = false;
-			output.messages.push({ type: "error", message: error.message });
+			output.messages.push({ severity: "error", message: error.message });
 		}
 
 		//Desmenuzando output. Rerouting output
-		//isLoggedIn status
+		//authenticated status
 		output.authenticated === true
-			? setIsLoggedIn(true)
-			: setIsLoggedIn(false);
+			? setAuthenticated(true)
+			: setAuthenticated(false);
 		//NavBar alert messages
 		if (output.messages) {
 			for (let i = 0; i < output.messages.length; i++) {
@@ -123,7 +123,7 @@ function App() {
 			>
 				<AuthContext.Provider
 					value={{
-						isLoggedIn: isLoggedIn,
+						authenticated: authenticated,
 						login: login,
 						logout: logout,
 					}}
@@ -144,7 +144,7 @@ function App() {
 						<Route
 							path="/community"
 							element={
-								isLoggedIn ? (
+								authenticated ? (
 									<Community />
 								) : (
 									<Navigate to="/login" />
@@ -154,7 +154,7 @@ function App() {
 						<Route
 							path="/login"
 							element={
-								isLoggedIn ? (
+								authenticated ? (
 									<Navigate to="/community" />
 								) : (
 									<LogIn />
@@ -164,7 +164,7 @@ function App() {
 						<Route
 							path="/signup"
 							element={
-								isLoggedIn ? (
+								authenticated ? (
 									<Navigate to="/community" />
 								) : (
 									<SignUp />

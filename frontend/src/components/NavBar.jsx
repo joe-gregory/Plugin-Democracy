@@ -132,7 +132,7 @@ export default function NavBar() {
 								}}
 							>
 								{/*Hamburger Menu Pages*/}
-								{auth.isLoggedIn
+								{auth.authenticated
 									? signedInPages.map((page) => (
 											<MenuItem
 												key={page.text}
@@ -191,7 +191,7 @@ export default function NavBar() {
 							}}
 						>
 							{/*Pages that show on top bar NOT in hamburger*/}
-							{auth.isLoggedIn
+							{auth.authenticated
 								? signedInPages.map((page) => (
 										<Button
 											key={page.text}
@@ -221,7 +221,7 @@ export default function NavBar() {
 						</Box>{" "}
 						{/*End box for when Navbar is NOT compressed*/}
 						{/* User Menu Box begin*/}
-						{auth.isLoggedIn ? <CitizenBubble /> : ""}
+						{auth.authenticated ? <CitizenBubble /> : ""}
 						{/*End user menu Box*/}
 					</Toolbar>
 				</Container>
