@@ -29,7 +29,7 @@ export default function Home() {
 				Authenticated: {data.authenticated.toString()}
 			</Typography>
 			<Typography>
-				Auth.isLoggedIn: {auth.isLoggedIn.toString()}
+				Auth.isLoggedIn: {auth.authenticated.toString()}
 			</Typography>
 		</Container>
 	);

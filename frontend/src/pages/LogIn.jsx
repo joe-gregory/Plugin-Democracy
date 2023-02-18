@@ -14,6 +14,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 
 import { RequestContext } from "../context/requests-context";
 
+import Copyright from "../components/Copyright";
+
 export default function LogIn() {
 	const [loading, setLoading] = React.useState(false);
 
@@ -99,7 +101,7 @@ export default function LogIn() {
 						</Grid>
 						<Grid item>
 							<Link href="/signup" variant="body2">
-								{"¿No tienes cuenta? Registrate"}
+								{"¿No tienes cuenta? Registrate aqui"}
 							</Link>
 						</Grid>
 					</Grid>
@@ -107,23 +109,5 @@ export default function LogIn() {
 			</Box>
 			<Copyright sx={{ mt: 8, mb: 4 }} />
 		</Container>
-	);
-}
-
-function Copyright(props) {
-	return (
-		<Typography
-			variant="body2"
-			color="text.secondary"
-			align="center"
-			{...props}
-		>
-			{"Copyright © "}
-			<Link color="inherit" href="/">
-				Plugin Democracy
-			</Link>{" "}
-			{new Date().getFullYear()}
-			{"."}
-		</Typography>
 	);
 }

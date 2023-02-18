@@ -31,7 +31,7 @@ const signedOutPages = [
 		link: "/login",
 	},
 	{
-		text: "Inscribirse",
+		text: "Inscribete",
 		link: "/signup",
 	},
 	{

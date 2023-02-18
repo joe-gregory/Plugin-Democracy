@@ -4,15 +4,6 @@ const CommunityModels = require("../models/communityModels");
 
 const passport = require("passport");
 
-router.get("/session-status", (request, response) => {
-	let output = {};
-	console.log("Is Authenticated? ", request.isAuthenticated());
-	request.isAuthenticated()
-		? (output.isAuthenticated = true)
-		: (output.isAuthenticated = false);
-	output.citizen = request.user;
-	response.json(output);
-});
 /* sessionID=s%3AMzIQqK0mPaBJd6nT3Mqiod8awILWU-3t.XoA6OZepfSwEj2%2FX8WIwb4tymQF9NiWWleHI%2FKLlZzM; Path=/; HttpOnly;
 router.post("/login", (request, response, next) => {
 	passport.authenticate("local", (error, citizen) => {
