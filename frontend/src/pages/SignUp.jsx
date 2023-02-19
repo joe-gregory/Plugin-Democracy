@@ -15,6 +15,7 @@ import { RequestContext } from "../context/requests-context";
 import Copyright from "../components/Copyright";
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
 import { MuiTelInput } from "mui-tel-input";
+import DateInput from "../components/DateInput";
 
 export default function SignUp() {
 	const [phoneValue, setPhoneValue] = React.useState("");
@@ -132,14 +133,7 @@ export default function SignUp() {
 							/>
 						</Grid>
 						<Grid item xs={12}>
-							<MuiTelInput
-								id="cellPhone"
-								value={phoneValue}
-								forceCallingCode="true"
-								defaultCountry="MX"
-								onlyCountries={["MX", "US"]}
-								onChange={handlePhoneChange}
-							/>
+							<DateInput />
 						</Grid>
 						{/*<Grid item xs={12}>
 							<FormControlLabel
