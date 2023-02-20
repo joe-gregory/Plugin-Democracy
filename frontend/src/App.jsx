@@ -23,7 +23,7 @@ import TestMessages from "./pages/TestMessages";
 
 //context
 import { AuthContext } from "./context/auth-context";
-import { AlertContext } from "./context/alert-context";
+import { MessagesContext } from "./context/messages-context";
 import { RequestContext } from "./context/requests-context";
 
 import { v4 as uuid } from "uuid";
@@ -36,7 +36,9 @@ function App() {
 	useEffect(() => {
 		async function getSession() {
 			const output = await request("get", "/session-status");
-			output.authenticated ? setAuthenticated(true) : setAuthenticated(false);
+			output.authenticated
+				? setAuthenticated(true)
+				: setAuthenticated(false);
 			console.log("app initial authenticated: ", output.authenticated);
 		}
 		getSession();
@@ -129,55 +131,55 @@ function App() {
 					}}
 				>
 					<AuthChecker />
-					<AlertContext.Provider
+					<MessagesContext.Provider
 						value={{
-							alertMessages: alertMessages,
-							setAlertMessages: setMessages,
-							clearAlertMessages: clearMessages,
+							messages: alertMessages,
+							setMessages: setMessages,
+							clearMessages: clearMessages,
 						}}
 					>
 						<NavBar />
-					</AlertContext.Provider>
 
-					<Routes>
-						<Route path="/" element={<Home />} />
-						<Route
-							path="/community"
-							element={
-								authenticated ? (
-									<Community />
-								) : (
-									<Navigate to="/login" />
-								)
-							}
-						/>
-						<Route
-							path="/login"
-							element={
-								authenticated ? (
-									<Navigate to="/community" />
-								) : (
-									<LogIn />
-								)
-							}
-						/>
-						<Route
-							path="/signup"
-							element={
-								authenticated ? (
-									<Navigate to="/community" />
-								) : (
-									<SignUp />
-								)
-							}
-						/>
-						<Route
-							path="/test-messages"
-							element={<TestMessages />}
-						/>
-						<Route path="*" element={<NotFound404 />} />
-					</Routes>
-					<Footer />
+						<Routes>
+							<Route path="/" element={<Home />} />
+							<Route
+								path="/community"
+								element={
+									authenticated ? (
+										<Community />
+									) : (
+										<Navigate to="/login" />
+									)
+								}
+							/>
+							<Route
+								path="/login"
+								element={
+									authenticated ? (
+										<Navigate to="/community" />
+									) : (
+										<LogIn />
+									)
+								}
+							/>
+							<Route
+								path="/signup"
+								element={
+									authenticated ? (
+										<Navigate to="/community" />
+									) : (
+										<SignUp />
+									)
+								}
+							/>
+							<Route
+								path="/test-messages"
+								element={<TestMessages />}
+							/>
+							<Route path="*" element={<NotFound404 />} />
+						</Routes>
+						<Footer />
+					</MessagesContext.Provider>
 				</AuthContext.Provider>
 			</RequestContext.Provider>
 		</CssBaseline>

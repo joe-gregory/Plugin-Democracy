@@ -22,7 +22,7 @@ import Collapse from "@mui/material/Collapse";
 import CloseIcon from "@mui/icons-material/Close";
 
 import { AuthContext } from "../context/auth-context";
-import { AlertContext } from "../context/alert-context";
+import { MessagesContext } from "../context/messages-context";
 import { RequestContext } from "../context/requests-context";
 
 const signedOutPages = [
@@ -58,7 +58,7 @@ const signedInPages = [
 export default function NavBar() {
 	const auth = React.useContext(AuthContext);
 	const [anchorElNav, setAnchorElNav] = React.useState(null);
-	const alerts = React.useContext(AlertContext);
+	const messages = React.useContext(MessagesContext);
 
 	const handleOpenNavMenu = (event) => {
 		setAnchorElNav(event.currentTarget);
@@ -226,7 +226,7 @@ export default function NavBar() {
 					</Toolbar>
 				</Container>
 			</AppBar>
-			{alerts.alertMessages.map((message, index) => (
+			{messages.messages.map((message, index) => (
 				<Message
 					key={message.uuid}
 					severity={message.severity}

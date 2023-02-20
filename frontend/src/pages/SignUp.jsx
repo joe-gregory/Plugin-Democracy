@@ -14,23 +14,48 @@ import Container from "@mui/material/Container";
 import { RequestContext } from "../context/requests-context";
 import Copyright from "../components/Copyright";
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
-import { MuiTelInput } from "mui-tel-input";
-import DateInput from "../components/DateInput";
+import { MuiTelInput, matchIsValidTel } from "mui-tel-input";
+import { MessagesContext } from "../context/messages-context";
 
 export default function SignUp() {
+	const request = React.useContext(RequestContext);
+	const messages = React.useContext(MessagesContext);
 	const [phoneValue, setPhoneValue] = React.useState("");
+	const [phoneInfo, setPhoneInfo] = React.useState("");
 
 	const handleSubmit = (event) => {
 		event.preventDefault();
 		const data = new FormData(event.currentTarget);
-		console.log({
+		if (!matchIsValidTel(phoneValue)) {
+			messages.setMessages([
+				{
+					key: "1234",
+					severity: "error",
+					message: "Numero de celular invalido",
+				},
+			]);
+		}
+
+		let body = JSON.stringify({
+			firstName: data.get("firstName"),
+			lastName: data.get("lastName"),
+			secondLastName: data.get("secondLastName"),
+			dob: data.get("dob"),
 			email: data.get("email"),
 			password: data.get("password"),
+			confirmPassword: data.get("confirmPassword"),
+			cellPhone:
+				"+" +
+				phoneInfo.countryCallingCode +
+				" " +
+				data.get("cellPhone"),
 		});
+		request.request("post", "signup", body);
 	};
 
 	function handlePhoneChange(newValue, info) {
 		setPhoneValue(newValue);
+		setPhoneInfo(info);
 	}
 
 	return (
@@ -80,7 +105,6 @@ export default function SignUp() {
 						</Grid>
 						<Grid item xs={12} sm={6}>
 							<TextField
-								required
 								fullWidth
 								id="secondLastName"
 								label="Segundo Apellido"
@@ -90,7 +114,9 @@ export default function SignUp() {
 						</Grid>
 						<Grid item xs={12} sm={6}>
 							<TextField
+								required
 								id="dob"
+								name="dob"
 								label="Fecha de Nacimiento"
 								type="date"
 								defaultValue=""
@@ -133,7 +159,17 @@ export default function SignUp() {
 							/>
 						</Grid>
 						<Grid item xs={12}>
-							<DateInput />
+							<MuiTelInput
+								value={phoneValue}
+								forceCallingCode="true"
+								defaultCountry="MX"
+								onlyCountries={["MX", "US"]}
+								onChange={handlePhoneChange}
+								required
+								id="cellPhone"
+								name="cellPhone"
+								helperText="Numero celular requerido"
+							/>
 						</Grid>
 						{/*<Grid item xs={12}>
 							<FormControlLabel

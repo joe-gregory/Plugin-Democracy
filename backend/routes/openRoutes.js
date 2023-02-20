@@ -10,6 +10,16 @@ router.get("/", (request, response) => {
 	response.json(output);
 });
 
+router.get("/session-status", (request, response) => {
+	let output = {};
+	console.log("Is Authenticated? ", request.isAuthenticated());
+	request.isAuthenticated()
+		? (output.authenticated = true)
+		: (output.authenticated = false);
+	output.citizen = request.user;
+	response.json(output);
+});
+
 router.post("/login", (request, response, next) => {
 	if (request.isAuthenticated()) {
 		let output = {
@@ -79,14 +89,8 @@ router.post("/logout", (request, response) => {
 	});
 });
 
-router.get("/session-status", (request, response) => {
-	let output = {};
-	console.log("Is Authenticated? ", request.isAuthenticated());
-	request.isAuthenticated()
-		? (output.authenticated = true)
-		: (output.authenticated = false);
-	output.citizen = request.user;
-	response.json(output);
+router.post("/signup", (request, response, next) => {
+	console.log(request.body);
 });
 
 router.get("/test-messages", (request, response) => {
