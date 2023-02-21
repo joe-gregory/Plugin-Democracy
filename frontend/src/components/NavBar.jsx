@@ -195,7 +195,8 @@ export default function NavBar() {
 								? signedInPages.map((page) => (
 										<Button
 											key={page.text}
-											href={page.link}
+											component={Link}
+											to={page.link}
 											sx={{
 												my: 2,
 												color: "white",
@@ -208,7 +209,8 @@ export default function NavBar() {
 								: signedOutPages.map((page) => (
 										<Button
 											key={page.text}
-											href={page.link}
+											component={Link}
+											to={page.link}
 											sx={{
 												my: 2,
 												color: "white",
@@ -228,7 +230,7 @@ export default function NavBar() {
 			</AppBar>
 			{messages.messages.map((message, index) => (
 				<Message
-					key={message.uuid}
+					key={message.key}
 					severity={message.severity}
 					message={message.message}
 				/>

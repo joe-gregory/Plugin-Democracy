@@ -58,6 +58,51 @@ function App() {
 		setAlertMessages(messages);
 	};
 
+	const returnUUIDMessage = ({ severity = "success", message = "" }) => {
+		let key = uuid();
+		message = {
+			severity: severity,
+			message: message,
+			key: key,
+		};
+		return message;
+	};
+
+	const createAndAddMessage = (messages) => {
+		if (Array.isArray(messages)) {
+			for (let i = 0; i < messages.length; i++) {
+				if (!messages[i].severity) messages[i].severity = "success";
+				if (!messages[i].key) messages[i].key = uuid();
+				if (!messages[i].message) messages[i].message = "";
+			}
+			setAlertMessages([...alertMessages, ...messages]);
+		} else {
+			let message = {
+				severity: messages.severity ? messages.severity : "success",
+				message: messages.message ? messages.message : "",
+				key: messages.key ? messages.key : uuid(),
+			};
+			setAlertMessages([...alertMessages, message]);
+		}
+	};
+
+	const createAndSetMessage = (messages) => {
+		if (Array.isArray(messages)) {
+			for (let i = 0; i < messages.length; i++) {
+				if (!messages[i].severity) messages[i].severity = "success";
+				if (!messages[i].key) messages[i].key = uuid();
+				if (!messages[i].message) messages[i].message = "";
+			}
+			setAlertMessages([...messages]);
+		} else {
+			let message = {
+				severity: messages.severity ? messages.severity : "success",
+				message: messages.message ? messages.message : "",
+				key: messages.key ? messages.key : uuid(),
+			};
+			setAlertMessages([message]);
+		}
+	};
 	const clearMessages = () => {
 		setAlertMessages([]);
 	};
@@ -99,12 +144,8 @@ function App() {
 			? setAuthenticated(true)
 			: setAuthenticated(false);
 		//NavBar alert messages
-		if (output.messages) {
-			for (let i = 0; i < output.messages.length; i++) {
-				output.messages[i].uuid = uuid();
-			}
-			setMessages(output.messages);
-		}
+		if (output.messages) createAndSetMessage(output.messages);
+
 		//The entire request output object
 		setRequestOutput(output);
 		return output;
@@ -135,6 +176,9 @@ function App() {
 						value={{
 							messages: alertMessages,
 							setMessages: setMessages,
+							createAndAddMessage: createAndAddMessage,
+							createAndSetMessage: createAndSetMessage,
+							returnUUIDMessage: returnUUIDMessage,
 							clearMessages: clearMessages,
 						}}
 					>

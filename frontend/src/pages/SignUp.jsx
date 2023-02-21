@@ -26,31 +26,103 @@ export default function SignUp() {
 	const handleSubmit = (event) => {
 		event.preventDefault();
 		const data = new FormData(event.currentTarget);
-		if (!matchIsValidTel(phoneValue)) {
-			messages.setMessages([
-				{
-					key: "1234",
-					severity: "error",
-					message: "Numero de celular invalido",
-				},
-			]);
+
+		//frontend checks
+		let frontEndChecks = true;
+		let formMessages = [];
+
+		if (data.get("firstName") === "") {
+			frontEndChecks = false;
+			formMessages.push({
+				severity: "warning",
+				message: "Falta nombre",
+			});
 		}
 
-		let body = JSON.stringify({
-			firstName: data.get("firstName"),
-			lastName: data.get("lastName"),
-			secondLastName: data.get("secondLastName"),
-			dob: data.get("dob"),
-			email: data.get("email"),
-			password: data.get("password"),
-			confirmPassword: data.get("confirmPassword"),
-			cellPhone:
-				"+" +
-				phoneInfo.countryCallingCode +
-				" " +
-				data.get("cellPhone"),
-		});
-		request.request("post", "signup", body);
+		if (data.get("lastName") === "") {
+			frontEndChecks = false;
+			formMessages.push({
+				severity: "warning",
+				message: "Falta primer apellido",
+			});
+		}
+
+		if (data.get("dob") === "") {
+			frontEndChecks = false;
+			formMessages.push({
+				severity: "warning",
+				message: "Falta fecha de nacimiento",
+			});
+		}
+
+		if (data.get("email") === "") {
+			frontEndChecks = false;
+			formMessages.push({
+				severity: "warning",
+				message: "Falta correo electronico",
+			});
+		}
+
+		if (data.get("password") === "") {
+			frontEndChecks = false;
+			formMessages.push({
+				severity: "warning",
+				message: "Falta contraseña",
+			});
+		}
+
+		if (data.get("confirmPassword") === "") {
+			frontEndChecks = false;
+			formMessages.push({
+				severity: "warning",
+				message: "Falta confirmar contraseña",
+			});
+		}
+
+		if (data.get("password").length < 7) {
+			frontEndChecks = false;
+			formMessages.push({
+				severity: "warning",
+				message: "Contraseña ocupa minimo 7 caracteres",
+			});
+		}
+
+		if (data.get("password") !== data.get("confirmPassword")) {
+			frontEndChecks = false;
+			formMessages.push({
+				severity: "warning",
+				message: "Las contraseñas no coinciden",
+			});
+		}
+
+		if (!matchIsValidTel(phoneValue)) {
+			frontEndChecks = false;
+			formMessages.push({
+				severity: "warning",
+				message: "Numero de celular invalido",
+			});
+		}
+
+		messages.createAndSetMessage(formMessages);
+
+		if (frontEndChecks) {
+			let body = JSON.stringify({
+				firstName: data.get("firstName"),
+				lastName: data.get("lastName"),
+				secondLastName: data.get("secondLastName"),
+				dob: data.get("dob"),
+				email: data.get("email"),
+				password: data.get("password"),
+				confirmPassword: data.get("confirmPassword"),
+				cellPhone:
+					"+" +
+					phoneInfo.countryCallingCode +
+					" " +
+					data.get("cellPhone"),
+			});
+
+			request.request("post", "signup", body);
+		}
 	};
 
 	function handlePhoneChange(newValue, info) {

@@ -3,6 +3,7 @@ const passport = require("passport");
 const session = require("express-session");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const bcrypt = require("bcrypt");
 
 const https = require("https");
 const fs = require("fs");
@@ -10,7 +11,7 @@ const fs = require("fs");
 const localStrategy = require("passport-local").Strategy;
 const CommunityModels = require("./models/communityModels");
 
-const key = require("./keys");
+const keys = require("./keys");
 
 //express app
 const server = express();
@@ -18,7 +19,7 @@ const server = express();
 //MongoDB connection URL
 const dbURI =
 	"mongodb+srv://" +
-	key +
+	keys.mongo_missing_link +
 	"@ddcluster.z8oz5ye.mongodb.net/?retryWrites=true&w=majority";
 
 //https options
@@ -68,7 +69,7 @@ PDserver.use((request, response, next) => {
 server.use(passport.initialize());
 server.use(
 	session({
-		secret: "plugindemocracy",
+		secret: keys.session,
 		name: "sessionID",
 		cookie: {
 			sameSite: "none",
@@ -92,7 +93,7 @@ passport.use(
 			//look up user in DB
 			CommunityModels.Citizen.findOne(
 				{ email: email },
-				(error, citizen) => {
+				async (error, citizen) => {
 					let info = {};
 					info.success = false;
 					info.messages = [];
@@ -115,7 +116,9 @@ passport.use(
 						return done(null, false, info); //error = null, user = false. There is no error but there is no used
 					}
 					//if user found, but password not valid, return err and false in callback
-					else if (password != citizen.password) {
+					else if (
+						!(await bcrypt.compare(password, citizen.password))
+					) {
 						info.messages.push({
 							severity: "error",
 							message: "Contraseña equivocada",
@@ -123,7 +126,7 @@ passport.use(
 						return done(null, false, info);
 					}
 					//if user found and password valid, return user object in callback
-					else if (password == citizen.password) {
+					else if (await bcrypt.compare(password, citizen.password)) {
 						info.success = true;
 						info.messages.push({
 							severity: "success",

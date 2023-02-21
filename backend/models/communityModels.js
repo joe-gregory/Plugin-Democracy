@@ -1398,7 +1398,7 @@ const citizenSchema = new Schema(
 			required: true,
 		},
 
-		cellPhone: String,
+		cellPhone: { type: String, required: true },
 
 		superAdmin: { type: Boolean, default: false },
 
@@ -1448,7 +1448,7 @@ async function createCommunity(communityRequest) {
 		reservedIdentifiers.push(beginningReservedString + i);
 	}
 	//create community
-	let community = new CommunityModels.Community({
+	let community = new Community({
 		name: communityRequest.name,
 		votingUnit: communityRequest.votingUnit,
 		address: communityRequest.address,
@@ -1560,16 +1560,16 @@ async function createCommunity(communityRequest) {
 }
 
 async function createCitizen(user) {
-	let citizen = new CommunityModels.Citizen({
+	let citizen = new Citizen({
 		firstName: user.firstName,
 		lastName: user.lastName,
 		secondLastName: user.secondLastName,
-		dob: Date.now(),
+		dob: user.dob,
 		email: user.email,
 		password: user.password,
-		cellphone: user.cellphone,
+		cellPhone: user.cellPhone,
 	});
-	let result;
+
 	try {
 		await citizen.save();
 		return citizen;

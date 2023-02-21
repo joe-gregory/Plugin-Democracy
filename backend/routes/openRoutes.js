@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
+const CommunityModels = require("../models/communityModels");
+const bcrypt = require("bcrypt"); //hash passwords and compare hashed passwords
 
 router.get("/", (request, response) => {
 	let output = {
@@ -89,8 +91,65 @@ router.post("/logout", (request, response) => {
 	});
 });
 
-router.post("/signup", (request, response, next) => {
+router.post("/signup", async (request, response, next) => {
 	console.log(request.body);
+
+	let output = {};
+	output.messages = [];
+	output.success = true;
+
+	if (request.body.password !== request.body.confirmPassword) {
+		output.messages.push({
+			severity: "error",
+			message: "las contraseñas no coinciden",
+		});
+		output.success = false;
+	}
+
+	if (request.body.password.length < 7) {
+		output.messages.push({
+			severity: "error",
+			message: "Contraseña ocupa minimo 7 caracteres",
+		});
+		output.success = false;
+	}
+
+	//process dob. Incoming format: YYYY-MM-DD
+	const [year, month, day] = request.body.dob.split("-").map(Number);
+	const dobObject = new Date(year, month - 1, day); //months start at zero so need to substract 1
+	if (dobObject > new Date()) {
+		output.success = false;
+		output.messages.push({
+			severity: "error",
+			message: "La fecha no puede ser mayor que hoy",
+		});
+	}
+	//Create citizen
+	if (output.success === true) {
+		try {
+			const hashedPassword = await bcrypt.hash(request.body.password, 10);
+
+			output.citizen = CommunityModels.createCitizen({
+				firstName: request.body.firstName,
+				lastName: request.body.lastName,
+				secondLastName: request.body.secondLastName,
+				dob: dobObject,
+				email: request.body.email,
+				password: hashedPassword,
+				cellPhone: request.body.cellPhone,
+			});
+			output.citizen.password = null;
+			output.messages.push({
+				severity: "success",
+				message: "ciudadano creado exitosamente",
+			});
+		} catch (error) {
+			output.success = false;
+			output.messages.push({ severity: "error", message: error.message });
+		}
+	}
+
+	response.json(output);
 });
 
 router.get("/test-messages", (request, response) => {
