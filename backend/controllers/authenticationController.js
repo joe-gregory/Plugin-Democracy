@@ -138,11 +138,13 @@ const sendConfirmEmail = (request, resposne, next) => {
 	//create jwt based on user ID and on Date.
 	citizenId = request.user._id;
 
-	const signature = jwt.sign({
-		secret: keys.jsonSecret,
-		expiresIn: "1d",
-		_id: request.user._id,
-	});
+	const signature = jwt.sign(
+		{
+			_id: request.user._id,
+		},
+		keys.jsonSecret,
+		{ expiresIn: "1d" }
+	);
 };
 
 module.exports = {
