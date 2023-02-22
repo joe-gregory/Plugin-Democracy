@@ -3,6 +3,7 @@ const CommunityModels = require("../models/communityModels");
 const bcrypt = require("bcrypt"); //hash passwords and compare hashed passwords
 const keys = require("../keys");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 
 const postLogin = (request, response, next) => {
 	if (request.isAuthenticated()) {
@@ -136,19 +137,60 @@ const postSignup = async (request, response, next) => {
 
 const sendConfirmEmail = (request, resposne, next) => {
 	//create jwt based on user ID and on Date.
-	citizenId = request.user._id;
+	let output = {};
 
 	const signature = jwt.sign(
 		{
-			_id: request.user._id,
+			_id: "hola",
 		},
 		keys.jsonSecret,
 		{ expiresIn: "1d" }
+		/*(error, token) => {
+			console.log(token);
+		}*/
 	);
+	console.log("signature: ", signature);
+
+	let transporter = nodemailer.createTransport({
+		service: "gmail",
+		auth: {
+			user: keys.gmailEmail,
+			pass: keys.gmailPassword,
+		},
+	});
+
+	mailOptions = {
+		from: "contacto@plugindemocracy.com",
+		to: "joe@gummilabs.com",
+		subject: "Verifique su correo para Democracia Conectada",
+		html: `<h2>¡Hola!</h2>
+        <p>Gracias por unirte a Democracia Conectada. Somos una organizacion con el gol de convertir nuestra
+        sociedad en una verdadera democracia. Nuestra plataforma permite a las 
+        comunidades operar como democracias directas. Estamos entusiasmados de que te hayas 
+        unido a nuestra comunidad de ciudadanos comprometidos con la construcción de una 
+        sociedad 100% democrática.</p>
+        <p>Para comenzar a utilizar la plataforma, por favor verifica tu correo electrónico haciendo click en el enlace a continuación:</p>
+        <a href = "https://192.168.1.68:8080/verifyemail/${signature}">Da click aqui</a><br/>
+        <p>Si por alguna razón tienes problemas para verificar tu correo, por favor no 
+        dudes en contactarnos a través de <a href="mailto:contact@plugindemocracy.com">contacto@plugindemocracy.com</a> 
+        y te ayudaremos de inmediato.</p>
+        <p>¡Gracias de nuevo por unirte a Democracia Conectada! 
+        Estamos ansiosos de trabajar contigo en la construcción de una 
+        sociedad transparente y participativa.</p>`,
+	};
+
+	transporter.sendMail(mailOptions, function (error, info) {
+		if (error) {
+			console.log(error);
+		} else {
+			console.log(info);
+		}
+	});
 };
 
 module.exports = {
 	postLogin,
 	postLogout,
 	postSignup,
+	sendConfirmEmail,
 };
