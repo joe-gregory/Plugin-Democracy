@@ -33,7 +33,7 @@ import { v4 as uuid } from "uuid";
 
 function App() {
 	const [authenticated, setAuthenticated] = useState(false);
-	const [confirmedEmail, setConfirmedEmail] = useState(false);
+	const [emailConfirm, setEmailConfirm] = useState(false);
 	const [alertMessages, setAlertMessages] = useState([]);
 
 	useEffect(() => {
@@ -63,11 +63,11 @@ function App() {
 
 	//ConfirmEmailContext
 	const confirmEmail = () => {
-		setConfirmedEmail(true);
+		setEmailConfirm(true);
 	};
 
 	const unconfirmEmail = () => {
-		setConfirmedEmail(false);
+		setEmailConfirm(false);
 	};
 
 	const returnUUIDMessage = ({ severity = "success", message = "" }) => {
@@ -123,7 +123,7 @@ function App() {
 	async function request(method = "get", subdirectory = "/", body) {
 		//fetches and returns json response
 		method = method.toLowerCase();
-		subdirectory = subdirectory.toLowerCase();
+		//subdirectory = subdirectory.toLowerCase();
 		if (subdirectory[0] !== "/") subdirectory = "/" + subdirectory;
 		let methods = ["get", "post"];
 		if (!methods.includes(method)) throw new Error("Unknown http method");
@@ -152,8 +152,12 @@ function App() {
 		}
 
 		//Desmenuzando output. Rerouting output
+		if (output.authenticated === true) login();
+		else if (output.authenticated === false) logout();
+		if (output.emailConfirm === true) confirmEmail();
+		else if (output.emailConfirm === false) unconfirmEmail();
 		//NavBar alert messages
-		if (output.messages) createAndSetMessage(output.messages);
+		if (output.messages) createAndAddMessage(output.messages);
 
 		//The entire request output object
 		return output;
@@ -171,7 +175,7 @@ function App() {
 				>
 					<EmailConfirmContext.Provider
 						value={{
-							emailConfirm: confirmedEmail,
+							emailConfirm: emailConfirm,
 							confirmEmail: confirmEmail,
 							unconfirmEmail: unconfirmEmail,
 						}}
@@ -193,9 +197,9 @@ function App() {
 								<Route
 									path="/community"
 									element={
-										authenticated && confirmedEmail ? (
+										authenticated && emailConfirm ? (
 											<Community />
-										) : authenticated && !confirmedEmail ? (
+										) : authenticated && !emailConfirm ? (
 											<Navigate to="/account" />
 										) : (
 											<Navigate to="/login" />
@@ -205,9 +209,9 @@ function App() {
 								<Route
 									path="/login"
 									element={
-										authenticated && confirmedEmail ? (
+										authenticated && emailConfirm ? (
 											<Navigate to="/community" />
-										) : authenticated && !confirmedEmail ? (
+										) : authenticated && !emailConfirm ? (
 											<Navigate to="/account" />
 										) : (
 											<LogIn />
@@ -217,9 +221,9 @@ function App() {
 								<Route
 									path="/signup"
 									element={
-										authenticated && confirmedEmail ? (
+										authenticated && emailConfirm ? (
 											<Navigate to="/community" />
-										) : authenticated && !confirmedEmail ? (
+										) : authenticated && !emailConfirm ? (
 											<Navigate to="/account" />
 										) : (
 											<SignUp />
@@ -227,10 +231,19 @@ function App() {
 									}
 								/>
 								<Route
-									path="/verifyemail/:jwt"
+									path="/verifyemail"
 									element={<VerifyEmail />}
 								/>
-								<Route path="/account" element={<Account />} />
+								<Route
+									path="/account"
+									element={
+										authenticated ? (
+											<Account />
+										) : (
+											<Navigate to="/login" />
+										)
+									}
+								/>
 								<Route
 									path="/test-messages"
 									element={<TestMessages />}

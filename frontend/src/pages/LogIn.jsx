@@ -31,7 +31,6 @@ export default function LogIn() {
 			password: data.get("password"),
 		});
 		request.request("post", "login", body);
-		//if (request.output.authenticated === true) auth.login();
 		setLoading(false);
 	};
 

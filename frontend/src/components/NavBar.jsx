@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 
 import { Link } from "react-router-dom";
 
@@ -47,7 +48,12 @@ const signedInPages = [
 	},
 	{
 		text: "Crear Propuesta",
-		link: "createproposal",
+		link: "/createproposal",
+	},
+
+	{
+		text: "Cuenta",
+		link: "/account",
 	},
 	{
 		text: "Test Messages",
@@ -243,6 +249,7 @@ function CitizenBubble() {
 	const [anchorElUser, setAnchorElUser] = React.useState(null);
 	//const auth = React.useContext(AuthContext);
 	const request = React.useContext(RequestContext);
+	const navigate = useNavigate();
 
 	const handleOpenUserMenu = (event) => {
 		setAnchorElUser(event.currentTarget);
@@ -252,6 +259,10 @@ function CitizenBubble() {
 		setAnchorElUser(null);
 	};
 
+	function account() {
+		handleCloseUserMenu();
+		navigate("/account");
+	}
 	function logout() {
 		handleCloseUserMenu();
 		request.request("post", "logout");
@@ -280,8 +291,8 @@ function CitizenBubble() {
 				open={Boolean(anchorElUser)}
 				onClose={handleCloseUserMenu}
 			>
-				<MenuItem key={"Perfil"} onClick={handleCloseUserMenu}>
-					<Typography textAlign="center">Perfil</Typography>
+				<MenuItem key={"Perfil"} onClick={account}>
+					<Typography textAlign="center">Cuenta</Typography>
 				</MenuItem>
 				<MenuItem key="Cerrar sesion" onClick={logout}>
 					<Typography textAlign="center">Cerrar sesión</Typography>

@@ -1,9 +1,8 @@
-import { useParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 import { useState, useContext, useEffect } from "react";
 
 import { RequestContext } from "../context/requests-context";
-import { EmailConfirmContext } from "../context/confirmed-email-context";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -12,18 +11,19 @@ import Avatar from "@mui/material/Avatar";
 import CheckIcon from "@mui/icons-material/Check";
 
 export default function VerifyEmail() {
-	const { jwt } = useParams();
+	const [searchParams] = useSearchParams();
+	const jwt = searchParams.get("jwt");
 	const [confirmed, setConfirmed] = useState(false);
 	const request = useContext(RequestContext);
-	const emailConfirm = useContext(EmailConfirmContext);
+	const navigate = useNavigate();
 
 	useEffect(() => {
-		let output = request.request("get", `/verifyemail/${jwt}`);
+		let output = request.request("get", `/verifyemail?jwt=${jwt}`);
 		if (output.success === true) {
-			emailConfirm.confirmEmail();
-			request.request("get", "/logout");
 			setConfirmed(true);
 		}
+		request.request("post", "/logout");
+		navigate("/login");
 	}, []);
 
 	return (

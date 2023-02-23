@@ -15,7 +15,7 @@ const logIn = (request, response, next) => {
 			],
 			where: "post: login",
 		};
-		response.json({ ...output });
+		return response.json(output);
 	}
 
 	passport.authenticate("local", (error, citizen, info) => {
@@ -28,8 +28,7 @@ const logIn = (request, response, next) => {
 		if (error) {
 			output.success = false;
 			output.messages.push({ severity: "error", message: error.message });
-			console.log(output);
-			response.status(401).json(output);
+			return response.status(401).json(output);
 		}
 		if (citizen) {
 			request.login(citizen, (error) => {
@@ -40,19 +39,19 @@ const logIn = (request, response, next) => {
 					});
 				}
 				output.authenticated = request.isAuthenticated();
+				output.emailConfirm = citizen.emailConfirm;
 				citizen.password = null;
 				output.emailConfirm = citizen.emailConfirm;
-				response.json({ ...output });
+				return response.json(output);
 			});
 		} else {
 			output.success = false;
-			response.json({ ...output });
+			return response.json(output);
 		}
 	})(request, response, next);
 };
 
 const logOut = (request, response) => {
-	console.log("logging out ", request.user._id);
 	let output = {
 		where: "post: /logout",
 	};
@@ -67,8 +66,8 @@ const logOut = (request, response) => {
 				{ severity: "success", message: "Sesión cerrada " },
 			];
 			output.authenticated = request.isAuthenticated();
+			output.emailConfirm = false;
 		}
-		console.log("logged out output : ", output);
 		response.json(output);
 	});
 };
@@ -173,15 +172,13 @@ const sendConfirmEmail = (citizen) => {
 		messages: [],
 	};
 
-	const signature = jwt.sign(
+	const token = jwt.sign(
 		{
 			_id: citizen._id,
 		},
 		keys.jwtSecret,
 		{ expiresIn: "1d" }
 	);
-
-	encodedSignature = base64url.encode(signature);
 
 	let transporter = nodemailer.createTransport({
 		service: "gmail",
@@ -202,7 +199,7 @@ const sendConfirmEmail = (citizen) => {
         unido a nuestra comunidad de ciudadanos comprometidos con la construcción de una 
         sociedad 100% democrática.</p>
         <p>Para comenzar a utilizar la plataforma, por favor verifica tu correo electrónico haciendo click en el enlace a continuación:</p>
-        <a href = "https://192.168.1.68:5173/verifyemail/${encodedSignature}">Da click aqui</a><i>  Enlace expira en un dia</i><br/>
+        <a href = "https://192.168.1.68:5173/verifyemail?jwt=${token}">Da click aqui</a><i>  Enlace expira en un dia</i><br/>
         <p>Si por alguna razón tienes problemas para verificar tu correo, por favor no 
         dudes en contactarnos a través de <a href="mailto:contact@plugindemocracy.com">contacto@plugindemocracy.com</a> 
         y te ayudaremos de inmediato.</p>
@@ -231,9 +228,7 @@ const sendConfirmEmail = (citizen) => {
 const confirmEmail = (request, response) => {
 	let output = { success: false, messages: [] };
 
-	const undecodedToken = request.params.jwt;
-
-	const token = base64url.decode(undecodedToken);
+	const token = request.query.jwt;
 
 	const verifiedToken = jwt.verify(token, keys.jwtSecret);
 
@@ -256,7 +251,15 @@ const confirmEmail = (request, response) => {
 			});
 			return response.json(output);
 		}
-
+		//Message if citizen is already confirmed. During development reacts seems to run hook twice so this shows always
+		/*if (citizen.emailConfirm === true) {
+			output.success = false;
+			output.messages.push({
+				severity: "info",
+				message: "Este correo ya esta validado",
+			});
+			return response.json(output);
+		}*/
 		citizen.emailConfirm = true;
 
 		try {
@@ -267,16 +270,16 @@ const confirmEmail = (request, response) => {
 				severity: "error",
 				message: error.message,
 			});
+
 			return response.json(output);
 		}
 
+		output.emailConfirm = true;
 		output.success = true;
 		output.messages.push({
 			severity: "success",
 			message: "Correo electronico confirmado",
 		});
-		output.citizen = citizen;
-		output.citizen.password = null;
 
 		response.json(output);
 	});

@@ -29,6 +29,8 @@ router.post("/logout", authentication.logOut);
 
 router.post("/signup", authentication.signUp);
 
+router.get("/verifyemail", authentication.confirmEmail);
+
 router.get("/test-messages", (request, response) => {
 	let severities = ["success", "error", "warning", "info"];
 	let messages = [];
