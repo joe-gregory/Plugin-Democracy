@@ -147,8 +147,6 @@ passport.use(
 );
 //serializeUser function. This function stores a cookie inside of the browser
 passport.serializeUser((citizen, cb) => {
-	console.log("serializing");
-	console.log(citizen);
 	return cb(null, { id: citizen._id });
 });
 
@@ -156,9 +154,7 @@ passport.serializeUser((citizen, cb) => {
 passport.deserializeUser((citizen, done) => {
 	CommunityModels.Citizen.findById(citizen.id, function (err, citizen) {
 		if (err) return done(err);
-		console.log("deserializedUser: ");
 		citizen.password = null;
-		console.log(citizen);
 		done(null, citizen); //no error, citizen
 	});
 });
@@ -193,6 +189,8 @@ server.use(
 //routes
 const openRoutes = require("./routes/openRoutes");
 server.use(openRoutes);
+const closedRoutes = require("./routes/closedRoutes");
+server.use(closedRoutes);
 
 /*
 PDserver.use(myCommunityRoutes);

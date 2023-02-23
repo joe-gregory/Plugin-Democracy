@@ -16,7 +16,6 @@ export default function Home() {
 			const output = await response.json();
 			console.log("Home Auth: ", output.authenticated);
 			setData(output);
-			//if (output.authenticated === true) auth.login();
 		}
 
 		fetchData();

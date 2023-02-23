@@ -12,19 +12,22 @@ router.get("/", (request, response) => {
 
 router.get("/session-status", (request, response) => {
 	let output = {};
-	console.log("Is Authenticated? ", request.isAuthenticated());
+
 	request.isAuthenticated()
 		? (output.authenticated = true)
 		: (output.authenticated = false);
-	output.citizen = request.user;
+
+	if (request.user) output.emailConfirm = request.user.emailConfirm;
+	else output.emailConfirm = false;
+
 	response.json(output);
 });
 
-router.post("/login", authentication.postLogin);
+router.post("/login", authentication.logIn);
 
-router.post("/logout", authentication.postLogout);
+router.post("/logout", authentication.logOut);
 
-router.post("/signup", authentication.postSignup);
+router.post("/signup", authentication.signUp);
 
 router.get("/test-messages", (request, response) => {
 	let severities = ["success", "error", "warning", "info"];

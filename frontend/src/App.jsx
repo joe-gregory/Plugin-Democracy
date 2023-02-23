@@ -17,6 +17,8 @@ import Home from "./pages/Home";
 import Community from "./pages/Community";
 import LogIn from "./pages/LogIn";
 import SignUp from "./pages/SignUp";
+import VerifyEmail from "./pages/VerifyEmail";
+import Account from "./pages/Account";
 import NotFound404 from "./pages/NotFound404";
 
 import TestMessages from "./pages/TestMessages";
@@ -25,13 +27,14 @@ import TestMessages from "./pages/TestMessages";
 import { AuthContext } from "./context/auth-context";
 import { MessagesContext } from "./context/messages-context";
 import { RequestContext } from "./context/requests-context";
+import { EmailConfirmContext } from "./context/confirmed-email-context";
 
 import { v4 as uuid } from "uuid";
 
 function App() {
 	const [authenticated, setAuthenticated] = useState(false);
+	const [confirmedEmail, setConfirmedEmail] = useState(false);
 	const [alertMessages, setAlertMessages] = useState([]);
-	const [requestOutput, setRequestOutput] = useState({});
 
 	useEffect(() => {
 		async function getSession() {
@@ -56,6 +59,15 @@ function App() {
 	//AlertMessages
 	const setMessages = (messages) => {
 		setAlertMessages(messages);
+	};
+
+	//ConfirmEmailContext
+	const confirmEmail = () => {
+		setConfirmedEmail(true);
+	};
+
+	const unconfirmEmail = () => {
+		setConfirmedEmail(false);
 	};
 
 	const returnUUIDMessage = ({ severity = "success", message = "" }) => {
@@ -120,6 +132,7 @@ function App() {
 
 		let output = {};
 		output.messages = [];
+
 		try {
 			const response = await fetch(url, {
 				method: method,
@@ -132,38 +145,23 @@ function App() {
 			});
 
 			output = await response.json();
-			console.log("output in request in app: ", output);
+			console.log("App.jsx output of request: ", output);
 		} catch (error) {
 			output.success = false;
 			output.messages.push({ severity: "error", message: error.message });
 		}
 
 		//Desmenuzando output. Rerouting output
-		//authenticated status
-		output.authenticated === true
-			? setAuthenticated(true)
-			: setAuthenticated(false);
 		//NavBar alert messages
 		if (output.messages) createAndSetMessage(output.messages);
 
 		//The entire request output object
-		setRequestOutput(output);
 		return output;
 	}
 
-	const clearRequestOutput = () => {
-		setRequestOutput({});
-	};
-
 	return (
 		<CssBaseline>
-			<RequestContext.Provider
-				value={{
-					output: requestOutput,
-					request: request,
-					clearOutput: clearRequestOutput,
-				}}
-			>
+			<RequestContext.Provider value={{ request: request }}>
 				<AuthContext.Provider
 					value={{
 						authenticated: authenticated,
@@ -171,59 +169,77 @@ function App() {
 						logout: logout,
 					}}
 				>
-					<AuthChecker />
-					<MessagesContext.Provider
+					<EmailConfirmContext.Provider
 						value={{
-							messages: alertMessages,
-							setMessages: setMessages,
-							createAndAddMessage: createAndAddMessage,
-							createAndSetMessage: createAndSetMessage,
-							returnUUIDMessage: returnUUIDMessage,
-							clearMessages: clearMessages,
+							emailConfirm: confirmedEmail,
+							confirmEmail: confirmEmail,
+							unconfirmEmail: unconfirmEmail,
 						}}
 					>
-						<NavBar />
-
-						<Routes>
-							<Route path="/" element={<Home />} />
-							<Route
-								path="/community"
-								element={
-									authenticated ? (
-										<Community />
-									) : (
-										<Navigate to="/login" />
-									)
-								}
-							/>
-							<Route
-								path="/login"
-								element={
-									authenticated ? (
-										<Navigate to="/community" />
-									) : (
-										<LogIn />
-									)
-								}
-							/>
-							<Route
-								path="/signup"
-								element={
-									authenticated ? (
-										<Navigate to="/community" />
-									) : (
-										<SignUp />
-									)
-								}
-							/>
-							<Route
-								path="/test-messages"
-								element={<TestMessages />}
-							/>
-							<Route path="*" element={<NotFound404 />} />
-						</Routes>
-						<Footer />
-					</MessagesContext.Provider>
+						<AuthChecker />
+						<MessagesContext.Provider
+							value={{
+								messages: alertMessages,
+								setMessages: setMessages,
+								createAndAddMessage: createAndAddMessage,
+								createAndSetMessage: createAndSetMessage,
+								returnUUIDMessage: returnUUIDMessage,
+								clearMessages: clearMessages,
+							}}
+						>
+							<NavBar />
+							<Routes>
+								<Route path="/" element={<Home />} />
+								<Route
+									path="/community"
+									element={
+										authenticated && confirmedEmail ? (
+											<Community />
+										) : authenticated && !confirmedEmail ? (
+											<Navigate to="/account" />
+										) : (
+											<Navigate to="/login" />
+										)
+									}
+								/>
+								<Route
+									path="/login"
+									element={
+										authenticated && confirmedEmail ? (
+											<Navigate to="/community" />
+										) : authenticated && !confirmedEmail ? (
+											<Navigate to="/account" />
+										) : (
+											<LogIn />
+										)
+									}
+								/>
+								<Route
+									path="/signup"
+									element={
+										authenticated && confirmedEmail ? (
+											<Navigate to="/community" />
+										) : authenticated && !confirmedEmail ? (
+											<Navigate to="/account" />
+										) : (
+											<SignUp />
+										)
+									}
+								/>
+								<Route
+									path="/verifyemail/:jwt"
+									element={<VerifyEmail />}
+								/>
+								<Route path="/account" element={<Account />} />
+								<Route
+									path="/test-messages"
+									element={<TestMessages />}
+								/>
+								<Route path="*" element={<NotFound404 />} />
+							</Routes>
+							<Footer />
+						</MessagesContext.Provider>
+					</EmailConfirmContext.Provider>
 				</AuthContext.Provider>
 			</RequestContext.Provider>
 		</CssBaseline>

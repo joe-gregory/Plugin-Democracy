@@ -10,6 +10,7 @@ import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
+import CircularProgress from "@mui/material/CircularProgress";
 
 import { RequestContext } from "../context/requests-context";
 import Copyright from "../components/Copyright";
@@ -22,8 +23,10 @@ export default function SignUp() {
 	const messages = React.useContext(MessagesContext);
 	const [phoneValue, setPhoneValue] = React.useState("");
 	const [phoneInfo, setPhoneInfo] = React.useState("");
+	const [loading, setLoading] = React.useState(false);
 
 	const handleSubmit = (event) => {
+		setLoading(true);
 		event.preventDefault();
 		const data = new FormData(event.currentTarget);
 
@@ -121,7 +124,7 @@ export default function SignUp() {
 					data.get("cellPhone"),
 			});
 
-			request.request("post", "signup", body);
+			let output = request.request("post", "signup", body);
 		}
 	};
 
@@ -141,9 +144,13 @@ export default function SignUp() {
 					alignItems: "center",
 				}}
 			>
-				<Avatar sx={{ m: 1, bgcolor: "primary.main" }}>
-					<PowerOutlinedIcon />
-				</Avatar>
+				{loading ? (
+					<CircularProgress />
+				) : (
+					<Avatar sx={{ m: 1, bgcolor: "primary.main" }}>
+						<PowerOutlinedIcon />
+					</Avatar>
+				)}
 				<Typography component="h1" variant="h5">
 					Inscríbete
 				</Typography>

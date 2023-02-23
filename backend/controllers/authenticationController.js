@@ -4,8 +4,9 @@ const bcrypt = require("bcrypt"); //hash passwords and compare hashed passwords
 const keys = require("../keys");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const base64url = require("base64url");
 
-const postLogin = (request, response, next) => {
+const logIn = (request, response, next) => {
 	if (request.isAuthenticated()) {
 		let output = {
 			success: false,
@@ -16,6 +17,7 @@ const postLogin = (request, response, next) => {
 		};
 		response.json({ ...output });
 	}
+
 	passport.authenticate("local", (error, citizen, info) => {
 		let output = {};
 		output.where = "post: /login";
@@ -39,10 +41,7 @@ const postLogin = (request, response, next) => {
 				}
 				output.authenticated = request.isAuthenticated();
 				citizen.password = null;
-				output.citizen = citizen;
-				console.log("output from /login: ", output);
-				console.log("Citizen output in /login: ");
-				console.log(citizen);
+				output.emailConfirm = citizen.emailConfirm;
 				response.json({ ...output });
 			});
 		} else {
@@ -52,7 +51,7 @@ const postLogin = (request, response, next) => {
 	})(request, response, next);
 };
 
-const postLogout = (request, response) => {
+const logOut = (request, response) => {
 	console.log("logging out ", request.user._id);
 	let output = {
 		where: "post: /logout",
@@ -74,9 +73,7 @@ const postLogout = (request, response) => {
 	});
 };
 
-const postSignup = async (request, response, next) => {
-	console.log(request.body);
-
+const signUp = async (request, response, next) => {
 	let output = {};
 	output.messages = [];
 	output.success = true;
@@ -107,49 +104,84 @@ const postSignup = async (request, response, next) => {
 			message: "La fecha no puede ser mayor que hoy",
 		});
 	}
-	//Create citizen
-	if (output.success === true) {
-		try {
-			const hashedPassword = await bcrypt.hash(request.body.password, 10);
+	//prechecks failed
+	if (!output.success === true) return response.json(output);
 
-			output.citizen = CommunityModels.createCitizen({
-				firstName: request.body.firstName,
-				lastName: request.body.lastName,
-				secondLastName: request.body.secondLastName,
-				dob: dobObject,
-				email: request.body.email,
-				password: hashedPassword,
-				cellPhone: request.body.cellPhone,
-			});
-			output.citizen.password = null;
-			output.messages.push({
-				severity: "success",
-				message: "ciudadano creado exitosamente",
-			});
-		} catch (error) {
-			output.success = false;
-			output.messages.push({ severity: "error", message: error.message });
-		}
+	//Create citizen
+	const hashedPassword = await bcrypt.hash(request.body.password, 10);
+
+	let createCitizenResult = await CommunityModels.createCitizen({
+		firstName: request.body.firstName,
+		lastName: request.body.lastName,
+		secondLastName: request.body.secondLastName,
+		dob: dobObject,
+		email: request.body.email,
+		password: hashedPassword,
+		cellPhone: request.body.cellPhone,
+	});
+
+	if (createCitizenResult instanceof Error) {
+		output.success = false;
+		output.messages.push({
+			severity: "error",
+			message: createCitizenResult.message,
+		});
+		return response.json(output);
 	}
 
-	response.json(output);
+	output.success = true;
+	output.messages.push({
+		severity: "success",
+		message: "ciudadano creado exitosamente",
+	});
+
+	//login user
+	try {
+		request.login(createCitizenResult, (error) => {
+			if (error) {
+				output.messages.push({
+					severity: "error",
+					message:
+						"Unable to login user after signup. " + error.message,
+				});
+			}
+			output.messages.push({
+				severity: "info",
+				message: "Sesión iniciada",
+			});
+			output.authenticated = request.isAuthenticated();
+
+			let confirmOutput = sendConfirmEmail(request.user);
+			for (let message of confirmOutput.messages)
+				output.messages.push(message);
+
+			response.json(output);
+		});
+	} catch (error) {
+		output.messages.push({
+			severity: "error",
+			message: error.message,
+		});
+	}
 };
 
-const sendConfirmEmail = (request, resposne, next) => {
+const sendConfirmEmail = (citizen) => {
 	//create jwt based on user ID and on Date.
-	let output = {};
+
+	let output = {
+		success: false,
+		messages: [],
+	};
 
 	const signature = jwt.sign(
 		{
-			_id: "hola",
+			_id: citizen._id,
 		},
-		keys.jsonSecret,
+		keys.jwtSecret,
 		{ expiresIn: "1d" }
-		/*(error, token) => {
-			console.log(token);
-		}*/
 	);
-	console.log("signature: ", signature);
+
+	encodedSignature = base64url.encode(signature);
 
 	let transporter = nodemailer.createTransport({
 		service: "gmail",
@@ -161,7 +193,7 @@ const sendConfirmEmail = (request, resposne, next) => {
 
 	mailOptions = {
 		from: "contacto@plugindemocracy.com",
-		to: "joe@gummilabs.com",
+		to: citizen.email,
 		subject: "Verifique su correo para Democracia Conectada",
 		html: `<h2>¡Hola!</h2>
         <p>Gracias por unirte a Democracia Conectada. Somos una organizacion con el gol de convertir nuestra
@@ -170,7 +202,7 @@ const sendConfirmEmail = (request, resposne, next) => {
         unido a nuestra comunidad de ciudadanos comprometidos con la construcción de una 
         sociedad 100% democrática.</p>
         <p>Para comenzar a utilizar la plataforma, por favor verifica tu correo electrónico haciendo click en el enlace a continuación:</p>
-        <a href = "https://192.168.1.68:8080/verifyemail/${signature}">Da click aqui</a><br/>
+        <a href = "https://192.168.1.68:5173/verifyemail/${encodedSignature}">Da click aqui</a><i>  Enlace expira en un dia</i><br/>
         <p>Si por alguna razón tienes problemas para verificar tu correo, por favor no 
         dudes en contactarnos a través de <a href="mailto:contact@plugindemocracy.com">contacto@plugindemocracy.com</a> 
         y te ayudaremos de inmediato.</p>
@@ -179,18 +211,81 @@ const sendConfirmEmail = (request, resposne, next) => {
         sociedad transparente y participativa.</p>`,
 	};
 
-	transporter.sendMail(mailOptions, function (error, info) {
+	try {
+		transporter.sendMail(mailOptions);
+	} catch (error) {
+		output.success = false;
+		output.messages.push({ severity: "error", message: error.message });
+		return output;
+	}
+	output.success = true;
+	output.messages.push({
+		severity: "info",
+		message:
+			"Favor de seguir el enlace que se le envio al correo que uso para inscribirse para confirmar su cuenta. El link expira en un dia.",
+	});
+
+	return output;
+};
+
+const confirmEmail = (request, response) => {
+	let output = { success: false, messages: [] };
+
+	const undecodedToken = request.params.jwt;
+
+	const token = base64url.decode(undecodedToken);
+
+	const verifiedToken = jwt.verify(token, keys.jwtSecret);
+
+	//check expiration date:
+	if (verifiedToken.exp * 1000 < Date.now()) {
+		output.success = false;
+		output.messages.push({
+			severity: "error",
+			message: "Este enlace ha expirado",
+		});
+		return response.json(output);
+	}
+
+	CommunityModels.Citizen.findById(verifiedToken._id, (error, citizen) => {
 		if (error) {
-			console.log(error);
-		} else {
-			console.log(info);
+			output.success = false;
+			output.messages.push({
+				severity: "error",
+				message: error.message,
+			});
+			return response.json(output);
 		}
+
+		citizen.emailConfirm = true;
+
+		try {
+			citizen.save();
+		} catch (error) {
+			output.success = false;
+			output.messages.push({
+				severity: "error",
+				message: error.message,
+			});
+			return response.json(output);
+		}
+
+		output.success = true;
+		output.messages.push({
+			severity: "success",
+			message: "Correo electronico confirmado",
+		});
+		output.citizen = citizen;
+		output.citizen.password = null;
+
+		response.json(output);
 	});
 };
 
 module.exports = {
-	postLogin,
-	postLogout,
-	postSignup,
+	logIn,
+	logOut,
+	signUp,
 	sendConfirmEmail,
+	confirmEmail,
 };
