@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -10,6 +10,8 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import Button from "@mui/material/Button";
 import Input from "@mui/material/Input";
+
+import { RequestContext } from "../context/requests-context";
 
 export default function Account() {
 	return (
@@ -41,18 +43,10 @@ export default function Account() {
 	);
 }
 
-function ImageDialog() {
-	return (
-		<Dialog open={open} onClose={handleClose}>
-			<DialogTitle>Sube una foto de perfil</DialogTitle>
-			<Input type="file" />
-		</Dialog>
-	);
-}
-
 function ProfilePicture() {
 	const [open, setOpen] = useState(false);
 	const [file, setFile] = useState(null);
+	const request = useContext(RequestContext);
 
 	const handleClickOpen = () => {
 		setOpen(true);
@@ -60,6 +54,33 @@ function ProfilePicture() {
 
 	const handleClose = () => {
 		setOpen(false);
+	};
+
+	const handleFileChange = (event) => {
+		console.log("IN HANDLE FILE CHANGE");
+		if (event.target.files[0]) {
+			setFile(event.target.files[0]);
+		}
+	};
+
+	const handleUploadClick = async (event) => {
+		event.preventDefault();
+
+		if (!file) {
+			console.log("NO FILE");
+			return;
+		}
+		console.log("FILE: ", file);
+
+		const formData = new FormData();
+		formData.append("profilePicture", file);
+
+		let output = await request.request(
+			"post",
+			"/profilepicture",
+			{},
+			formData
+		);
 	};
 
 	return (
@@ -82,7 +103,12 @@ function ProfilePicture() {
 			</Button>
 			<Dialog open={open} onClose={handleClose}>
 				<DialogTitle>Sube una foto de perfil</DialogTitle>
-				<Input type="file" />
+				<Input
+					type="file"
+					name="profilePicture"
+					onChange={handleFileChange}
+				/>
+				<Button onClick={handleUploadClick}>Subir</Button>
 			</Dialog>
 		</>
 	);

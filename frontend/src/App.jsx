@@ -120,8 +120,16 @@ function App() {
 	};
 
 	//RequestContext
-	async function request(method = "get", subdirectory = "/", body) {
+	async function request(
+		method = "get",
+		subdirectory = "/",
+		headers = {
+			"Content-Type": "application/json",
+		},
+		body
+	) {
 		//fetches and returns json response
+
 		method = method.toLowerCase();
 		//subdirectory = subdirectory.toLowerCase();
 		if (subdirectory[0] !== "/") subdirectory = "/" + subdirectory;
@@ -136,9 +144,7 @@ function App() {
 		try {
 			const response = await fetch(url, {
 				method: method,
-				headers: {
-					"Content-Type": "application/json",
-				},
+				headers: headers,
 				body: body,
 				mode: "cors",
 				credentials: "include",

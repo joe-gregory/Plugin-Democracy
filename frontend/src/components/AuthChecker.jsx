@@ -13,6 +13,7 @@ export default function AuthChecker(props) {
 		async function checkAuthStatus() {
 			try {
 				const output = await request.request("get", "/session-status");
+
 				if (output.authenticated === true) {
 					auth.login();
 				} else {

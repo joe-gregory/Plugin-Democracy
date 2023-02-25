@@ -56,6 +56,7 @@ server.use(
 		credentials: true,
 	})
 );
+
 //server.use(express.static("public")); //static files
 //flash message middleware
 /*

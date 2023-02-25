@@ -30,7 +30,7 @@ export default function LogIn() {
 			email: data.get("email"),
 			password: data.get("password"),
 		});
-		request.request("post", "login", body);
+		request.request("post", "login", undefined, body);
 		setLoading(false);
 	};
 
