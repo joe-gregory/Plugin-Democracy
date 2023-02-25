@@ -74,6 +74,7 @@ function ProfilePicture() {
 
 		const formData = new FormData();
 		formData.append("profilePicture", file);
+		formData.append("enctype", "multipart/form-data");
 
 		let output = await request.request(
 			"post",

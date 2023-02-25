@@ -29,7 +29,7 @@ export default function AuthChecker(props) {
 			}
 		}
 
-		const checkInterval = setInterval(checkAuthStatus, 5000);
+		const checkInterval = setInterval(checkAuthStatus, 5000000);
 
 		return () => {
 			clearInterval(checkInterval);

@@ -149,12 +149,20 @@ function App() {
 				mode: "cors",
 				credentials: "include",
 			});
-
-			output = await response.json();
-			console.log("App.jsx output of request: ", output);
+			output = response;
 		} catch (error) {
 			output.success = false;
-			output.messages.push({ severity: "error", message: error.message });
+			output.messages.push({
+				severity: "error",
+				message: "Error in fetch at app.jsx: " + error.message,
+			});
+			console.log(error);
+		}
+		try {
+			output = await output.json();
+			console.log("App.jsx output of request: ", output);
+		} catch (error) {
+			console.log("error converting to Json. ", error);
 		}
 
 		//Desmenuzando output. Rerouting output
