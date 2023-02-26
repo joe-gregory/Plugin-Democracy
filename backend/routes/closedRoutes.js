@@ -1,11 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authentication = require("../controllers/authenticationController");
-
-const fs = require("fs");
-const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
-
+/*
 router.all("/*", (request, response, next) => {
 	if (!request.isAuthenticated()) {
 		let output = {
@@ -15,48 +11,62 @@ router.all("/*", (request, response, next) => {
 		return response.json(output);
 	}
 	next();
-});
+});*/
 
 router.post("/sendconfirmationemail", authentication.sendConfirmEmail);
+
+const fs = require("fs");
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+//import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+const s3Client = require("@aws-sdk/client-s3");
+const keys = require("../keys");
+const s3 = new s3Client.S3Client({
+	credentials: {
+		accessKeyId: keys.aws_access_key,
+		secretAccessKey: keys.aws_secret_access_key,
+	},
+	region: keys.aws_bucket_region,
+});
 
 router.post(
 	"/profilepicture",
 	upload.single("profilePicture"),
-	(request, response) => {
-		const file = request.file;
-
+	async (request, response) => {
 		let output = {};
 		output.success = false;
 		output.messages = [];
 
-		if (!file) {
-			output.messages.push({
-				severity: "error",
-				message: "missing file",
-			});
-			return response.json(output);
-		}
+		const params = {
+			Bucket: keys.aws_bucket_name,
+			Key: "profile-pictures/" + request.file.originalname,
+			Body: request.file.buffer,
+			ContentType: request.file.mimetype,
+		};
+		const command = new s3Client.PutObjectCommand(params);
 
-		const filePath = file.path; //get the path of the uploaded file
-		const newFilePath = "./uploads/" + file.originalname; //construct path to new file
-		console.log("New File Path: ", newFilePath);
-		fs.rename(filePath, newFilePath, function (error) {
-			if (error) {
-				output.messages.push({
-					severity: "error",
-					message: "Error in renaming. " + error.message,
-				});
-				return response.json(output);
-			} else {
-				output.success = true;
-				output.messages.push({
-					severity: "success",
-					message: "File uploaded successfully",
-				});
-				response.json(output);
-			}
-		});
+		try {
+			await s3.send(command);
+		} catch (error) {
+			console.log("ERROR UPLOADING: ", error);
+		}
 	}
 );
+
+router.get("/profile-picture", async (request, response) => {
+	const getObjectParams = {
+		Bucket: keys.aws_bucket_name,
+		Key: "profilePictures/profilePic.jpeg",
+	};
+	const command = new s3Client.GetObjectCommand(getObjectParams);
+	try {
+		const data = await s3.send(command);
+		response.setHeader("Content-Type", data.ContentType);
+		response.end(data.Body, "binary");
+	} catch (error) {
+		console.log("First error, ", error);
+	}
+});
 
 module.exports = router;

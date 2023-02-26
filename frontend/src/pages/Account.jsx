@@ -57,20 +57,15 @@ function ProfilePicture() {
 	};
 
 	const handleFileChange = (event) => {
-		console.log("IN HANDLE FILE CHANGE");
-		if (event.target.files[0]) {
-			setFile(event.target.files[0]);
-		}
+		setFile(event.target.files[0]);
 	};
 
 	const handleUploadClick = async (event) => {
 		event.preventDefault();
 
 		if (!file) {
-			console.log("NO FILE");
 			return;
 		}
-		console.log("FILE: ", file);
 
 		const formData = new FormData();
 		formData.append("profilePicture", file);
@@ -97,7 +92,7 @@ function ProfilePicture() {
 				>
 					<Avatar
 						alt="C"
-						src="https://mui.com/static/images/avatar/1.jpg"
+						src="https://localhost:8080/profile-picture"
 						sx={{ width: 156, height: 156 }}
 					/>
 				</Badge>
@@ -107,6 +102,7 @@ function ProfilePicture() {
 				<Input
 					type="file"
 					name="profilePicture"
+					accept="image/*"
 					onChange={handleFileChange}
 				/>
 				<Button onClick={handleUploadClick}>Subir</Button>
