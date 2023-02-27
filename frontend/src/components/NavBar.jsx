@@ -272,7 +272,11 @@ function CitizenBubble() {
 		<Box sx={{ flexGrow: 0 }}>
 			<Tooltip title="Open settings">
 				<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-					<Avatar alt="C" src="/static/images/avatar/2.jpg" />
+					<Avatar
+						key={Date.now()}
+						alt="C"
+						src="https://localhost:8080/profile-picture"
+					/>
 				</IconButton>
 			</Tooltip>
 			<Menu

@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -14,6 +14,19 @@ import Input from "@mui/material/Input";
 import { RequestContext } from "../context/requests-context";
 
 export default function Account() {
+	const [citizen, setCitizen] = useState({});
+	const request = useContext(RequestContext);
+
+	useEffect(() => {
+		async function getCitizenInfo() {
+			const output = await request.request("get", "/account");
+			setCitizen(output.citizen);
+		}
+
+		getCitizenInfo();
+		console.log(citizen);
+	}, []);
+
 	return (
 		<Container component="main">
 			<Box
@@ -37,23 +50,23 @@ export default function Account() {
 				}}
 			>
 				<ProfilePicture />
-				<Typography>Nombre del usuario</Typography>
+				<Typography>{citizen.fullName}</Typography>
 			</Box>
 		</Container>
 	);
 }
 
 function ProfilePicture() {
-	const [open, setOpen] = useState(false);
+	const [dialogOpen, setDialogOpen] = useState(false);
 	const [file, setFile] = useState(null);
 	const request = useContext(RequestContext);
 
 	const handleClickOpen = () => {
-		setOpen(true);
+		setDialogOpen(true);
 	};
 
 	const handleClose = () => {
-		setOpen(false);
+		setDialogOpen(false);
 	};
 
 	const handleFileChange = (event) => {
@@ -62,6 +75,7 @@ function ProfilePicture() {
 
 	const handleUploadClick = async (event) => {
 		event.preventDefault();
+		setDialogOpen(false);
 
 		if (!file) {
 			return;
@@ -92,12 +106,13 @@ function ProfilePicture() {
 				>
 					<Avatar
 						alt="C"
+						key={Date.now()}
 						src="https://localhost:8080/profile-picture"
 						sx={{ width: 156, height: 156 }}
 					/>
 				</Badge>
 			</Button>
-			<Dialog open={open} onClose={handleClose}>
+			<Dialog open={dialogOpen} onClose={handleClose}>
 				<DialogTitle>Sube una foto de perfil</DialogTitle>
 				<Input
 					type="file"
