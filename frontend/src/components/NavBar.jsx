@@ -52,10 +52,6 @@ const signedInPages = [
 	},
 
 	{
-		text: "Cuenta",
-		link: "/account",
-	},
-	{
 		text: "Test Messages",
 		link: "/test-messages",
 	},

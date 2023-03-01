@@ -13,7 +13,10 @@ router.all("/*", (request, response, next) => {
 	next();
 });
 
-router.post("/sendconfirmationemail", authentication.sendConfirmEmail);
+router.get("/sendconfirmationemail", (request, response) => {
+	let output = authentication.sendConfirmEmail(request.user);
+	response.json(output);
+});
 
 const multer = require("multer");
 const storage = multer.memoryStorage();
@@ -29,7 +32,7 @@ router.post(
 router.get("/profile-picture", filesController.getProfilePicture);
 
 const CommunityModels = require("../models/communityModels");
-router.get("/account", (request, response) => {
+router.get("/account", async (request, response) => {
 	let output = {
 		where: "/account",
 		success: true,
@@ -53,7 +56,9 @@ router.get("/account", (request, response) => {
 	};
 
 	output.citizen.communities =
-		CommunityModels.Community.communitiesWhereCitizen(request.user._id);
+		await CommunityModels.Community.communitiesWhereCitizen(
+			request.user._id
+		);
 
 	response.json(output);
 });

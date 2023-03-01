@@ -11,6 +11,8 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Button from "@mui/material/Button";
 import Input from "@mui/material/Input";
 
+import { Link } from "react-router-dom";
+
 import { RequestContext } from "../context/requests-context";
 
 export default function Account() {
@@ -24,8 +26,12 @@ export default function Account() {
 		}
 
 		getCitizenInfo();
-		console.log(citizen);
+		console.log("citizen: ", citizen);
 	}, []);
+
+	const confirmEmail = () => {
+		request.request("get", "/sendconfirmationemail");
+	};
 
 	return (
 		<Container component="main">
@@ -37,7 +43,7 @@ export default function Account() {
 					alignItems: "center",
 				}}
 			>
-				<Typography component="h1" variant="h4">
+				<Typography component="h1" variant="h3">
 					Cuenta
 				</Typography>
 			</Box>
@@ -50,7 +56,83 @@ export default function Account() {
 				}}
 			>
 				<ProfilePicture />
-				<Typography>{citizen.fullName}</Typography>
+				<Typography>
+					{citizen.fullName ? citizen.fullName : ""}
+				</Typography>
+			</Box>
+			<Box
+				sx={{
+					marginTop: 2,
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "start",
+				}}
+			>
+				<Typography>
+					<b>Fecha de Nacimiento: </b>
+					<date>{citizen.dob ? citizen.dob.split("T")[0] : ""}</date>
+				</Typography>
+				<Typography>
+					<b>Correo electronico: </b>
+					<date>{citizen.email ? citizen.email : ""}</date>
+				</Typography>
+				<Typography>
+					<b>Correo electronico confirmado: </b>{" "}
+					{citizen.emailConfirm ? "Si" : "No"}
+					{citizen.emailConfirm ? (
+						""
+					) : (
+						<Button
+							type="submit"
+							fullWidth
+							variant="contained"
+							onClick={confirmEmail}
+						>
+							Reenviar correo
+						</Button>
+					)}
+				</Typography>
+				<Typography>
+					<b>Celular: </b>
+					<date>{citizen.cellPhone ? citizen.cellPhone : ""}</date>
+				</Typography>
+				<Typography>
+					<b>Cuenta creada en: </b>
+					<date>
+						{citizen.createdAt
+							? citizen.createdAt.split("T")[0]
+							: ""}
+					</date>
+				</Typography>
+			</Box>
+			<Box
+				sx={{
+					marginTop: 2,
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "center",
+				}}
+			>
+				<Typography component="h1" variant="h4">
+					Comunidades
+				</Typography>
+			</Box>
+			<Box
+				sx={{
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "start",
+				}}
+			>
+				{citizen.communities
+					? citizen.communities.map((community) => (
+							<Typography component="h1" variant="h6">
+								<Link to={"/community/about/" + community._id}>
+									{community.name}
+								</Link>
+							</Typography>
+					  ))
+					: ""}
 			</Box>
 		</Container>
 	);

@@ -4,7 +4,6 @@ const bcrypt = require("bcrypt"); //hash passwords and compare hashed passwords
 const keys = require("../keys");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const base64url = require("base64url");
 
 const logIn = (request, response, next) => {
 	if (request.isAuthenticated()) {
@@ -166,6 +165,7 @@ const signUp = async (request, response, next) => {
 
 const sendConfirmEmail = (citizen) => {
 	//create jwt based on user ID and on Date.
+	//THIS FUNCTION DOES NOT SEND ITS OWN RESPONSE
 
 	let output = {
 		success: false,
@@ -219,7 +219,7 @@ const sendConfirmEmail = (citizen) => {
 	output.messages.push({
 		severity: "info",
 		message:
-			"Favor de seguir el enlace que se le envio al correo que uso para inscribirse para confirmar su cuenta. El link expira en un dia.",
+			"Se envio un correo para confirmar su correo electronico. Favor de seguir el enlace que se le envio. Enlace expira en un dia.",
 	});
 
 	return output;

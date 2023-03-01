@@ -124,7 +124,7 @@ export default function SignUp() {
 					data.get("cellPhone"),
 			});
 
-			let output = request.request("post", "signup", body);
+			let output = request.request("post", "signup", undefined, body);
 		}
 	};
 
