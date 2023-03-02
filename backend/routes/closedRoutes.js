@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authentication = require("../controllers/authenticationController");
+const informational = require("../controllers/informationalController");
 
 router.all("/*", (request, response, next) => {
 	if (!request.isAuthenticated()) {
@@ -31,36 +32,6 @@ router.post(
 
 router.get("/profile-picture", filesController.getProfilePicture);
 
-const CommunityModels = require("../models/communityModels");
-router.get("/account", async (request, response) => {
-	let output = {
-		where: "/account",
-		success: true,
-		messages: [],
-	};
-
-	let u = request.user;
-
-	output.citizen = {
-		firstName: u.firstName,
-		lastName: u.lastName,
-		secondLasName: u.secondLasName,
-		fullName: u.fullName,
-		dob: u.dob,
-		email: u.email,
-		cellPhone: u.cellPhone,
-		superAdmin: u.superAdmin,
-		cellPhoneConfirm: u.cellPhoneConfirm,
-		emailConfirm: u.emailConfirm,
-		createdAt: u.createdAt,
-	};
-
-	output.citizen.communities =
-		await CommunityModels.Community.communitiesWhereCitizen(
-			request.user._id
-		);
-
-	response.json(output);
-});
+router.get("/account", informational.aboutCitizen);
 
 module.exports = router;

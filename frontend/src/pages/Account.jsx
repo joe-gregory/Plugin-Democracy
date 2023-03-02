@@ -14,19 +14,18 @@ import Input from "@mui/material/Input";
 import { Link } from "react-router-dom";
 
 import { RequestContext } from "../context/requests-context";
+import { CitizenContext } from "../context/citizen-context";
 
 export default function Account() {
-	const [citizen, setCitizen] = useState({});
 	const request = useContext(RequestContext);
+	const citizenContext = useContext(CitizenContext);
+	let citizen = citizenContext.citizen;
 
 	useEffect(() => {
 		async function getCitizenInfo() {
 			const output = await request.request("get", "/account");
-			setCitizen(output.citizen);
 		}
-
 		getCitizenInfo();
-		console.log("citizen: ", citizen);
 	}, []);
 
 	const confirmEmail = () => {
@@ -56,9 +55,7 @@ export default function Account() {
 				}}
 			>
 				<ProfilePicture />
-				<Typography>
-					{citizen.fullName ? citizen.fullName : ""}
-				</Typography>
+				<Typography>{citizen ? citizen.fullName : ""}</Typography>
 			</Box>
 			<Box
 				sx={{
@@ -70,39 +67,48 @@ export default function Account() {
 			>
 				<Typography>
 					<b>Fecha de Nacimiento: </b>
-					<date>{citizen.dob ? citizen.dob.split("T")[0] : ""}</date>
+					{citizen ? citizen.dob.split("T")[0] : ""}
 				</Typography>
 				<Typography>
 					<b>Correo electronico: </b>
-					<date>{citizen.email ? citizen.email : ""}</date>
+					{citizen ? citizen.email : ""}
 				</Typography>
 				<Typography>
 					<b>Correo electronico confirmado: </b>{" "}
-					{citizen.emailConfirm ? "Si" : "No"}
-					{citizen.emailConfirm ? (
-						""
+					{citizen ? (citizen.emailConfirm ? "Si" : "No") : "No"}
+					{citizen ? (
+						citizen.emailConfirm ? (
+							<Button
+								type="submit"
+								fullWidth
+								variant="contained"
+								onClick={confirmEmail}
+							>
+								Reenviar correo
+							</Button>
+						) : (
+							""
+						)
 					) : (
-						<Button
-							type="submit"
-							fullWidth
-							variant="contained"
-							onClick={confirmEmail}
-						>
-							Reenviar correo
-						</Button>
+						""
 					)}
 				</Typography>
 				<Typography>
 					<b>Celular: </b>
-					<date>{citizen.cellPhone ? citizen.cellPhone : ""}</date>
+					{citizen
+						? citizen.cellPhone
+							? citizen.cellPhone
+							: ""
+						: ""}
 				</Typography>
 				<Typography>
 					<b>Cuenta creada en: </b>
-					<date>
-						{citizen.createdAt
+
+					{citizen
+						? citizen.createdAt
 							? citizen.createdAt.split("T")[0]
-							: ""}
-					</date>
+							: ""
+						: ""}
 				</Typography>
 			</Box>
 			<Box
@@ -124,14 +130,22 @@ export default function Account() {
 					alignItems: "start",
 				}}
 			>
-				{citizen.communities
-					? citizen.communities.map((community) => (
-							<Typography component="h1" variant="h6">
-								<Link to={"/community/about/" + community._id}>
-									{community.name}
-								</Link>
-							</Typography>
-					  ))
+				{citizen
+					? citizen.communities
+						? citizen.communities.map((community) => (
+								<Typography
+									component="h1"
+									variant="h6"
+									key={community._id}
+								>
+									<Link
+										to={"/community/about/" + community._id}
+									>
+										{community.name}
+									</Link>
+								</Typography>
+						  ))
+						: ""
 					: ""}
 			</Box>
 		</Container>
@@ -142,6 +156,8 @@ function ProfilePicture() {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [file, setFile] = useState(null);
 	const request = useContext(RequestContext);
+	const citizenContext = useContext(CitizenContext);
+	let citizen = citizenContext.citizen;
 
 	const handleClickOpen = () => {
 		setDialogOpen(true);
@@ -187,8 +203,8 @@ function ProfilePicture() {
 					badgeContent={<CameraAltIcon sx={{ color: "#B2BEB5" }} />}
 				>
 					<Avatar
-						alt="C"
-						key={Date.now()}
+						alt={citizen ? citizen.firstName : "C"}
+						key={citizen._id}
 						src="https://localhost:8080/profile-picture"
 						sx={{ width: 156, height: 156 }}
 					/>

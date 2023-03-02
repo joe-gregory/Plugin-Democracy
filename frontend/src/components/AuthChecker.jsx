@@ -22,14 +22,14 @@ export default function AuthChecker(props) {
 				if (output.emailConfirm === true) emailConfirm.confirmEmail();
 				else emailConfirm.unconfirmEmail();
 				console.log(
-					`/session-status report: auth: ${output.authenticated}, emailConf: ${output.emailConfirm}`
+					`/session-status report: output.authenticated: ${output.authenticated}, output.emailConfirm: ${output.emailConfirm}`
 				);
 			} catch (error) {
 				console.error("Error checking authentication status: ", error);
 			}
 		}
 
-		const checkInterval = setInterval(checkAuthStatus, 5000000);
+		const checkInterval = setInterval(checkAuthStatus, 5000);
 
 		return () => {
 			clearInterval(checkInterval);

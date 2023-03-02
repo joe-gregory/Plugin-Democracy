@@ -40,11 +40,6 @@ async function uploadProfilePicture(request, response) {
 }
 
 async function getProfilePicture(request, response) {
-	let output = {
-		success: false,
-		messages: [],
-	};
-
 	const getObjectParams = {
 		Bucket: keys.aws_bucket_name,
 		Key: "profile-pictures/" + request.user._id,

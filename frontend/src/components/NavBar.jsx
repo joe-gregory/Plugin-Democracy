@@ -25,6 +25,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { AuthContext } from "../context/auth-context";
 import { MessagesContext } from "../context/messages-context";
 import { RequestContext } from "../context/requests-context";
+import { CitizenContext } from "../context/citizen-context";
 
 const signedOutPages = [
 	{
@@ -243,9 +244,10 @@ export default function NavBar() {
 
 function CitizenBubble() {
 	const [anchorElUser, setAnchorElUser] = React.useState(null);
-	//const auth = React.useContext(AuthContext);
 	const request = React.useContext(RequestContext);
 	const navigate = useNavigate();
+	const citizenContext = React.useContext(CitizenContext);
+	let citizen = citizenContext.citizen;
 
 	const handleOpenUserMenu = (event) => {
 		setAnchorElUser(event.currentTarget);
@@ -262,7 +264,6 @@ function CitizenBubble() {
 	function logout() {
 		handleCloseUserMenu();
 		request.request("post", "logout");
-		//auth.logout();
 	}
 	return (
 		<Box sx={{ flexGrow: 0 }}>
@@ -270,7 +271,7 @@ function CitizenBubble() {
 				<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
 					<Avatar
 						key={Date.now()}
-						alt="C"
+						alt={citizen ? citizen.firstName : "C"}
 						src="https://localhost:8080/profile-picture"
 					/>
 				</IconButton>

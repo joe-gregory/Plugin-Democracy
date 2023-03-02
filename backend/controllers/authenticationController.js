@@ -14,6 +14,7 @@ const logIn = (request, response, next) => {
 			],
 			where: "post: login",
 		};
+
 		return response.json(output);
 	}
 
@@ -41,6 +42,7 @@ const logIn = (request, response, next) => {
 				output.emailConfirm = citizen.emailConfirm;
 				citizen.password = null;
 				output.emailConfirm = citizen.emailConfirm;
+				output.citizen = citizen;
 				return response.json(output);
 			});
 		} else {

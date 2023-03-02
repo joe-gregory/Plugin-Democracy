@@ -28,6 +28,8 @@ import { AuthContext } from "./context/auth-context";
 import { MessagesContext } from "./context/messages-context";
 import { RequestContext } from "./context/requests-context";
 import { EmailConfirmContext } from "./context/confirmed-email-context";
+import { CitizenContext } from "./context/citizen-context";
+import { CommunitiesContext } from "./context/communities-context";
 
 import { v4 as uuid } from "uuid";
 
@@ -35,6 +37,8 @@ function App() {
 	const [authenticated, setAuthenticated] = useState(false);
 	const [emailConfirm, setEmailConfirm] = useState(false);
 	const [alertMessages, setAlertMessages] = useState([]);
+	const [citizen, setCitizen] = useState(undefined);
+	const [communities, setCommunities] = useState([]);
 
 	useEffect(() => {
 		async function getSession() {
@@ -53,6 +57,7 @@ function App() {
 	};
 
 	const logout = () => {
+		setCitizen(undefined);
 		setAuthenticated(false);
 	};
 
@@ -166,12 +171,18 @@ function App() {
 		}
 
 		//Desmenuzando output. Rerouting output
+		//isAuthenticated?
 		if (output.authenticated === true) login();
 		else if (output.authenticated === false) logout();
+		//is emailConfirm?
 		if (output.emailConfirm === true) confirmEmail();
 		else if (output.emailConfirm === false) unconfirmEmail();
-		//NavBar alert messages
+		//RR NavBar alert messages
 		if (output.messages) createAndAddMessage(output.messages);
+		//Citizen info
+		if (output.citizen) setCitizen(output.citizen);
+		//Communities info
+		if (output.communities) setCommunities(output.communities);
 
 		//The entire request output object
 		return output;
@@ -187,86 +198,103 @@ function App() {
 						logout: logout,
 					}}
 				>
-					<EmailConfirmContext.Provider
-						value={{
-							emailConfirm: emailConfirm,
-							confirmEmail: confirmEmail,
-							unconfirmEmail: unconfirmEmail,
-						}}
-					>
-						<AuthChecker />
-						<MessagesContext.Provider
-							value={{
-								messages: alertMessages,
-								setMessages: setMessages,
-								createAndAddMessage: createAndAddMessage,
-								createAndSetMessage: createAndSetMessage,
-								returnUUIDMessage: returnUUIDMessage,
-								clearMessages: clearMessages,
-							}}
+					<CitizenContext.Provider value={{ citizen: citizen }}>
+						<CommunitiesContext.Provider
+							value={{ communities: communities }}
 						>
-							<NavBar />
-							<Routes>
-								<Route path="/" element={<Home />} />
-								<Route
-									path="/community"
-									element={
-										authenticated && emailConfirm ? (
-											<Community />
-										) : authenticated && !emailConfirm ? (
-											<Navigate to="/account" />
-										) : (
-											<Navigate to="/login" />
-										)
-									}
-								/>
-								<Route
-									path="/login"
-									element={
-										authenticated && emailConfirm ? (
-											<Navigate to="/community" />
-										) : authenticated && !emailConfirm ? (
-											<Navigate to="/account" />
-										) : (
-											<LogIn />
-										)
-									}
-								/>
-								<Route
-									path="/signup"
-									element={
-										authenticated && emailConfirm ? (
-											<Navigate to="/community" />
-										) : authenticated && !emailConfirm ? (
-											<Navigate to="/account" />
-										) : (
-											<SignUp />
-										)
-									}
-								/>
-								<Route
-									path="/verifyemail"
-									element={<VerifyEmail />}
-								/>
-								<Route
-									path="/account"
-									element={
-										authenticated ? (
-											<Account />
-										) : (
-											<Navigate to="/login" />
-										)
-									}
-								/>
-								<Route
-									path="/test-messages"
-									element={<TestMessages />}
-								/>
-								<Route path="*" element={<NotFound404 />} />
-							</Routes>
-							<Footer />
-						</MessagesContext.Provider>
-					</EmailConfirmContext.Provider>
+							<EmailConfirmContext.Provider
+								value={{
+									emailConfirm: emailConfirm,
+									confirmEmail: confirmEmail,
+									unconfirmEmail: unconfirmEmail,
+								}}
+							>
+								<AuthChecker />
+								<MessagesContext.Provider
+									value={{
+										messages: alertMessages,
+										setMessages: setMessages,
+										createAndAddMessage:
+											createAndAddMessage,
+										createAndSetMessage:
+											createAndSetMessage,
+										returnUUIDMessage: returnUUIDMessage,
+										clearMessages: clearMessages,
+									}}
+								>
+									<NavBar />
+									<Routes>
+										<Route path="/" element={<Home />} />
+										<Route
+											path="/community"
+											element={
+												authenticated &&
+												emailConfirm ? (
+													<Community />
+												) : authenticated &&
+												  !emailConfirm ? (
+													<Navigate to="/account" />
+												) : (
+													<Navigate to="/login" />
+												)
+											}
+										/>
+										<Route
+											path="/login"
+											element={
+												authenticated &&
+												emailConfirm ? (
+													<Navigate to="/community" />
+												) : authenticated &&
+												  !emailConfirm ? (
+													<Navigate to="/account" />
+												) : (
+													<LogIn />
+												)
+											}
+										/>
+										<Route
+											path="/signup"
+											element={
+												authenticated &&
+												emailConfirm ? (
+													<Navigate to="/community" />
+												) : authenticated &&
+												  !emailConfirm ? (
+													<Navigate to="/account" />
+												) : (
+													<SignUp />
+												)
+											}
+										/>
+										<Route
+											path="/verifyemail"
+											element={<VerifyEmail />}
+										/>
+										<Route
+											path="/account"
+											element={
+												authenticated ? (
+													<Account />
+												) : (
+													<Navigate to="/login" />
+												)
+											}
+										/>
+										<Route
+											path="/test-messages"
+											element={<TestMessages />}
+										/>
+										<Route
+											path="*"
+											element={<NotFound404 />}
+										/>
+									</Routes>
+									<Footer />
+								</MessagesContext.Provider>
+							</EmailConfirmContext.Provider>
+						</CommunitiesContext.Provider>
+					</CitizenContext.Provider>
 				</AuthContext.Provider>
 			</RequestContext.Provider>
 		</CssBaseline>
