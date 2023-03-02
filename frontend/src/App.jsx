@@ -19,6 +19,7 @@ import LogIn from "./pages/LogIn";
 import SignUp from "./pages/SignUp";
 import VerifyEmail from "./pages/VerifyEmail";
 import Account from "./pages/Account";
+import AboutCommunity from "./pages/AboutCommunity";
 import NotFound404 from "./pages/NotFound404";
 
 import TestMessages from "./pages/TestMessages";
@@ -276,6 +277,16 @@ function App() {
 											element={
 												authenticated ? (
 													<Account />
+												) : (
+													<Navigate to="/login" />
+												)
+											}
+										/>
+										<Route
+											path="/community/about"
+											element={
+												authenticated ? (
+													<AboutCommunity />
 												) : (
 													<Navigate to="/login" />
 												)

@@ -1,6 +1,6 @@
 const CommunityModels = require("../models/communityModels");
 
-async function aboutCitizen(request, response) {
+async function respondCitizenObject(request, response) {
 	let output = {
 		where: "/account",
 		success: true,
@@ -36,6 +36,57 @@ async function aboutCitizen(request, response) {
 	response.json(output);
 }
 
+async function respondCommunitiesOfCitizen(request, response) {
+	let output = {
+		success: true,
+		communities: [],
+		messages: [],
+	};
+	let communities;
+
+	try {
+		if (request.user.superAdmin === true) {
+			communities = await CommunityModels.Community.find({});
+		} else {
+			communities =
+				await CommunityModels.Community.communitiesWhereCitizen(
+					request.user._id
+				);
+		}
+	} catch (error) {
+		output.success = false;
+		output.messages.push({ severity: error, message: error.message });
+		return response.json(output);
+	}
+
+	for (community of communities) {
+		for (adminRecord of community.adminRecords) {
+			let citizen = await CommunityModels.Citizen.findById(
+				adminRecord.citizen
+			);
+			if (citizen) {
+				citizen.password = null;
+			}
+
+			adminRecord.citizen = citizen;
+		}
+
+		for (nonAdminRoleRecord of community.nonAdminRoleRecords) {
+			let citizen = await CommunityModels.Citizen.findById(
+				nonAdminRoleRecord.citizen
+			).toJSON();
+			if (citizen) citizen.password = null;
+
+			nonAdminRoleRecord.citizen = citizen;
+		}
+
+		output.communities.push(community.toJSON());
+	}
+
+	response.json(output);
+}
+
 module.exports = {
-	aboutCitizen,
+	respondCitizenObject,
+	respondCommunitiesOfCitizen,
 };

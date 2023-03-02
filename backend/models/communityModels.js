@@ -1227,7 +1227,7 @@ const communitySchema = new Schema(
 				},
 			},
 
-			roles: {
+			roleRecords: {
 				get() {
 					//returned ordered by createdAt date
 					return this.records
@@ -1240,7 +1240,21 @@ const communitySchema = new Schema(
 				},
 			},
 
-			admins: {
+			nonAdminRoleRecords: {
+				get() {
+					return this.records
+						.filter(
+							(record) =>
+								record.status === "active" &&
+								record.type === "role" &&
+								record.admin === false
+						)
+						.sort((a, b) => a.createdAt - b.createdAt);
+				},
+			},
+
+			adminRecords: {
+				//returns array of active admin records
 				get() {
 					let adminRecords = this.records.filter(
 						(record) =>
@@ -1248,8 +1262,7 @@ const communitySchema = new Schema(
 							record.admin === true &&
 							record.status === "active"
 					);
-					let admins = adminRecords.map((record) => record.citizen);
-					return admins;
+					return adminRecords;
 				},
 			},
 
@@ -1317,7 +1330,7 @@ const communitySchema = new Schema(
 			},
 
 			async communitiesWhereCitizen(citizenId) {
-				//returns all the communities objects where the citizen is registered either as a resident or home owner
+				//returns  array of all the communities objects where the citizen is registered either as a resident or home owner
 				const distinctCommunitiesId = await this.distinct("_id", {
 					homes: {
 						$elemMatch: {
@@ -1331,6 +1344,7 @@ const communitySchema = new Schema(
 				return this.find({ _id: { $in: distinctCommunitiesId } });
 			},
 		},
+		toJSON: { virtuals: true },
 	}
 );
 
@@ -1416,6 +1430,7 @@ const citizenSchema = new Schema(
 				},
 			},
 		},
+		toJSON: { virtuals: true },
 	}
 );
 

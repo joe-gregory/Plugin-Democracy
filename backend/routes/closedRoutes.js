@@ -32,6 +32,8 @@ router.post(
 
 router.get("/profile-picture", filesController.getProfilePicture);
 
-router.get("/account", informational.aboutCitizen);
+router.get("/account", informational.respondCitizenObject);
+
+router.get("/community/about", informational.respondCommunitiesOfCitizen);
 
 module.exports = router;

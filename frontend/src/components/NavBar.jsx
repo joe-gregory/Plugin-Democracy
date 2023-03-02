@@ -53,6 +53,11 @@ const signedInPages = [
 	},
 
 	{
+		text: "Sobre Comunidad",
+		link: "/community/about",
+	},
+
+	{
 		text: "Test Messages",
 		link: "/test-messages",
 	},
