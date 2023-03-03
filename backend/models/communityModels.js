@@ -9,6 +9,11 @@ const communitySchema = new Schema(
 
 		language: { type: String, enum: ["ES", "EN"], default: "ES" },
 
+		geoCoordinates: {
+			lat: { type: Number, default: null },
+			lng: { type: Number, default: null },
+		},
+
 		votingUnit: {
 			type: String,
 			enum: ["community.citizens", "homes.owner"],
@@ -1188,23 +1193,31 @@ const communitySchema = new Schema(
 				get() {
 					let constitution = {};
 					let lawCategories = this.lawCategories;
+
 					constitution[""] = this.records
 						.filter(
 							(record) =>
 								record.status === "active" &&
-								!record.lawCategory
+								!record.lawCategory &&
+								(record.type === "law" ||
+									record.type === "law2")
 						)
 						.sort((a, b) => a.number - b.number);
+
 					for (let i = 0; i < this.lawCategories.length; i++) {
 						constitution[lawCategories[i]] = this.records.filter(
 							(record) =>
 								record.status === "active" &&
-								record.lawCategory === lawCategories[i]
+								record.lawCategory === lawCategories[i] &&
+								(record.type === "law" ||
+									record.type === "law2")
 						);
+
 						constitution[lawCategories[i]].sort(
 							(a, b) => a.lawCategoryNumber - b.lawCategoryNumber
 						);
 					}
+
 					return constitution;
 				},
 			},
@@ -1294,7 +1307,7 @@ const communitySchema = new Schema(
 
 			projects: {
 				get() {
-					//return projects in order of createdAt
+					//return record projects in order of createdAt
 					return this.records
 						.filter(
 							(record) =>
