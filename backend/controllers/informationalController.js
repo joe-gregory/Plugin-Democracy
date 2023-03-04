@@ -1,4 +1,5 @@
 const CommunityModels = require("../models/communityModels");
+const keys = require("../keys");
 
 async function respondCitizenObject(request, response) {
 	let output = {
@@ -82,6 +83,7 @@ async function respondCommunitiesOfCitizen(request, response) {
 
 		output.communities.push(community.toJSON());
 	}
+	output.key = keys.googleMapsApiKey;
 
 	response.json(output);
 }

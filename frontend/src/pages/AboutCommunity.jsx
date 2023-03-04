@@ -1,4 +1,6 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, createClass } from "react";
+
+import GMap from "../components/GMap";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -20,6 +22,7 @@ import { CitizenContext } from "../context/citizen-context";
 export default function AboutCommunity() {
 	const [communities, setCommunities] = useState([]);
 	const [community, setCommunity] = useState();
+	const [key, setKey] = useState();
 
 	const request = useContext(RequestContext);
 
@@ -31,6 +34,7 @@ export default function AboutCommunity() {
 			}
 			setCommunities(output.communities);
 			setCommunity(output.communities[0]);
+			setKey(output.key); //Change how this is passed
 		}
 		getCommunities();
 	}, []);
@@ -90,6 +94,21 @@ export default function AboutCommunity() {
 				</Typography>
 				<Typography>{community ? community.address : ""}</Typography>
 			</Box>
+			{/*Google Map */}
+			{community ? (
+				<Box
+					sx={{
+						marginTop: 2,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+					}}
+				>
+					<GMap center={community.geoCoordinates} apiKey={key} />
+				</Box>
+			) : (
+				""
+			)}
 			<Box
 				sx={{
 					marginTop: 2,
@@ -98,6 +117,7 @@ export default function AboutCommunity() {
 					alignItems: "start",
 				}}
 			>
+				<Typography variant="h4">Datos Generales</Typography>
 				<Typography>
 					<b>Lenguaje: </b>
 					{community ? community.language : ""}
@@ -317,29 +337,35 @@ export default function AboutCommunity() {
 					alignItems: "start",
 				}}
 			>
-				{community.permits.map((permitRecord) => (
-					<Box
-						sx={{
-							marginTop: 2,
-							display: "flex",
-							flexDirection: "column",
-							alignItems: "start",
-						}}
-					>
-						<Typography>{permitRecord.title}</Typography>
-						<Typography>{permitRecord.body}</Typography>
-						<Typography>
-							<b>Fecha de inicio: </b>
-							{permitRecord.effectiveDate
-								? permitRecord.effectiveDate.split("T")[0]
-								: permitRecord.statusUpdateDate.split("T")[0]}
-						</Typography>
-						<Typography>
-							<b>Fecha de expiracion: </b>
-							{permitRecord.expirationDate.split("T")[0]}
-						</Typography>
-					</Box>
-				))}
+				{community
+					? community.permits.map((permitRecord) => (
+							<Box
+								sx={{
+									marginTop: 2,
+									display: "flex",
+									flexDirection: "column",
+									alignItems: "start",
+								}}
+							>
+								<Typography>{permitRecord.title}</Typography>
+								<Typography>{permitRecord.body}</Typography>
+								<Typography>
+									<b>Fecha de inicio: </b>
+									{permitRecord.effectiveDate
+										? permitRecord.effectiveDate.split(
+												"T"
+										  )[0]
+										: permitRecord.statusUpdateDate.split(
+												"T"
+										  )[0]}
+								</Typography>
+								<Typography>
+									<b>Fecha de expiracion: </b>
+									{permitRecord.expirationDate.split("T")[0]}
+								</Typography>
+							</Box>
+					  ))
+					: ""}
 			</Box>
 			<Box
 				sx={{
@@ -359,31 +385,35 @@ export default function AboutCommunity() {
 					alignItems: "start",
 				}}
 			>
-				{community.permits.map((project) => (
-					<Box
-						sx={{
-							marginTop: 2,
-							display: "flex",
-							flexDirection: "column",
-							alignItems: "start",
-						}}
-					>
-						<Typography>{project.title}</Typography>
-						<Typography>{project.body}</Typography>
-						<Typography>
-							<b>Fecha de inicio: </b>
-							{project.effectiveDate
-								? project.effectiveDate.split("T")[0]
-								: project.statusUpdateDate.split("T")[0]}
-						</Typography>
-						<Typography>
-							<b>Fecha de fin: </b>
-							{project.expirationDate
-								? project.expirationDate.split("T")[0]
-								: "Indefinido"}
-						</Typography>
-					</Box>
-				))}
+				{community
+					? community.projects.map((project) => (
+							<Box
+								sx={{
+									marginTop: 2,
+									display: "flex",
+									flexDirection: "column",
+									alignItems: "start",
+								}}
+							>
+								<Typography>{project.title}</Typography>
+								<Typography>{project.body}</Typography>
+								<Typography>
+									<b>Fecha de inicio: </b>
+									{project.effectiveDate
+										? project.effectiveDate.split("T")[0]
+										: project.statusUpdateDate.split(
+												"T"
+										  )[0]}
+								</Typography>
+								<Typography>
+									<b>Fecha de fin: </b>
+									{project.expirationDate
+										? project.expirationDate.split("T")[0]
+										: "Indefinido"}
+								</Typography>
+							</Box>
+					  ))
+					: ""}
 			</Box>
 		</Container>
 	);
