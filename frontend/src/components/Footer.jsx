@@ -13,8 +13,13 @@ import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import Avatar from "@mui/material/Avatar";
 
+import DynamicFeedIcon from "@mui/icons-material/DynamicFeed";
+import AddCommentIcon from "@mui/icons-material/AddComment";
+import EmailIcon from "@mui/icons-material/Email";
+import { Link } from "react-router-dom";
+
 export default function Footer() {
-	const [value, setValue] = React.useState(0);
+	const [value, setValue] = React.useState(2);
 	const ref = React.useRef(null);
 
 	return (
@@ -31,16 +36,20 @@ export default function Footer() {
 					}}
 				>
 					<BottomNavigationAction
-						label="Recents"
-						icon={<RestoreIcon />}
+						label="Community Feed"
+						icon={<DynamicFeedIcon />}
+						disabled="true"
 					/>
 					<BottomNavigationAction
-						label="Favorites"
-						icon={<FavoriteIcon />}
+						label="Create Proposal"
+						icon={<AddCommentIcon />}
+						disabled="true"
 					/>
 					<BottomNavigationAction
-						label="Archive"
-						icon={<ArchiveIcon />}
+						label="Contact Support"
+						icon={<EmailIcon />}
+						component={Link}
+						to="/contact"
 					/>
 				</BottomNavigation>
 			</Paper>

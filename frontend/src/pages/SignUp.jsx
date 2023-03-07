@@ -151,7 +151,7 @@ export default function SignUp() {
 					</Avatar>
 				)}
 				<Typography component="h1" variant="h5">
-					Inscríbete
+					Sign Up
 				</Typography>
 				<Box
 					component="form"
@@ -167,7 +167,7 @@ export default function SignUp() {
 								required
 								fullWidth
 								id="firstName"
-								label="Nombre"
+								label="First Name"
 								autoFocus
 							/>
 						</Grid>
@@ -176,7 +176,7 @@ export default function SignUp() {
 								required
 								fullWidth
 								id="lastName"
-								label="Primer Apellido"
+								label="Last Name"
 								name="lastName"
 								autoComplete="family-name"
 							/>
@@ -185,7 +185,7 @@ export default function SignUp() {
 							<TextField
 								fullWidth
 								id="secondLastName"
-								label="Segundo Apellido"
+								label="Second Last Name"
 								name="secondLastName"
 								autoComplete="family-name"
 							/>
@@ -195,7 +195,7 @@ export default function SignUp() {
 								required
 								id="dob"
 								name="dob"
-								label="Fecha de Nacimiento"
+								label="Date of birth"
 								type="date"
 								defaultValue=""
 								sx={{ width: 220 }}
@@ -209,7 +209,7 @@ export default function SignUp() {
 								required
 								fullWidth
 								id="email"
-								label="Email Address"
+								label="Email"
 								name="email"
 								autoComplete="email"
 							/>
@@ -219,7 +219,7 @@ export default function SignUp() {
 								required
 								fullWidth
 								name="password"
-								label="Contraseña"
+								label="Password"
 								type="password"
 								id="password"
 								autoComplete="new-password"
@@ -230,7 +230,7 @@ export default function SignUp() {
 								required
 								fullWidth
 								name="confirmPassword"
-								label="Confirmar contraseña"
+								label="Confirm password"
 								type="password"
 								id="confirmPassword"
 								autoComplete="confirm-new-password"
@@ -240,13 +240,13 @@ export default function SignUp() {
 							<MuiTelInput
 								value={phoneValue}
 								forceCallingCode="true"
-								defaultCountry="MX"
+								defaultCountry="US"
 								onlyCountries={["MX", "US"]}
 								onChange={handlePhoneChange}
 								required
 								id="cellPhone"
 								name="cellPhone"
-								helperText="Numero celular requerido"
+								helperText="cell phone"
 							/>
 						</Grid>
 						{/*<Grid item xs={12}>
@@ -267,12 +267,12 @@ export default function SignUp() {
 						variant="contained"
 						sx={{ mt: 3, mb: 2 }}
 					>
-						Inscribete
+						Sign up
 					</Button>
 					<Grid container justifyContent="flex-end">
 						<Grid item>
 							<Link href="/login" variant="body2">
-								¿Ya posees una cuenta? Accede aqui
+								Already have an account?
 							</Link>
 						</Grid>
 					</Grid>

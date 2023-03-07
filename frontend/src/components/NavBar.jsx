@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { Link } from "react-router-dom";
 
@@ -29,38 +29,39 @@ import { CitizenContext } from "../context/citizen-context";
 
 const signedOutPages = [
 	{
-		text: "Acceder",
+		text: "Login",
 		link: "/login",
 	},
 	{
-		text: "Inscribete",
+		text: "Sign Up",
 		link: "/signup",
 	},
+	/*
 	{
 		text: "Test Messages",
 		link: "/test-messages",
-	},
+	},*/
 ];
 
 const signedInPages = [
 	{
-		text: "Mi Comunidad",
+		text: "My Community",
 		link: "/community",
 	},
 	{
-		text: "Crear Propuesta",
+		text: "Create Proposal",
 		link: "/createproposal",
 	},
 
 	{
-		text: "Sobre Comunidad",
+		text: "About Community",
 		link: "/community/about",
 	},
-
+	/*
 	{
 		text: "Test Messages",
 		link: "/test-messages",
-	},
+	},*/
 ];
 
 export default function NavBar() {
@@ -98,9 +99,10 @@ export default function NavBar() {
 								letterSpacing: ".3rem",
 								color: "inherit",
 								textDecoration: "none",
+								textAlign: "center",
 							}}
 						>
-							DEMOCRACIA CONECTADA
+							PLUGIN DEMOCRACY
 						</Typography>
 						{/*End icon and title when navbar is expanded*/}
 						{/*Hamburger menu box begin*/}
@@ -178,7 +180,7 @@ export default function NavBar() {
 							component={Link}
 							to="/"
 							sx={{
-								mr: 2,
+								//mr: 2,
 								display: { xs: "flex", md: "none" },
 								flexGrow: 1,
 								fontFamily: "monospace",
@@ -188,7 +190,7 @@ export default function NavBar() {
 								textDecoration: "none",
 							}}
 						>
-							DEMOCRACIA CONECTADA
+							PLUGIN DEMOCRACY
 						</Typography>
 						{/*Icon and title when NavBar is compressed end*/}
 						{/*Box for when navbar is NOT compressed */}

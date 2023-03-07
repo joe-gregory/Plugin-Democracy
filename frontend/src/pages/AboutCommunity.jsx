@@ -1,6 +1,8 @@
 import { useState, useContext, useEffect, createClass } from "react";
 
 import GMap from "../components/GMap";
+import React, { Component } from "react"; //del
+import { GoogleMap, LoadScript } from "@react-google-maps/api"; //del
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -21,7 +23,7 @@ import { CitizenContext } from "../context/citizen-context";
 
 export default function AboutCommunity() {
 	const [communities, setCommunities] = useState([]);
-	const [community, setCommunity] = useState();
+	const [community, setCommunity] = useState(undefined);
 	const [key, setKey] = useState();
 
 	const request = useContext(RequestContext);
@@ -104,11 +106,15 @@ export default function AboutCommunity() {
 						alignItems: "center",
 					}}
 				>
-					<GMap center={community.geoCoordinates} apiKey={key} />
+					<GMap
+						geoCoordinates={community.geoCoordinates}
+						apiKey={key}
+					/>
 				</Box>
 			) : (
 				""
 			)}
+
 			<Box
 				sx={{
 					marginTop: 2,
@@ -177,6 +183,7 @@ export default function AboutCommunity() {
 									<b>Cargo: </b>
 									{adminRecord.title}
 								</Typography>
+								<Typography>{adminRecord.body}</Typography>
 								<Typography>
 									<b>Fecha de inicio: </b>
 									{adminRecord.effectiveDate
@@ -234,6 +241,9 @@ export default function AboutCommunity() {
 									<Typography>
 										<b>Cargo: </b>
 										{nonAdminRoleRecord.title}
+									</Typography>
+									<Typography>
+										{nonAdminRoleRecord.body}
 									</Typography>
 									<Typography>
 										<b>Fecha de inicio: </b>

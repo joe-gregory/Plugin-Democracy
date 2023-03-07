@@ -52,7 +52,7 @@ export default function LogIn() {
 					</Avatar>
 				)}
 				<Typography component="h1" variant="h5">
-					Acceder
+					Login
 				</Typography>
 				<Box
 					component="form"
@@ -65,7 +65,7 @@ export default function LogIn() {
 						required
 						fullWidth
 						id="email"
-						label="Correo Electronico"
+						label="Email"
 						name="email"
 						autoComplete="email"
 						autoFocus
@@ -75,7 +75,7 @@ export default function LogIn() {
 						required
 						fullWidth
 						name="password"
-						label="Contraseña"
+						label="Password"
 						type="password"
 						id="password"
 						autoComplete="current-password"
@@ -90,12 +90,12 @@ export default function LogIn() {
 						variant="contained"
 						sx={{ mt: 3, mb: 2 }}
 					>
-						Acceder
+						Login
 					</Button>
 					<Grid container>
 						<Grid item xs>
 							<Link href="#" variant="body2">
-								¿Olvidaste tu contraseña?
+								Forgot Password?
 							</Link>
 						</Grid>
 						<Grid item>

@@ -20,6 +20,7 @@ import SignUp from "./pages/SignUp";
 import VerifyEmail from "./pages/VerifyEmail";
 import Account from "./pages/Account";
 import AboutCommunity from "./pages/AboutCommunity";
+import Contact from "./pages/Contact";
 import NotFound404 from "./pages/NotFound404";
 
 import TestMessages from "./pages/TestMessages";
@@ -295,6 +296,10 @@ function App() {
 										<Route
 											path="/test-messages"
 											element={<TestMessages />}
+										/>
+										<Route
+											path="/contact"
+											element={<Contact />}
 										/>
 										<Route
 											path="*"

@@ -111,8 +111,7 @@ passport.use(
 					else if (!citizen) {
 						info.messages.push({
 							severity: "error",
-							message:
-								"No hay ciudadano registrado con este correo",
+							message: "No user with given credentials",
 						});
 						return done(null, false, info); //error = null, user = false. There is no error but there is no used
 					}
@@ -122,7 +121,7 @@ passport.use(
 					) {
 						info.messages.push({
 							severity: "error",
-							message: "Contraseña equivocada",
+							message: "Wrong password",
 						});
 						return done(null, false, info);
 					}
@@ -131,7 +130,7 @@ passport.use(
 						info.success = true;
 						info.messages.push({
 							severity: "success",
-							message: "Ciudadano autenticado",
+							message: "Citizen authenticated",
 						});
 						return done(null, citizen, info);
 					} else {

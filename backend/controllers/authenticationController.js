@@ -64,7 +64,7 @@ const logOut = (request, response) => {
 		} else {
 			output.success = true;
 			output.messages = [
-				{ severity: "success", message: "Sesión cerrada " },
+				{ severity: "success", message: "Session closed " },
 			];
 			output.authenticated = request.isAuthenticated();
 			output.emailConfirm = false;
@@ -81,7 +81,7 @@ const signUp = async (request, response, next) => {
 	if (request.body.password !== request.body.confirmPassword) {
 		output.messages.push({
 			severity: "error",
-			message: "las contraseñas no coinciden",
+			message: "Passwords don't match",
 		});
 		output.success = false;
 	}
@@ -89,7 +89,7 @@ const signUp = async (request, response, next) => {
 	if (request.body.password.length < 7) {
 		output.messages.push({
 			severity: "error",
-			message: "Contraseña ocupa minimo 7 caracteres",
+			message: "Passwords needs to be at least 7 characters long",
 		});
 		output.success = false;
 	}
@@ -101,7 +101,7 @@ const signUp = async (request, response, next) => {
 		output.success = false;
 		output.messages.push({
 			severity: "error",
-			message: "La fecha no puede ser mayor que hoy",
+			message: "Date cannot be greater than today",
 		});
 	}
 	//prechecks failed
@@ -132,7 +132,7 @@ const signUp = async (request, response, next) => {
 	output.success = true;
 	output.messages.push({
 		severity: "success",
-		message: "ciudadano creado exitosamente",
+		message: "Citizen created successfully",
 	});
 
 	//login user
@@ -147,7 +147,7 @@ const signUp = async (request, response, next) => {
 			}
 			output.messages.push({
 				severity: "info",
-				message: "Sesión iniciada",
+				message: "Session initialized",
 			});
 			output.authenticated = request.isAuthenticated();
 
@@ -193,21 +193,13 @@ const sendConfirmEmail = (citizen) => {
 	mailOptions = {
 		from: "contacto@plugindemocracy.com",
 		to: citizen.email,
-		subject: "Verifique su correo para Democracia Conectada",
-		html: `<h2>¡Hola!</h2>
-        <p>Gracias por unirte a Democracia Conectada. Somos una organizacion con el gol de convertir nuestra
-        sociedad en una verdadera democracia. Nuestra plataforma permite a las 
-        comunidades operar como democracias directas. Estamos entusiasmados de que te hayas 
-        unido a nuestra comunidad de ciudadanos comprometidos con la construcción de una 
-        sociedad 100% democrática.</p>
-        <p>Para comenzar a utilizar la plataforma, por favor verifica tu correo electrónico haciendo click en el enlace a continuación:</p>
-        <a href = "https://192.168.1.68:5173/verifyemail?jwt=${token}">Da click aqui</a><i>  Enlace expira en un dia</i><br/>
-        <p>Si por alguna razón tienes problemas para verificar tu correo, por favor no 
-        dudes en contactarnos a través de <a href="mailto:contact@plugindemocracy.com">contacto@plugindemocracy.com</a> 
-        y te ayudaremos de inmediato.</p>
-        <p>¡Gracias de nuevo por unirte a Democracia Conectada! 
-        Estamos ansiosos de trabajar contigo en la construcción de una 
-        sociedad transparente y participativa.</p>`,
+		subject: "Plugin Democracy. Verify email address",
+		html: `<h2>Hi!</h2>
+        <p>Thank you for joining plugin democracy.</p>
+        <p>To begin using the platform, please verify your email address:</p>
+        <a href = "https://192.168.1.68:5173/verifyemail?jwt=${token}">Click here</a><i>  Expires in 1 day</i><br/>
+        <p>If you encounter any issues, email us at:  <a href="mailto:contact@plugindemocracy.com">contact@plugindemocracy.com</a></p>
+`,
 	};
 
 	try {
