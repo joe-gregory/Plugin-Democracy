@@ -38,12 +38,12 @@ export default function Footer() {
 					<BottomNavigationAction
 						label="Community Feed"
 						icon={<DynamicFeedIcon />}
-						disabled="true"
+						disabled={true}
 					/>
 					<BottomNavigationAction
 						label="Create Proposal"
 						icon={<AddCommentIcon />}
-						disabled="true"
+						disabled={true}
 					/>
 					<BottomNavigationAction
 						label="Contact Support"

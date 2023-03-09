@@ -31,7 +31,7 @@ const logIn = (request, response, next) => {
 			return response.status(401).json(output);
 		}
 		if (citizen) {
-			request.login(citizen, (error) => {
+			request.login(citizen, async (error) => {
 				if (error) {
 					output.messages.push({
 						severity: "error",
@@ -43,6 +43,13 @@ const logIn = (request, response, next) => {
 				citizen.password = null;
 				output.emailConfirm = citizen.emailConfirm;
 				output.citizen = citizen;
+				communities =
+					await CommunityModels.Community.communitiesWhereCitizen(
+						request.user._id
+					);
+
+				output.communities = communities;
+
 				return response.json(output);
 			});
 		} else {

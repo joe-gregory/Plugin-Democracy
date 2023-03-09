@@ -3,6 +3,8 @@ const Schema = mongoose.Schema;
 
 const communitySchema = new Schema(
 	{
+		verified: { type: Boolean, default: false },
+
 		name: { type: String, required: true },
 
 		address: { type: String, required: true, unique: true },
@@ -123,6 +125,8 @@ const communitySchema = new Schema(
 			},
 		],
 
+		communityRegistrator: { type: Schema.Types.ObjectId },
+
 		joinRequests: [
 			{
 				citizen: {
@@ -137,7 +141,6 @@ const communitySchema = new Schema(
 					type: String,
 					enum: ["resident", "owner"],
 					required: true,
-					default: "resident",
 				},
 
 				status: {
@@ -1459,7 +1462,7 @@ async function createCommunity(communityRequest) {
 	//communityRequest
 	//function creates a community and saves it or returns an error
 	//requires a superAdmin approver
-	let result = { success: false };
+	let output = { success: false, messages: [] };
 
 	//generate homes objects
 	let homes = [];
@@ -1482,6 +1485,9 @@ async function createCommunity(communityRequest) {
 		address: communityRequest.address,
 		homes: homes,
 		reservedIdentifiers: reservedIdentifiers,
+		records: [],
+		language: communityRequest.language,
+		communityRegistrator: communityRequest.communityRegistrator,
 	});
 	//La primera y segunda ley se agregan a la comunidad automaticamente
 	let law1 = {
@@ -1557,6 +1563,7 @@ async function createCommunity(communityRequest) {
 	community.records.push(law2);
 
 	//add citizen as temporary admin for community 90 days
+	/*
 	let recordRole = {
 		identifier: "000003",
 		title: communityRequest.title,
@@ -1569,22 +1576,26 @@ async function createCommunity(communityRequest) {
 		status: "active",
 	};
 
-	community.records.push(recordRole);
+	community.records.push(recordRole);*/
 
 	//save community
 	try {
 		await community.save();
-		communityRequest.status = "approved";
-		await communityRequest.save();
-		result.success = true;
-		result.message = `Community ${community._id} created successfully`;
-		result.community = community;
+		//communityRequest.status = "approved";
+		//await communityRequest.save();
+		output.success = true;
+		output.messages.push({
+			severity: "success",
+			message: `Community ${community._id} created successfully`,
+		});
+		output.community = community;
 	} catch (error) {
-		result.success = false;
-		result.message = error;
+		console.log(error);
+		output.success = false;
+		output.messages.push({ severity: "error", message: error.message });
 	}
 
-	return result;
+	return output;
 }
 
 async function createCitizen(user) {

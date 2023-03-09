@@ -26,6 +26,7 @@ import { AuthContext } from "../context/auth-context";
 import { MessagesContext } from "../context/messages-context";
 import { RequestContext } from "../context/requests-context";
 import { CitizenContext } from "../context/citizen-context";
+import { CommunitiesContext } from "../context/communities-context";
 
 const signedOutPages = [
 	{
@@ -42,7 +43,7 @@ const signedOutPages = [
 		link: "/test-messages",
 	},*/
 ];
-
+/*
 const signedInPages = [
 	{
 		text: "My Community",
@@ -61,13 +62,72 @@ const signedInPages = [
 	{
 		text: "Test Messages",
 		link: "/test-messages",
-	},*/
-];
+	},
+];*/
 
 export default function NavBar() {
 	const auth = React.useContext(AuthContext);
 	const [anchorElNav, setAnchorElNav] = React.useState(null);
 	const messages = React.useContext(MessagesContext);
+
+	const communitiesContext = React.useContext(CommunitiesContext);
+	const citizenContext = React.useContext(CitizenContext);
+
+	const [signedInPages, setSignedInPages] = React.useState([
+		{
+			text: "My Community",
+			link: "/community",
+		},
+		{
+			text: "Create Proposal",
+			link: "/createproposal",
+		},
+
+		{
+			text: "About Community",
+			link: "/community/about",
+		},
+	]);
+
+	React.useEffect(() => {
+		let signedIn = [];
+
+		if (communitiesContext.communities.length === 0) {
+			signedIn.push(
+				{
+					text: "Register Community",
+					link: "/community/register",
+				},
+				{
+					text: "Join Existing Community",
+					link: "/community/join",
+				}
+			);
+		} else {
+			signedIn.push(
+				{
+					text: "My Community",
+					link: "/community",
+				},
+				{
+					text: "Create Proposal",
+					link: "/createproposal",
+				},
+
+				{
+					text: "About Community",
+					link: "/community/about",
+				}
+			);
+		}
+		if (
+			citizenContext.citizen &&
+			citizenContext.citizen.superAdmin === true
+		) {
+			signedIn.push({ text: "Admin Console", link: "/admin" });
+		}
+		setSignedInPages(signedIn);
+	}, [communitiesContext.communities]);
 
 	const handleOpenNavMenu = (event) => {
 		setAnchorElNav(event.currentTarget);
@@ -277,7 +337,7 @@ function CitizenBubble() {
 			<Tooltip title="Open settings">
 				<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
 					<Avatar
-						key={Date.now()}
+						key={citizen ? citizen._id : "C"}
 						alt={citizen ? citizen.firstName : "C"}
 						src="https://localhost:8080/profile-picture"
 					/>

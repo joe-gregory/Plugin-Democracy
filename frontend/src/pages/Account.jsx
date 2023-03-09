@@ -204,7 +204,7 @@ function ProfilePicture() {
 				>
 					<Avatar
 						alt={citizen ? citizen.firstName : "C"}
-						key={citizen._id}
+						key={citizen ? citizen._id : "C"}
 						src="https://localhost:8080/profile-picture"
 						sx={{ width: 156, height: 156 }}
 					/>

@@ -21,6 +21,9 @@ import VerifyEmail from "./pages/VerifyEmail";
 import Account from "./pages/Account";
 import AboutCommunity from "./pages/AboutCommunity";
 import Contact from "./pages/Contact";
+import RegisterCommunity from "./pages/RegisterCommunity";
+import JoinCommunity from "./pages/JoinCommunity";
+import Admin from "./pages/Admin";
 import NotFound404 from "./pages/NotFound404";
 
 import TestMessages from "./pages/TestMessages";
@@ -180,7 +183,7 @@ function App() {
 		if (output.emailConfirm === true) confirmEmail();
 		else if (output.emailConfirm === false) unconfirmEmail();
 		//RR NavBar alert messages
-		if (output.messages) createAndAddMessage(output.messages);
+		if (output.messages) createAndSetMessage(output.messages);
 		//Citizen info
 		if (output.citizen) setCitizen(output.citizen);
 		//Communities info
@@ -300,6 +303,18 @@ function App() {
 										<Route
 											path="/contact"
 											element={<Contact />}
+										/>
+										<Route
+											path="/community/register"
+											element={<RegisterCommunity />}
+										/>
+										<Route
+											path="/community/join"
+											element={<JoinCommunity />}
+										/>
+										<Route
+											path="/admin"
+											element={<Admin />}
 										/>
 										<Route
 											path="*"
