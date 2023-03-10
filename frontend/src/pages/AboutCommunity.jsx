@@ -2,48 +2,41 @@ import { useState, useContext, useEffect, createClass } from "react";
 
 import GMap from "../components/GMap";
 import React, { Component } from "react"; //del
-import { GoogleMap, LoadScript } from "@react-google-maps/api"; //del
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Select from "@mui/material/Select";
-import Avatar from "@mui/material/Avatar";
 import Container from "@mui/material/Container";
-import Badge from "@mui/material/Badge";
-import CameraAltIcon from "@mui/icons-material/CameraAlt";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import Button from "@mui/material/Button";
-import Input from "@mui/material/Input";
-
-import { Link } from "react-router-dom";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
 
 import { RequestContext } from "../context/requests-context";
-import { CitizenContext } from "../context/citizen-context";
+import { CommunitiesContext } from "../context/communities-context";
 
 export default function AboutCommunity() {
-	const [communities, setCommunities] = useState([]);
-	const [community, setCommunity] = useState(undefined);
+	const communitiesContext = useContext(CommunitiesContext);
+	const [communities, setCommunities] = useState(
+		communitiesContext.communities
+	);
+	const [community, setCommunity] = useState(communities[0]);
 	const [key, setKey] = useState();
+	const [disabled, setDisabled] = useState();
 
 	const request = useContext(RequestContext);
 
 	useEffect(() => {
 		async function getCommunities() {
 			let output = await request.request("get", "/community/about");
-			for (let com of output.communities) {
-				com.key = com._id;
-			}
-			setCommunities(output.communities);
-			setCommunity(output.communities[0]);
 			setKey(output.key); //Change how this is passed
 		}
 		getCommunities();
 	}, []);
 
-	function updateSelectedCommunity() {
+	function updateSelectedCommunity(event) {
 		setCommunity(
-			communities.find((community) => community._id === target.value)
+			communities.find(
+				(community) => community._id === event.target.value
+			)
 		);
 	}
 
@@ -64,21 +57,25 @@ export default function AboutCommunity() {
 				>
 					Sobre Comunidad
 				</Typography>
-				{community ? (
-					communities.length > 1 ? (
-						<Select onChange={updateSelectedCommunity}>
-							{communities.map((community) => {
+
+				{communitiesContext.communities.length > 0 ? (
+					<FormControl fullWidth>
+						<Select
+							id="type"
+							value={community._id}
+							onChange={updateSelectedCommunity}
+							disabled={disabled}
+						>
+							{communitiesContext.communities.map((community) => (
 								<MenuItem
-									key={community._id}
 									value={community._id}
+									key={community._id}
 								>
 									{community.name}
-								</MenuItem>;
-							})}
+								</MenuItem>
+							))}
 						</Select>
-					) : (
-						""
-					)
+					</FormControl>
 				) : (
 					""
 				)}
@@ -97,23 +94,16 @@ export default function AboutCommunity() {
 				<Typography>{community ? community.address : ""}</Typography>
 			</Box>
 			{/*Google Map */}
-			{community ? (
-				<Box
-					sx={{
-						marginTop: 2,
-						display: "flex",
-						flexDirection: "column",
-						alignItems: "center",
-					}}
-				>
-					<GMap
-						geoCoordinates={community.geoCoordinates}
-						apiKey={key}
-					/>
-				</Box>
-			) : (
-				""
-			)}
+			{/*<Box
+				sx={{
+					marginTop: 2,
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "center",
+				}}
+			>
+				<GMap apiKey={key} />
+			</Box>*/}
 
 			<Box
 				sx={{

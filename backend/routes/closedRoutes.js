@@ -111,14 +111,14 @@ router.post("/community/join", async (request, response) => {
 
 	joinRequest = {
 		citizen: request.user._id,
-		homeNumber: request.body.homeNumber,
+		homeNumber: +request.body.homeNumber,
 		type: request.body.type,
 	};
 
 	community.joinRequests.push(joinRequest);
 
 	try {
-		community.save;
+		community.save();
 	} catch (error) {
 		output.success = false;
 		output.messages.push({ severity: "error", message: error.message });
@@ -183,11 +183,14 @@ router.post("/admin", async (request, response) => {
 		success: true,
 		messages: [],
 	};
-
+	let community = await CommunityModels.Community.findById(
+		request.body.community._id
+	);
 	if (request.body.type === "unverifiedCommunity") {
-		let community = await CommunityModels.Community.findById(
-			request.body.community
-		);
+		let output = {
+			success: true,
+			messages: [],
+		};
 
 		community.verified = true;
 
@@ -204,9 +207,118 @@ router.post("/admin", async (request, response) => {
 			message: `Community ${community.name} has been verified`,
 		});
 	} else if (request.body.type === "joinRequest") {
+		let requestCitizen = await CommunityModels.Citizen.findById(
+			request.body.joinRequest.citizen._id
+		);
+
+		let input = { home: {}, citizen: undefined };
+		input.home.number = request.body.joinRequest.homeNumber;
+		input.citizen = requestCitizen;
+		let result;
+		if (request.body.joinRequest.type === "owner") {
+			result = await community.addOwner(input);
+		} else {
+			result = await community.addResident(input);
+		}
+		output.success = result.success;
+		output.messages.push({
+			severity: result.success ? "success" : "error",
+			message: result.message,
+		});
+		/*
+		if (output.success === true) {
+			community.joinRequests.find(
+				(request) => request.citizen === requestCitizen._id
+			).status = "approved";
+			await community.save();
+		} */
 	}
 
 	response.json(output);
+});
+
+router.get("/community/:_id", async (request, response) => {
+	let output = {
+		success: true,
+		messages: [],
+	};
+	let community = await CommunityModels.Community.findById(
+		request.params._id
+	);
+
+	communityRecords = community.records.filter(
+		(record) => record.status !== "inactive"
+	);
+	output.feed = communityRecords;
+	return response.json(output);
+	communityPosts = community.posts;
+
+	let unorderedFeed = communityRecords.concat(communityPosts);
+
+	let feed = unorderedFeed.sort((a, b) => {
+		const aDate = a.date || a.statusUpdateDate;
+		const bDate = b.date || b.statusUpdateDate;
+		return aDate - bDate;
+	});
+
+	output.feed = feed;
+	response.json(output);
+});
+
+router.post("/community/vote", async (request, response) => {
+	let output = {
+		success: true,
+		messages: [],
+	};
+	let community = await CommunityModels.Community.findById(
+		request.body.community._id
+	);
+
+	let input = {
+		citizen: request.user,
+		record: request.body.record,
+		vote: request.body.vote,
+	};
+	let result = await community.vote(input);
+
+	output.success = result.success;
+	let message = {};
+	result.success
+		? (message.severity = "success")
+		: (message.severity = "error");
+	message.message = result.message;
+	output.messages.push(message);
+	response.json(output);
+});
+
+router.post("/createproposal", async (request, response) => {
+	let output = {
+		success: true,
+		messages: [],
+	};
+
+	let community = await CommunityModels.Community.findById(
+		request.body.community._id
+	);
+	let input = {
+		citizen: request.user,
+		proposal: {
+			title: request.body.title,
+			body: request.body.body,
+			description: request.body.description,
+			effectiveDate: request.body.effectiveDate,
+			expirationDate: request.body.expirationDate,
+		},
+	};
+
+	let result = await community.createProposal(input);
+	output.success = result.success;
+	let message = {};
+	result.success
+		? (message.severity = "success")
+		: (message.severity = "error");
+	message.message = result.message;
+	output.messages.push(message);
 });
 
 module.exports = router;

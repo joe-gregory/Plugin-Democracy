@@ -296,16 +296,20 @@ const communitySchema = new Schema(
 					record = this.records.find(
 						(record) => record._id === input.record._id
 					);
-				} else if (input.record.id) {
-					record = this.records.find(
-						(record) => record.id === input.record.id
-					);
-				} else if (input.record.identifier) {
-					record = this.records.find(
-						(record) =>
-							record.identifier === input.record.identifier
-					);
+					if (!record) {
+						record = this.records.find(
+							(record) => record.id === input.record.id
+						);
+						if (!record) {
+							record = this.records.find(
+								(record) =>
+									record.identifier ===
+									input.record.identifier
+							);
+						}
+					}
 				}
+
 				if (record) return record;
 				else throw new Error("Record not found");
 			},
@@ -995,23 +999,20 @@ const communitySchema = new Schema(
 
 				newRecord.identifier = this.generateUniqueIdentifier();
 				this.records.push(newRecord);
+				await this.save();
 				try {
 					//for post
 					let postInput = {
 						post: {
 							type: "createProposal",
 						},
-						record: {
-							identifier: newRecord.identifier,
-						},
+						record: newRecord,
 						citizen: {
 							_id: input.citizen._id,
 						},
 					};
 					this.addPost(postInput);
 
-					//save doc
-					await this.save();
 					result.success = true;
 					result.message = "Proposal created successfully.";
 					result.record = newRecord;

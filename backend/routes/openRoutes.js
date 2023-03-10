@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authentication = require("../controllers/authenticationController");
+const CommunityModels = require("../models/communityModels");
 
 router.get("/", (request, response) => {
 	let output = {
@@ -19,6 +20,41 @@ router.get("/session-status", (request, response) => {
 
 	if (request.user) output.emailConfirm = request.user.emailConfirm;
 	else output.emailConfirm = false;
+
+	response.json(output);
+});
+
+router.get("/initial-session", async (request, response) => {
+	let output = {
+		success: true,
+		communities: [],
+		messages: [],
+	};
+
+	request.isAuthenticated()
+		? (output.authenticated = true)
+		: (output.authenticated = false);
+	if (request.user) output.emailConfirm = request.user.emailConfirm;
+	else output.emailConfirm = false;
+
+	let communities;
+	if (request.user) {
+		output.citizen = request.user;
+		try {
+			communities =
+				await CommunityModels.Community.communitiesWhereCitizen(
+					request.user._id
+				);
+		} catch (error) {
+			output.success = false;
+			output.messages.push({ severity: "error", message: error.message });
+			return response.json(output);
+		}
+
+		for (community of communities) {
+			output.communities.push(community.toJSON());
+		}
+	}
 
 	response.json(output);
 });

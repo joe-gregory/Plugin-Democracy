@@ -127,7 +127,7 @@ export default function NavBar() {
 			signedIn.push({ text: "Admin Console", link: "/admin" });
 		}
 		setSignedInPages(signedIn);
-	}, [communitiesContext.communities]);
+	}, [communitiesContext.communities, citizenContext.citizen]);
 
 	const handleOpenNavMenu = (event) => {
 		setAnchorElNav(event.currentTarget);

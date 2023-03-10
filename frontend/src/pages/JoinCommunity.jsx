@@ -22,6 +22,8 @@ export default function JoinCommunity() {
 	const [disabled, setDisabled] = useState(false);
 	const [selectedCommunity, setSelectedCommunity] = useState();
 	const [selectedHouseNumber, setSelectedHouseNumber] = useState();
+	const [ownerOrResident, setOwnerOrResident] = useState();
+
 	const request = useContext(RequestContext);
 
 	useEffect(() => {
@@ -45,15 +47,18 @@ export default function JoinCommunity() {
 		setSelectedHouseNumber(event.target.value);
 	}
 
+	function handleOwnerOrResident(event) {
+		setOwnerOrResident(event.target.value);
+	}
+
 	const handleSubmit = async (event) => {
 		setLoading(true);
 		event.preventDefault();
 
-		const data = new FormData(event.currentTarget);
 		let body = JSON.stringify({
 			community: selectedCommunity,
 			homeNumber: selectedHouseNumber,
-			type: data.get("type"),
+			type: ownerOrResident,
 		});
 		request.request("post", "/community/join", undefined, body);
 		setLoading(false);
@@ -132,7 +137,7 @@ export default function JoinCommunity() {
 					{selectedCommunity ? (
 						<FormControl fullWidth>
 							<InputLabel id="LabelHouseNumbers">
-								In which home do you reside or you own?
+								In which home do you reside or own?
 							</InputLabel>
 							<Select
 								id="houseNumber"
@@ -165,18 +170,22 @@ export default function JoinCommunity() {
 				>
 					{selectedCommunity ? (
 						<FormControl fullWidth>
-							<InputLabel id="LabelHouseNumbers">
+							<InputLabel id="LabelHomeOrOwner">
 								Are you a home owner or resident?
 							</InputLabel>
 							<Select
 								id="type"
-								value={selectedHouseNumber}
-								onChange={handleSelectedHouseNumber}
+								value={ownerOrResident}
+								onChange={handleOwnerOrResident}
 								label="Are you a home owner or resident?"
 								disabled={disabled}
 							>
-								<MenuItem value="owner">Owner</MenuItem>
-								<MenuItem value="resident">Resident</MenuItem>
+								<MenuItem value="owner" key="owner">
+									Owner
+								</MenuItem>
+								<MenuItem value="resident" key="resident">
+									Resident
+								</MenuItem>
 							</Select>
 						</FormControl>
 					) : (

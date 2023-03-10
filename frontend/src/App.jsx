@@ -24,6 +24,7 @@ import Contact from "./pages/Contact";
 import RegisterCommunity from "./pages/RegisterCommunity";
 import JoinCommunity from "./pages/JoinCommunity";
 import Admin from "./pages/Admin";
+import CreateProposal from "./pages/CreateProposal";
 import NotFound404 from "./pages/NotFound404";
 
 import TestMessages from "./pages/TestMessages";
@@ -47,7 +48,7 @@ function App() {
 
 	useEffect(() => {
 		async function getSession() {
-			const output = await request("get", "/session-status");
+			const output = await request("get", "/initial-session");
 			output.authenticated
 				? setAuthenticated(true)
 				: setAuthenticated(false);
@@ -315,6 +316,10 @@ function App() {
 										<Route
 											path="/admin"
 											element={<Admin />}
+										/>
+										<Route
+											path="/createproposal"
+											element={<CreateProposal />}
 										/>
 										<Route
 											path="*"

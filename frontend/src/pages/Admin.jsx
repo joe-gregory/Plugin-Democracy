@@ -13,7 +13,7 @@ import {
 	Button,
 } from "@mui/material";
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
-import joinCommunityImage from "../assets/joinCommunity.png";
+import AdminImage from "../assets/admin.png";
 import { RequestContext } from "../context/requests-context";
 
 export default function Admin() {
@@ -51,7 +51,7 @@ export default function Admin() {
 		event.preventDefault();
 
 		let result = confirm(
-			`Are you sure you are going to grant request to ${unverifiedCommunity.name}? Has the address been confirmed with Google? Has the legal team ensured the community can operate as described?`
+			`Are you sure you are going to grant request to ${unverifiedCommunity.name}?\n\nHas the address been confirmed with Google?\n\nHas the legal team ensured the community can operate as described?`
 		);
 		let output;
 		if (result === true) {
@@ -70,12 +70,44 @@ export default function Admin() {
 
 	async function handleCommunityWithRequest(event) {
 		setCommunityWithRequest(
-			CommunitiesWithRequest.find(
+			communitiesWithRequests.find(
 				(community) => community._id === event.target.value
 			)
 		);
 	}
-	async function handleJoinRequest(event) {}
+	async function handleJoinRequest(event) {
+		setJoinRequest(
+			communityWithRequest.joinRequests.find(
+				(request) => request.citizen._id === event.target.value
+			)
+		);
+	}
+
+	async function handleSubmitJoinRequest() {
+		setLoading(true);
+		event.preventDefault();
+
+		let result = confirm(
+			`Are you sure you are going to grant request to ${joinRequest.citizen.fullName}?\n\nHas the citizen been confirmed with the community's administrators?\n\nHas the ownership status been confirmed by legal?`
+		);
+		console.log("RESULT", result);
+		let output;
+		if (result === true) {
+			let body = JSON.stringify({
+				community: communityWithRequest,
+				joinRequest: joinRequest,
+				type: "joinRequest",
+			});
+
+			output = await request.request("post", "/admin", undefined, body);
+		} else {
+			setLoading(false);
+		}
+		if (output.success === true) {
+			setDisabled(true);
+		}
+		setLoading(false);
+	}
 
 	return (
 		<Container component="main" maxWidth="xs">
@@ -141,7 +173,10 @@ export default function Admin() {
 								disabled={disabled}
 							>
 								{unverifiedCommunities.map((community) => (
-									<MenuItem value={community._id}>
+									<MenuItem
+										value={community._id}
+										key={community._id}
+									>
 										{community.name}
 									</MenuItem>
 								))}
@@ -157,7 +192,7 @@ export default function Admin() {
 							marginTop: 1,
 							display: "flex",
 							flexDirection: "column",
-							alignItems: "center",
+							alignItems: "start",
 						}}
 					>
 						<Typography variant="h5">
@@ -209,7 +244,7 @@ export default function Admin() {
 			<Box
 				component="form"
 				noValidate
-				onSubmit={handleJoinRequest}
+				onSubmit={handleSubmitJoinRequest}
 				sx={{ mt: 3 }}
 			>
 				<Box
@@ -223,6 +258,15 @@ export default function Admin() {
 					<Typography variant="h5">
 						Join Community Requests:
 					</Typography>
+				</Box>
+				<Box
+					sx={{
+						marginTop: 2,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+					}}
+				>
 					{communitiesWithRequests ? (
 						<FormControl fullWidth>
 							<InputLabel id="labelCommunityWithRequests">
@@ -236,7 +280,10 @@ export default function Admin() {
 								disabled={disabled}
 							>
 								{communitiesWithRequests.map((community) => (
-									<MenuItem value={community._id}>
+									<MenuItem
+										value={community._id}
+										key={community._id}
+									>
 										Community: {community.name}
 									</MenuItem>
 								))}
@@ -244,7 +291,16 @@ export default function Admin() {
 						</FormControl>
 					) : (
 						""
-					)}
+					)}{" "}
+				</Box>
+				<Box
+					sx={{
+						marginTop: 2,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+					}}
+				>
 					{communityWithRequest ? (
 						<FormControl fullWidth>
 							<InputLabel id="labelJoinCommunity">
@@ -256,11 +312,83 @@ export default function Admin() {
 								onChange={handleJoinRequest}
 								label="Join Requests"
 								disabled={disabled}
-							></Select>
+							>
+								{communityWithRequest.joinRequests.map(
+									(request) => (
+										<MenuItem
+											value={request.citizen._id}
+											key={request.citizen._id}
+										>
+											{request.citizen.fullName}
+										</MenuItem>
+									)
+								)}
+							</Select>
 						</FormControl>
 					) : (
 						""
 					)}
+				</Box>
+				<Box
+					sx={{
+						marginTop: 2,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+					}}
+				>
+					{joinRequest ? (
+						<Box
+							sx={{
+								marginTop: 1,
+								display: "flex",
+								flexDirection: "column",
+								alignItems: "start",
+							}}
+						>
+							<Typography>
+								<b>Name: </b>
+								{joinRequest.citizen.fullName}
+							</Typography>
+							<Typography>
+								<b>Contact email: </b>
+								{joinRequest.citizen.email}
+							</Typography>
+							<Typography>
+								<b>Contact number: </b>
+								{joinRequest.citizen.cellPhone}
+							</Typography>
+							<Typography>
+								<b>Home number: </b>
+								{joinRequest.homeNumber}
+							</Typography>
+							<Typography>
+								<b>Owner or resident? </b>
+								{joinRequest.type}
+							</Typography>
+
+							<Button
+								type="submit"
+								variant="contained"
+								disabled={disabled}
+								sx={{ mt: 1 }}
+							>
+								Join into Community
+							</Button>
+						</Box>
+					) : (
+						""
+					)}
+				</Box>
+				<Box
+					sx={{
+						marginTop: 2,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+					}}
+				>
+					<img src={AdminImage} style={{ width: "100vw" }}></img>
 				</Box>
 			</Box>
 		</Container>

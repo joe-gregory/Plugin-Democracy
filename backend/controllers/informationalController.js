@@ -46,17 +46,12 @@ async function respondCommunitiesOfCitizen(request, response) {
 	let communities;
 
 	try {
-		if (request.user.superAdmin === true) {
-			communities = await CommunityModels.Community.find({});
-		} else {
-			communities =
-				await CommunityModels.Community.communitiesWhereCitizen(
-					request.user._id
-				);
-		}
+		communities = await CommunityModels.Community.communitiesWhereCitizen(
+			request.user._id
+		);
 	} catch (error) {
 		output.success = false;
-		output.messages.push({ severity: error, message: error.message });
+		output.messages.push({ severity: "error", message: error.message });
 		return response.json(output);
 	}
 
