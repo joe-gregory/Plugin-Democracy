@@ -11,9 +11,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import CircularProgress from "@mui/material/CircularProgress";
-
-import { RequestContext } from "../context/requests-context";
-
+import { RequestContext } from "../contexts/requests-context";
 import Copyright from "../components/Copyright";
 
 export default function LogIn() {
@@ -100,7 +98,7 @@ export default function LogIn() {
 						</Grid>
 						<Grid item>
 							<Link href="/signup" variant="body2">
-								{"¿No tienes cuenta? Registrate aqui"}
+								{"Don't have an account? Register here"}
 							</Link>
 						</Grid>
 					</Grid>

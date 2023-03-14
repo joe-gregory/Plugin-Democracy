@@ -10,16 +10,22 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import Button from "@mui/material/Button";
 import Input from "@mui/material/Input";
+import CardHeader from "@mui/material/CardHeader";
+import Grid from "@mui/material/Grid";
 
 import { Link } from "react-router-dom";
 
-import { RequestContext } from "../context/requests-context";
-import { CitizenContext } from "../context/citizen-context";
+import { RequestContext } from "../contexts/requests-context";
+import { CitizenContext } from "../contexts/citizen-context";
+import JoinBadge from "../assets/joinBadge.png";
+import AccountImage from "../assets/account.png";
+import { PPContext } from "../contexts/pp-context";
 
 export default function Account() {
 	const request = useContext(RequestContext);
 	const citizenContext = useContext(CitizenContext);
 	let citizen = citizenContext.citizen;
+	const ppContext = useContext(PPContext);
 
 	useEffect(() => {
 		async function getCitizenInfo() {
@@ -43,7 +49,7 @@ export default function Account() {
 				}}
 			>
 				<Typography component="h1" variant="h3">
-					Cuenta
+					Profile
 				</Typography>
 			</Box>
 			<Box
@@ -54,7 +60,7 @@ export default function Account() {
 					alignItems: "center",
 				}}
 			>
-				<ProfilePicture />
+				<ProfilePicture key={ppContext.pp} />
 				<Typography>{citizen ? citizen.fullName : ""}</Typography>
 			</Box>
 			<Box
@@ -66,25 +72,25 @@ export default function Account() {
 				}}
 			>
 				<Typography>
-					<b>Fecha de Nacimiento: </b>
+					<b>DOB: </b>
 					{citizen ? citizen.dob.split("T")[0] : ""}
 				</Typography>
 				<Typography>
-					<b>Correo electronico: </b>
+					<b>email: </b>
 					{citizen ? citizen.email : ""}
 				</Typography>
 				<Typography>
-					<b>Correo electronico confirmado: </b>{" "}
-					{citizen ? (citizen.emailConfirm ? "Si" : "No") : "No"}
+					<b>email confirmed?: </b>{" "}
+					{citizen ? (citizen.emailConfirm ? "Yes" : "No") : "No"}
 					{citizen ? (
-						citizen.emailConfirm ? (
+						!citizen.emailConfirm ? (
 							<Button
 								type="submit"
 								fullWidth
 								variant="contained"
 								onClick={confirmEmail}
 							>
-								Reenviar correo
+								Resend email
 							</Button>
 						) : (
 							""
@@ -94,7 +100,7 @@ export default function Account() {
 					)}
 				</Typography>
 				<Typography>
-					<b>Celular: </b>
+					<b>Cellphone: </b>
 					{citizen
 						? citizen.cellPhone
 							? citizen.cellPhone
@@ -102,7 +108,7 @@ export default function Account() {
 						: ""}
 				</Typography>
 				<Typography>
-					<b>Cuenta creada en: </b>
+					<b>Account created on: </b>
 
 					{citizen
 						? citizen.createdAt
@@ -120,7 +126,7 @@ export default function Account() {
 				}}
 			>
 				<Typography component="h1" variant="h4">
-					Comunidades
+					Communities
 				</Typography>
 			</Box>
 			<Box
@@ -148,6 +154,58 @@ export default function Account() {
 						: ""
 					: ""}
 			</Box>
+			<Box
+				sx={{
+					marginTop: 2,
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "center",
+				}}
+			>
+				<Typography component="h1" variant="h4">
+					Badges
+				</Typography>
+			</Box>
+			{citizen &&
+			citizen.communities &&
+			citizen.communities.length > 0 ? (
+				<Box
+					sx={{
+						marginTop: 2,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "start",
+					}}
+				>
+					<Grid
+						container
+						alignItems="center"
+						spacing={2}
+						direction="column"
+					>
+						<Grid item>
+							<Avatar src={JoinBadge} />
+						</Grid>
+						<Grid item>
+							<Typography variant="subtitle1">
+								Joined a community
+							</Typography>
+						</Grid>
+					</Grid>
+				</Box>
+			) : (
+				""
+			)}
+			<Box
+				sx={{
+					marginTop: 2,
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "start",
+				}}
+			>
+				<img src={AccountImage} style={{ width: "100vw" }}></img>
+			</Box>
 		</Container>
 	);
 }
@@ -158,6 +216,8 @@ function ProfilePicture() {
 	const request = useContext(RequestContext);
 	const citizenContext = useContext(CitizenContext);
 	let citizen = citizenContext.citizen;
+	let ppContext = useContext(PPContext);
+	let profilepiclink = "/profilepicture";
 
 	const handleClickOpen = () => {
 		setDialogOpen(true);
@@ -185,10 +245,11 @@ function ProfilePicture() {
 
 		let output = await request.request(
 			"post",
-			"/profilepicture",
+			profilepiclink,
 			{},
 			formData
 		);
+		ppContext.ppUpdate();
 	};
 
 	return (

@@ -1,7 +1,8 @@
 import { useState, useContext, useEffect } from "react";
 
-import { CommunitiesContext } from "../context/communities-context";
-import { RequestContext } from "../context/requests-context";
+import { CommunitiesContext } from "../contexts/communities-context";
+import { RequestContext } from "../contexts/requests-context";
+import { UpdateContext } from "../contexts/update-context";
 
 import Typography from "@mui/material/Typography";
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
@@ -25,6 +26,8 @@ const CommunityFeed = () => {
 	const [disabled, setDisabled] = useState(false);
 	const [feed, setFeed] = useState([]);
 	const request = useContext(RequestContext);
+	const [update, setUpdate] = useState(true);
+	const updateContext = useContext(UpdateContext);
 
 	function handleSelectCommunity(event) {
 		setCurrentCommunity(
@@ -32,18 +35,21 @@ const CommunityFeed = () => {
 				(community) => community._id === event.target.value
 			)
 		);
+		updateContext.updateUpdate();
 	}
 
 	useEffect(() => {
 		async function getFeed() {
+			setLoading(true);
 			let url = "/community/" + currentCommunity._id;
 			let output = await request.request("get", url);
 
 			if (output.feed) setFeed(output.feed);
+			setLoading(false);
 		}
 
 		getFeed();
-	}, [currentCommunity, feed]);
+	}, [currentCommunity, updateContext.update]);
 
 	return (
 		<Container component="main" maxWidth="xs">
@@ -120,8 +126,10 @@ const CommunityFeed = () => {
 				>
 					<FeedUnit
 						record={r}
-						key={r.identifier}
+						key={r.key}
 						community={currentCommunity}
+						update={update}
+						loading={loading}
 					/>
 				</Box>
 			))}

@@ -20,7 +20,7 @@ export default function NotFound404() {
 			</Box>
 			<Box display="flex" justifyContent="center" alignItems="center">
 				<Link to="/" style={{ textDecoration: "none" }}>
-					<Button variant="contained">REGRESAR A INICIO</Button>
+					<Button variant="contained">Go back to Home</Button>
 				</Link>
 			</Box>
 		</Container>

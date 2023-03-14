@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
 import AdminImage from "../assets/admin.png";
-import { RequestContext } from "../context/requests-context";
+import { RequestContext } from "../contexts/requests-context";
 
 export default function Admin() {
 	const [unverifiedCommunities, setUnverifiedCommunities] = useState();
@@ -56,7 +56,7 @@ export default function Admin() {
 		let output;
 		if (result === true) {
 			let body = JSON.stringify({
-				community: unverifiedCommunity._id,
+				community: unverifiedCommunity,
 				type: "unverifiedCommunity",
 			});
 
@@ -90,7 +90,6 @@ export default function Admin() {
 		let result = confirm(
 			`Are you sure you are going to grant request to ${joinRequest.citizen.fullName}?\n\nHas the citizen been confirmed with the community's administrators?\n\nHas the ownership status been confirmed by legal?`
 		);
-		console.log("RESULT", result);
 		let output;
 		if (result === true) {
 			let body = JSON.stringify({

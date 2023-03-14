@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
 import joinCommunityImage from "../assets/joinCommunity.png";
-import { RequestContext } from "../context/requests-context";
+import { RequestContext } from "../contexts/requests-context";
 
 export default function JoinCommunity() {
 	const [communityOptions, setCommunityOptions] = useState([]);
@@ -107,24 +107,32 @@ export default function JoinCommunity() {
 						alignItems: "center",
 					}}
 				>
-					<FormControl fullWidth>
-						<InputLabel id="LabelCommunityOptions">
-							Select your community from the list
-						</InputLabel>
-						<Select
-							id="communityOptions"
-							value={selectedCommunity}
-							onChange={handleSelectCommunity}
-							label="Select your community from the list"
-							disabled={disabled}
-						>
-							{communityOptions.map((community) => (
-								<MenuItem value={community._id}>
-									{community.name}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
+					{communityOptions ? (
+						communityOptions.length > 0 ? (
+							<FormControl fullWidth>
+								<InputLabel id="LabelCommunityOptions">
+									Select your community from the list
+								</InputLabel>
+								<Select
+									id="communityOptions"
+									value={selectedCommunity}
+									onChange={handleSelectCommunity}
+									label="Select your community from the list"
+									disabled={disabled}
+								>
+									{communityOptions.map((community) => (
+										<MenuItem value={community._id}>
+											{community.name}
+										</MenuItem>
+									))}
+								</Select>
+							</FormControl>
+						) : (
+							""
+						)
+					) : (
+						""
+					)}
 				</Box>
 				<Box
 					sx={{

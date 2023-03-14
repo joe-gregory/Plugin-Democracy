@@ -22,11 +22,12 @@ import Alert from "@mui/material/Alert";
 import Collapse from "@mui/material/Collapse";
 import CloseIcon from "@mui/icons-material/Close";
 
-import { AuthContext } from "../context/auth-context";
-import { MessagesContext } from "../context/messages-context";
-import { RequestContext } from "../context/requests-context";
-import { CitizenContext } from "../context/citizen-context";
-import { CommunitiesContext } from "../context/communities-context";
+import { AuthContext } from "../contexts/auth-context";
+import { MessagesContext } from "../contexts/messages-context";
+import { RequestContext } from "../contexts/requests-context";
+import { CitizenContext } from "../contexts/citizen-context";
+import { CommunitiesContext } from "../contexts/communities-context";
+import { PPContext } from "../contexts/pp-context";
 
 const signedOutPages = [
 	{
@@ -139,7 +140,7 @@ export default function NavBar() {
 
 	return (
 		<>
-			<AppBar position="static">
+			<AppBar position="sticky">
 				<Container maxWidth="xl">
 					<Toolbar disableGutters>
 						{/*Icon and Title when navbar is expanded */}
@@ -297,14 +298,14 @@ export default function NavBar() {
 						{/*End user menu Box*/}
 					</Toolbar>
 				</Container>
+				{messages.messages.map((message, index) => (
+					<Message
+						key={message.key}
+						severity={message.severity}
+						message={message.message}
+					/>
+				))}
 			</AppBar>
-			{messages.messages.map((message, index) => (
-				<Message
-					key={message.key}
-					severity={message.severity}
-					message={message.message}
-				/>
-			))}
 		</>
 	);
 }
@@ -315,6 +316,7 @@ function CitizenBubble() {
 	const navigate = useNavigate();
 	const citizenContext = React.useContext(CitizenContext);
 	let citizen = citizenContext.citizen;
+	const ppContext = React.useContext(PPContext);
 
 	const handleOpenUserMenu = (event) => {
 		setAnchorElUser(event.currentTarget);
@@ -337,7 +339,7 @@ function CitizenBubble() {
 			<Tooltip title="Open settings">
 				<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
 					<Avatar
-						key={citizen ? citizen._id : "C"}
+						key={ppContext.pp}
 						alt={citizen ? citizen.firstName : "C"}
 						src="https://localhost:8080/profile-picture"
 					/>
@@ -360,10 +362,10 @@ function CitizenBubble() {
 				onClose={handleCloseUserMenu}
 			>
 				<MenuItem key={"Perfil"} onClick={account}>
-					<Typography textAlign="center">Cuenta</Typography>
+					<Typography textAlign="center">Account</Typography>
 				</MenuItem>
 				<MenuItem key="Cerrar sesion" onClick={logout}>
-					<Typography textAlign="center">Cerrar sesión</Typography>
+					<Typography textAlign="center">Logout</Typography>
 				</MenuItem>
 			</Menu>
 		</Box>

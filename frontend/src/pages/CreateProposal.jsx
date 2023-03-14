@@ -8,14 +8,13 @@ import Container from "@mui/material/Container";
 import CircularProgress from "@mui/material/CircularProgress";
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
 import CreateProposalImage from "../assets/createProposal.png";
-import { RequestContext } from "../context/requests-context";
+import { RequestContext } from "../contexts/requests-context";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import InputLabel from "@mui/material/InputLabel";
-
 import Copyright from "../components/Copyright";
-import { CommunitiesContext } from "../context/communities-context";
+import { CommunitiesContext } from "../contexts/communities-context";
 
 export default function CreateProposal() {
 	const [loading, setLoading] = React.useState(false);
@@ -46,14 +45,22 @@ export default function CreateProposal() {
 
 		const data = new FormData(event.currentTarget);
 		let body = JSON.stringify({
+			type: type,
 			title: data.get("title"),
 			body: data.get("body"),
 			description: data.get("description"),
 			effectiveDate: data.get("effectiveDate"),
 			expirationDate: data.get("expirationDate"),
+			salary: data.get("salary"),
+			frequencyPay: data.get("frequency"),
 			community: selectedCommunity,
 		});
-		let output = request.request("post", "createproposal", undefined, body);
+		let output = await request.request(
+			"post",
+			"createproposal",
+			undefined,
+			body
+		);
 		if (output.success) setDisabled(true);
 		setLoading(false);
 	};
@@ -160,6 +167,7 @@ export default function CreateProposal() {
 					</FormControl>
 				</Box>
 				{type === "law" ? <LawInputs disabled={disabled} /> : ""}
+				{type === "role" ? <NewHire disabled={disabled} /> : ""}
 
 				<Button
 					type="submit"
@@ -267,6 +275,7 @@ function LawInputs({ disabled }) {
 					label="When would this law take effect?"
 					type="date"
 					defaultValue=""
+					disabled={disabled}
 					sx={{ width: 220 }}
 					InputLabelProps={{
 						shrink: true,
@@ -288,10 +297,185 @@ function LawInputs({ disabled }) {
 					label="When would this law expire?"
 					type="date"
 					defaultValue=""
+					disabled={disabled}
 					sx={{ width: 220 }}
 					InputLabelProps={{
 						shrink: true,
 					}}
+				/>
+			</Box>
+		</>
+	);
+}
+
+function NewHire({ disabled }) {
+	const [frequency, setFrequency] = React.useState("hourly");
+	return (
+		<>
+			<Box
+				sx={{
+					marginTop: 2,
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "center",
+				}}
+			>
+				<TextField
+					margin="normal"
+					required
+					fullWidth
+					id="title"
+					label="Title"
+					name="title"
+					autoComplete="title"
+					autoFocus
+					disabled={disabled}
+				/>
+			</Box>
+			<Box
+				sx={{
+					marginTop: 2,
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "center",
+				}}
+			>
+				<TextField
+					margin="normal"
+					required
+					fullWidth
+					id="body"
+					label="Responsabilities"
+					name="body"
+					autoComplete="responsabilities"
+					multiline="true"
+					autoFocus
+					disabled={disabled}
+					minRows="10"
+				/>
+			</Box>
+			<Box
+				sx={{
+					marginTop: 2,
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "center",
+				}}
+			>
+				<TextField
+					margin="normal"
+					required
+					fullWidth
+					id="description"
+					label="Description"
+					name="description"
+					autoComplete="description"
+					autoFocus
+					disabled={disabled}
+					multiline="true"
+					minRows="10"
+				/>
+			</Box>
+			<Box
+				sx={{
+					marginTop: 2,
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "start",
+				}}
+			>
+				<TextField
+					required
+					id="salary"
+					name="salary"
+					label="How much will be this role be payed?"
+					type="number"
+					defaultValue=""
+					sx={{ width: 220 }}
+					InputLabelProps={{
+						shrink: true,
+					}}
+					disabled={disabled}
+				/>
+			</Box>
+			<Box
+				sx={{
+					marginTop: 2,
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "start",
+				}}
+			>
+				<FormControl fullWidth>
+					<InputLabel id="selectCommunity">Pay frequency</InputLabel>
+					<Select
+						id="type"
+						value={frequency}
+						onChange={(event) => {
+							setFrequency(event.target.value);
+						}}
+						label="What is the proposed pay frequency?"
+						disabled={disabled}
+					>
+						<MenuItem value="hourly" key="hourly">
+							hourly
+						</MenuItem>
+						<MenuItem value="weekly" key="weekly">
+							weekly
+						</MenuItem>
+						<MenuItem value="bi-weekly" key="bi-weekly">
+							bi-weekly
+						</MenuItem>
+						<MenuItem value="monthly" key="monthly">
+							monthly
+						</MenuItem>
+					</Select>
+				</FormControl>
+			</Box>
+
+			<Box
+				sx={{
+					marginTop: 2,
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "start",
+				}}
+			>
+				<TextField
+					required
+					id="effectiveDate"
+					name="effectiveDate"
+					label="When would this role take effect?"
+					type="date"
+					defaultValue=""
+					sx={{ width: 220 }}
+					InputLabelProps={{
+						shrink: true,
+					}}
+					disabled={disabled}
+				/>
+			</Box>
+
+			<Box
+				sx={{
+					marginTop: 2,
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "start",
+				}}
+			>
+				<TextField
+					required
+					id="expirationDate"
+					name="expirationDate"
+					label="When would this role expire?"
+					type="date"
+					defaultValue=""
+					sx={{ width: 220 }}
+					InputLabelProps={{
+						shrink: true,
+					}}
+					disabled={disabled}
 				/>
 			</Box>
 		</>

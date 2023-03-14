@@ -14,11 +14,13 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import ShareIcon from "@mui/icons-material/Share";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { CircularProgress } from "@mui/material";
 
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
-import { CitizenContext } from "../context/citizen-context";
+import { CitizenContext } from "../contexts/citizen-context";
 import Grid from "@mui/material/Grid";
-import { RequestContext } from "../context/requests-context";
+import { RequestContext } from "../contexts/requests-context";
+import { UpdateContext } from "../contexts/update-context";
 
 const ExpandMore = styled((props) => {
 	const { expand, ...other } = props;
@@ -31,26 +33,25 @@ const ExpandMore = styled((props) => {
 	}),
 }));
 
-export default function FeedUnit({ record, community }) {
+export default function FeedUnit({ record, community, update }) {
 	const [expanded, setExpanded] = React.useState(false);
 	const citizenContext = React.useContext(CitizenContext);
-	const [vote, setVote] = React.useState(
-		record.votes.length > 0
-			? record.votes.find(
-					(vote) => vote.citizen === citizenContext.citizen._id
-			  ).vote
-			: "unplug"
-	);
+	const [vote, setVote] = React.useState(record.currentCitizensVote);
+
 	const request = React.useContext(RequestContext);
+	const [loading, setLoading] = React.useState(false);
+	const updateContext = React.useContext(UpdateContext);
 
 	const handleExpandClick = () => {
 		setExpanded(!expanded);
 	};
 
 	const handleVote = async () => {
+		setLoading(true);
 		let newVote;
 		if (vote === "plug") newVote = "unplug";
-		if (vote === "unplug") newVote = "plug";
+		else if (vote === "unplug") newVote = "plug";
+		console.log("NEW VOTE", newVote);
 		let body = JSON.stringify({
 			record: record,
 			vote: { vote: newVote },
@@ -62,7 +63,12 @@ export default function FeedUnit({ record, community }) {
 			undefined,
 			body
 		);
-		if (output.success === true) setVote(newVote);
+		if (output.success === true) {
+			setVote(newVote);
+			updateContext.updateUpdate();
+			record = output.record;
+		}
+		setLoading(false);
 	};
 
 	return (
@@ -71,24 +77,48 @@ export default function FeedUnit({ record, community }) {
 				maxWidth: 345,
 				raised: true,
 				elevation: 24,
+				minWidth: 345,
 			}}
 		>
 			<CardHeader
 				avatar={
-					<Typography>type: {record.type}</Typography>
+					<Typography
+						sx={{
+							bgcolor: "white",
+							color: "primary.main",
+							borderRadius: 2,
+							padding: 1,
+						}}
+					>
+						{record.identifier ? "type: " + record.type : "POST"}
+					</Typography>
 					/*<Avatar sx={{ m: 1, bgcolor: "primary.main" }}>
 						<PowerOutlinedIcon />
 					</Avatar>*/
 				}
-				/*action={
-					<IconButton aria-label="settings">
-						<MoreVertIcon />
-					</IconButton>
-				}*/
-				title={<Typography>{record.title}</Typography>}
+				action={
+					!record.identifier && record.author ? (
+						<Avatar
+							key={record.author + record.date}
+							alt={record.author.firstName || "C"}
+							src="https://localhost:8080/profile-picture"
+						/>
+					) : (
+						<Typography>ID: {record.identifier}</Typography>
+					)
+				}
+				title={
+					record.identifier ? (
+						<Typography>{record.title}</Typography>
+					) : (
+						""
+					)
+				}
 				subheader={
 					<Typography>
-						{record.statusUpdateDate.split("T")[0]}
+						{record.identifier
+							? record.statusUpdateDate.split("T")[0]
+							: record.date.split("T")[0]}{" "}
 					</Typography>
 				}
 				sx={{ bgcolor: "primary.main", color: "white" }}
@@ -100,10 +130,23 @@ export default function FeedUnit({ record, community }) {
 				alt="Paella dish"
 			/>*/}
 			<CardContent>
-				<Typography>
-					<b>status: </b>
-					{record.status}
-				</Typography>
+				{record.status ? (
+					<Typography
+						sx={{
+							color:
+								record.status === "active"
+									? "primary.main"
+									: record.status === "proposal"
+									? "red"
+									: "",
+						}}
+					>
+						<b>status: </b>
+						{record.status}
+					</Typography>
+				) : (
+					""
+				)}
 				{record.effectiveDate ? (
 					<Typography>
 						<b>effective date: </b>
@@ -125,63 +168,75 @@ export default function FeedUnit({ record, community }) {
 					{record.body}
 				</Typography>
 			</CardContent>
-			<CardActions
-				disableSpacing
-				sx={{ bgcolor: "primary.main", color: "white" }}
-			>
-				<IconButton aria-label="vote" onClick={handleVote}>
-					<Avatar
-						sx={{
-							gbcolor: vote === "plug" ? "primary.main" : "white",
-						}}
-					>
-						<PowerOutlinedIcon
-							sx={{
-								color: vote === "plug" ? "primary.main" : "red",
-							}}
-						/>
-					</Avatar>
-				</IconButton>
-				<IconButton aria-label="share">
-					<ShareIcon sx={{ color: "white" }} />
-				</IconButton>
-				<Grid
-					container
-					direction="column"
-					justifyContent="start"
-					alignItems="start"
-					sx={{ ml: 3, mr: 1 }}
+			{record.identifier ? (
+				<CardActions
+					disableSpacing
+					sx={{ bgcolor: "primary.main", color: "white" }}
 				>
-					<Typography>
-						plugged:{" "}
-						{
-							record.votes.filter((vote) => vote.vote === "plug")
-								.length
-						}
-					</Typography>
-					<Typography>
-						unplugged:{" "}
-						{
-							record.votes.filter(
-								(vote) => vote.vote === "unplug"
-							).length
-						}
-					</Typography>
-				</Grid>
-
-				{record.description ? (
-					<ExpandMore
-						expand={expanded}
-						onClick={handleExpandClick}
-						aria-expanded={expanded}
-						aria-label="show more"
+					<IconButton aria-label="vote" onClick={handleVote}>
+						<Avatar
+							sx={{
+								bgcolor: "white",
+							}}
+						>
+							{loading ? (
+								<CircularProgress />
+							) : (
+								<PowerOutlinedIcon
+									sx={{
+										color:
+											vote === "plug"
+												? "primary.main"
+												: "red",
+									}}
+								/>
+							)}
+						</Avatar>
+					</IconButton>
+					<IconButton aria-label="share">
+						<ShareIcon sx={{ color: "white" }} />
+					</IconButton>
+					<Grid
+						container
+						direction="column"
+						justifyContent="start"
+						alignItems="start"
+						sx={{ ml: 3, mr: 1 }}
 					>
-						<ExpandMoreIcon />
-					</ExpandMore>
-				) : (
-					""
-				)}
-			</CardActions>
+						<Typography>
+							plugged:{" "}
+							{
+								record.votes.filter(
+									(vote) => vote.vote === "plug"
+								).length
+							}
+						</Typography>
+						<Typography>
+							unplugged:{" "}
+							{
+								record.votes.filter(
+									(vote) => vote.vote === "unplug"
+								).length
+							}
+						</Typography>
+					</Grid>
+
+					{record.description ? (
+						<ExpandMore
+							expand={expanded}
+							onClick={handleExpandClick}
+							aria-expanded={expanded}
+							aria-label="show more"
+						>
+							<ExpandMoreIcon />
+						</ExpandMore>
+					) : (
+						""
+					)}
+				</CardActions>
+			) : (
+				""
+			)}
 			{record.description ? (
 				<Collapse in={expanded} timeout="auto" unmountOnExit>
 					<CardContent>

@@ -2,16 +2,21 @@ import { useState, useContext, useEffect, createClass } from "react";
 
 import GMap from "../components/GMap";
 import React, { Component } from "react"; //del
-
+import Avatar from "@mui/material/Avatar";
+import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Select from "@mui/material/Select";
 import Container from "@mui/material/Container";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
+import Tooltip from "@mui/material/Tooltip";
 
-import { RequestContext } from "../context/requests-context";
-import { CommunitiesContext } from "../context/communities-context";
+import { RequestContext } from "../contexts/requests-context";
+import { CommunitiesContext } from "../contexts/communities-context";
+import aboutCommunity1 from "../assets/aboutCommunity1.png";
+import aboutCommunity2 from "../assets/aboutCommunity2.png";
+import aboutCommunity3 from "../assets/aboutCommunity3.png";
 
 export default function AboutCommunity() {
 	const communitiesContext = useContext(CommunitiesContext);
@@ -50,12 +55,15 @@ export default function AboutCommunity() {
 					alignItems: "center",
 				}}
 			>
+				<Avatar sx={{ m: 1, bgcolor: "primary.main" }}>
+					<PowerOutlinedIcon />
+				</Avatar>
 				<Typography
 					sx={{ textAlign: "center" }}
 					component="h1"
 					variant="h3"
 				>
-					Sobre Comunidad
+					About Community
 				</Typography>
 
 				{communitiesContext.communities.length > 0 ? (
@@ -104,7 +112,7 @@ export default function AboutCommunity() {
 			>
 				<GMap apiKey={key} />
 			</Box>*/}
-
+			<IFrame />
 			<Box
 				sx={{
 					marginTop: 2,
@@ -113,33 +121,39 @@ export default function AboutCommunity() {
 					alignItems: "start",
 				}}
 			>
-				<Typography variant="h4">Datos Generales</Typography>
+				<Typography variant="h4">General Data</Typography>
 				<Typography>
-					<b>Lenguaje: </b>
+					<b>Language: </b>
 					{community ? community.language : ""}
 				</Typography>
 				<Typography>
-					<b>Unidad de voto: </b>
+					<b>Voting unit: </b>
 					{community
 						? community.votingUnit === "homes.owner"
-							? "Propietarios"
-							: "Residentes"
+							? "Home owners"
+							: "Residents"
 						: ""}
 				</Typography>
+				<Tooltip
+					title="Remember, this feature is up to the community. Do you think it should be a different? Create a proposal!"
+					arrow
+				>
+					<Typography>
+						<b>Proposal's time limit: </b>
+						{community ? community.proposalLimit : ""} dias
+					</Typography>
+				</Tooltip>
+
 				<Typography>
-					<b>Limite para propuestas: </b>
-					{community ? community.proposalLimit : ""} dias
-				</Typography>
-				<Typography>
-					<b>Numero de residencias: </b>
+					<b>Amount of homes: </b>
 					{community ? community.homes.length : ""}
 				</Typography>
 				<Typography>
-					<b>Numero de ciudadanos: </b>
+					<b>Amount of citizens: </b>
 					{community ? community.citizens.length : ""}
 				</Typography>
 				<Typography>
-					<b>Numero de propietarios: </b>
+					<b>Amount of home owners: </b>
 					{community ? community.owners.length : ""}
 				</Typography>
 			</Box>
@@ -151,8 +165,22 @@ export default function AboutCommunity() {
 					alignItems: "center",
 				}}
 			>
-				<Typography variant="h4">Administradores</Typography>
+				<img src={aboutCommunity1} style={{ width: "100vw" }} />
 			</Box>
+			{community && community.adminRecords.length > 0 ? (
+				<Box
+					sx={{
+						marginTop: 2,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+					}}
+				>
+					<Typography variant="h4">Management</Typography>
+				</Box>
+			) : (
+				""
+			)}
 			<Box
 				sx={{
 					marginTop: 2,
@@ -161,7 +189,7 @@ export default function AboutCommunity() {
 					alignItems: "start",
 				}}
 			>
-				{community
+				{community && community.adminRecords.length > 0
 					? community.adminRecords.map((adminRecord) => (
 							<Container key={adminRecord.identifier}>
 								<Typography>
@@ -175,7 +203,7 @@ export default function AboutCommunity() {
 								</Typography>
 								<Typography>{adminRecord.body}</Typography>
 								<Typography>
-									<b>Fecha de inicio: </b>
+									<b>Start date: </b>
 									{adminRecord.effectiveDate
 										? adminRecord.effectiveDate.split(
 												"T"
@@ -185,11 +213,11 @@ export default function AboutCommunity() {
 										  )[0]}
 								</Typography>
 								<Typography>
-									<b>Fecha de expiración: </b>
+									<b>Term limit: </b>
 									{adminRecord.expirationDate.split("T")[0]}
 								</Typography>
 								<Typography>
-									<b>Votos conectados: </b>
+									<b>Plugged in votes: </b>
 									{
 										adminRecord.votes.filter(
 											(vote) => vote.vote === "plug"
@@ -200,19 +228,29 @@ export default function AboutCommunity() {
 					  ))
 					: ""}
 			</Box>
+			{community && community.adminRecords.length > 0 ? (
+				<Box
+					sx={{
+						marginTop: 2,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+					}}
+				>
+					<img src={aboutCommunity2} style={{ width: "100vw" }} />
+				</Box>
+			) : (
+				""
+			)}
+
+			{community && community.nonAdminRoleRecords.length > 0 ? (
+				<Typography variant="h4">Employees</Typography>
+			) : (
+				""
+			)}
 			<Box
 				sx={{
-					marginTop: 2,
-					display: "flex",
-					flexDirection: "column",
-					alignItems: "center",
-				}}
-			>
-				<Typography variant="h4">Roles</Typography>
-			</Box>
-			<Box
-				sx={{
-					marginTop: 2,
+					marginTop: 1,
 					display: "flex",
 					flexDirection: "column",
 					alignItems: "start",
@@ -222,11 +260,10 @@ export default function AboutCommunity() {
 					? community.nonAdminRoleRecords.map(
 							(nonAdminRoleRecord) => (
 								<Container key={nonAdminRoleRecord.identifier}>
-									<Typography>
-										{nonAdminRoleRecord.citizen
-											? nonAdminRoleRecord.citizen
-													.fullName
-											: ""}
+									<Typography sx={{ color: "red" }}>
+										Need to hire, <a href="#">input info</a>
+										, or select from <a href="#">members</a>
+										.
 									</Typography>
 									<Typography>
 										<b>Cargo: </b>
@@ -236,7 +273,7 @@ export default function AboutCommunity() {
 										{nonAdminRoleRecord.body}
 									</Typography>
 									<Typography>
-										<b>Fecha de inicio: </b>
+										<b>Start Date: </b>
 										{nonAdminRoleRecord.effectiveDate
 											? nonAdminRoleRecord.effectiveDate.split(
 													"T"
@@ -246,15 +283,15 @@ export default function AboutCommunity() {
 											  )[0]}
 									</Typography>
 									<Typography>
-										<b>Fecha de expiración: </b>
-										{
-											nonAdminRoleRecord.expirationDate.split(
-												"T"
-											)[0]
-										}
+										<b>End Date: </b>
+										{nonAdminRoleRecord.expirationDate
+											? nonAdminRoleRecord.expirationDate.split(
+													"T"
+											  )[0]
+											: "None"}
 									</Typography>
 									<Typography>
-										<b>Votos conectados: </b>
+										<b>Plugged in votes: </b>
 										{
 											nonAdminRoleRecord.votes.filter(
 												(vote) => vote.vote === "plug"
@@ -274,7 +311,7 @@ export default function AboutCommunity() {
 					alignItems: "center",
 				}}
 			>
-				<Typography variant="h4">Constitución</Typography>
+				<Typography variant="h4">Constitution</Typography>
 			</Box>
 
 			{community
@@ -327,56 +364,85 @@ export default function AboutCommunity() {
 					alignItems: "center",
 				}}
 			>
-				<Typography variant="h4">Permisos</Typography>
+				<img src={aboutCommunity3} style={{ width: "100vw" }} />
 			</Box>
-			<Box
-				sx={{
-					marginTop: 2,
-					display: "flex",
-					flexDirection: "column",
-					alignItems: "start",
-				}}
-			>
-				{community
-					? community.permits.map((permitRecord) => (
-							<Box
-								sx={{
-									marginTop: 2,
-									display: "flex",
-									flexDirection: "column",
-									alignItems: "start",
-								}}
-							>
-								<Typography>{permitRecord.title}</Typography>
-								<Typography>{permitRecord.body}</Typography>
-								<Typography>
-									<b>Fecha de inicio: </b>
-									{permitRecord.effectiveDate
-										? permitRecord.effectiveDate.split(
+			{community && community.permits.length > 0 ? (
+				<Box
+					sx={{
+						marginTop: 2,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+					}}
+				>
+					<Typography variant="h4">Permisos</Typography>
+				</Box>
+			) : (
+				""
+			)}
+			{community && community.permits.length > 0 ? (
+				<Box
+					sx={{
+						marginTop: 2,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "start",
+					}}
+				>
+					{community
+						? community.permits.map((permitRecord) => (
+								<Box
+									sx={{
+										marginTop: 2,
+										display: "flex",
+										flexDirection: "column",
+										alignItems: "start",
+									}}
+								>
+									<Typography>
+										{permitRecord.title}
+									</Typography>
+									<Typography>{permitRecord.body}</Typography>
+									<Typography>
+										<b>Fecha de inicio: </b>
+										{permitRecord.effectiveDate
+											? permitRecord.effectiveDate.split(
+													"T"
+											  )[0]
+											: permitRecord.statusUpdateDate.split(
+													"T"
+											  )[0]}
+									</Typography>
+									<Typography>
+										<b>Fecha de expiracion: </b>
+										{
+											permitRecord.expirationDate.split(
 												"T"
-										  )[0]
-										: permitRecord.statusUpdateDate.split(
-												"T"
-										  )[0]}
-								</Typography>
-								<Typography>
-									<b>Fecha de expiracion: </b>
-									{permitRecord.expirationDate.split("T")[0]}
-								</Typography>
-							</Box>
-					  ))
-					: ""}
-			</Box>
-			<Box
-				sx={{
-					marginTop: 2,
-					display: "flex",
-					flexDirection: "column",
-					alignItems: "center",
-				}}
-			>
-				<Typography variant="h4">Proyectos</Typography>
-			</Box>
+											)[0]
+										}
+									</Typography>
+								</Box>
+						  ))
+						: ""}
+				</Box>
+			) : (
+				""
+			)}
+			{community && community.projects.length > 0 ? (
+				<Box
+					sx={{
+						marginTop: 2,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+					}}
+				>
+					<Typography variant="h4">Projects</Typography>
+				</Box>
+			) : (
+				""
+			)}
+
 			<Box
 				sx={{
 					marginTop: 2,
@@ -406,15 +472,37 @@ export default function AboutCommunity() {
 										  )[0]}
 								</Typography>
 								<Typography>
-									<b>Fecha de fin: </b>
+									<b>Expiration date: </b>
 									{project.expirationDate
 										? project.expirationDate.split("T")[0]
-										: "Indefinido"}
+										: "Indefinite"}
 								</Typography>
 							</Box>
 					  ))
 					: ""}
 			</Box>
 		</Container>
+	);
+}
+
+function IFrame() {
+	return (
+		<Box
+			sx={{
+				marginTop: 2,
+				display: "flex",
+				flexDirection: "column",
+				alignItems: "start",
+			}}
+		>
+			<iframe
+				src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d26856.68265412758!2d-117.15344460314942!3d32.710360156713996!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80d9536d042520d1%3A0x184d9db8c2e70dc8!2sSherman%20Heights%2C%20San%20Diego%2C%20California%2092102!5e0!3m2!1ses!2sus!4v1678469923384!5m2!1ses!2sus"
+				width="100%vw"
+				allowfullscreen=""
+				loading="lazy"
+				referrerpolicy="no-referrer-when-downgrade"
+				style={{ border: 0 }}
+			></iframe>
+		</Box>
 	);
 }

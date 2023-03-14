@@ -159,8 +159,10 @@ router.get("/admin", async (request, response) => {
 		let communityRegistrator = await CommunityModels.Citizen.findById(
 			unverifiedCommunity.communityRegistrator
 		);
-		communityRegistrator.password = null;
-		unverifiedCommunity.communityRegistrator = communityRegistrator;
+		if (communityRegistrator) {
+			communityRegistrator.password = null;
+			unverifiedCommunity.communityRegistrator = communityRegistrator;
+		}
 	}
 
 	for (let verifiedCommunityWithRequest of verifiedCommunitiesWithRequests) {
@@ -169,6 +171,7 @@ router.get("/admin", async (request, response) => {
 				let citizen = await CommunityModels.Citizen.findById(
 					joinRequest.citizen
 				);
+				if (!citizen) citizen = request.user; //por demo, delete despues
 				joinRequest.citizen = citizen;
 			}
 		}
@@ -183,55 +186,57 @@ router.post("/admin", async (request, response) => {
 		success: true,
 		messages: [],
 	};
+	console.log("IN ADMIN : ");
 	let community = await CommunityModels.Community.findById(
 		request.body.community._id
 	);
+	console.log("COMMUNITY : ", community);
 	if (request.body.type === "unverifiedCommunity") {
-		let output = {
-			success: true,
-			messages: [],
-		};
-
 		community.verified = true;
 
 		try {
 			community.save();
+			output.messages.push({
+				severity: "success",
+				message: `Community ${community.name} has been verified`,
+			});
+			return response.json(output);
 		} catch (error) {
 			output.success = false;
 			output.messages.push({ severity: "error", message: error.message });
 			return response.json(output);
 		}
-
-		output.messages.push({
-			severity: "success",
-			message: `Community ${community.name} has been verified`,
-		});
 	} else if (request.body.type === "joinRequest") {
 		let requestCitizen = await CommunityModels.Citizen.findById(
 			request.body.joinRequest.citizen._id
 		);
+		console.log("REQUEST CITIZEN: ", requestCitizen);
 
 		let input = { home: {}, citizen: undefined };
 		input.home.number = request.body.joinRequest.homeNumber;
 		input.citizen = requestCitizen;
 		let result;
+
 		if (request.body.joinRequest.type === "owner") {
 			result = await community.addOwner(input);
 		} else {
 			result = await community.addResident(input);
 		}
+
 		output.success = result.success;
+
 		output.messages.push({
 			severity: result.success ? "success" : "error",
 			message: result.message,
 		});
-		/*
+
 		if (output.success === true) {
-			community.joinRequests.find(
-				(request) => request.citizen === requestCitizen._id
-			).status = "approved";
+			community.joinRequests = community.joinRequests.filter(
+				(request) => request.citizen !== requestCitizen.id
+			);
+
 			await community.save();
-		} */
+		}
 	}
 
 	response.json(output);
@@ -242,6 +247,7 @@ router.get("/community/:_id", async (request, response) => {
 		success: true,
 		messages: [],
 	};
+
 	let community = await CommunityModels.Community.findById(
 		request.params._id
 	);
@@ -249,16 +255,83 @@ router.get("/community/:_id", async (request, response) => {
 	communityRecords = community.records.filter(
 		(record) => record.status !== "inactive"
 	);
-	output.feed = communityRecords;
-	return response.json(output);
-	communityPosts = community.posts;
+	let newRecords = [];
+	for (let i = 0; i < communityRecords.length; i++) {
+		let newRecord = {
+			key: communityRecords[i]._id,
+			admin: communityRecords[i].admin,
+			body: communityRecords[i].body,
+			createdAt: communityRecords[i].createdAt,
+			description: communityRecords[i].description,
+			effectiveDate: communityRecords[i].effectiveDate,
+			expirationDate: communityRecords[i].expirationDate,
+			identifier: communityRecords[i].identifier,
+			previousProposalLimit: communityRecords[i].previousProposalLimit,
+			status: communityRecords[i].status,
+			statusUpdateDate: communityRecords[i].statusUpdateDate,
+			title: communityRecords[i].title,
+			type: communityRecords[i].type,
+			updatedAt: communityRecords[i].updatedAt,
+			votes: [],
+			_id: communityRecords[i]._id,
+		};
 
-	let unorderedFeed = communityRecords.concat(communityPosts);
+		for (let vote of communityRecords[i].votes) {
+			newVote = {
+				citizen: vote.citizen,
+				vote: vote.vote,
+				_id: vote._id,
+			};
+			newRecord.votes.push(newVote);
+		}
+
+		let currentCitizensVote = communityRecords[i].votes.find((vote) =>
+			vote.citizen.equals(request.user._id)
+		);
+		if (currentCitizensVote) {
+			newRecord.currentCitizensVote = currentCitizensVote.vote;
+			console.log(
+				"INSIDE CONDITIONAL CURRENTCITIZENSVOTE: /////////////////////////////////****",
+				newRecord.currentCitizensVote
+			);
+		} else {
+			newRecord.currentCitizensVote = "unplug";
+			console.log(
+				"OUTSIDEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+				newRecord.currentCitizensVote
+			);
+		}
+		newRecords.push(newRecord);
+	}
+	//output.feed = communityRecords;
+	//return response.json(output);
+	communityPosts = community.posts;
+	/*
+	newPosts = [];
+
+	for (let post of communityPosts) {
+		let cit = await CommunityModels.Citizen.findById(post.author);
+		if (!cit) cit = request.user;
+		newPosts.push({
+			body: post.body,
+			date: post.date,
+			author: cit,
+		});
+	}
+	console.log("NEW POSTS, ", newPosts);*/
+	for (let post of communityPosts) {
+		let cit = await CommunityModels.Citizen.findById(post.author);
+		if (!cit) cit = request.user;
+		post.author = cit;
+		post.key = post.date;
+	}
+
+	let unorderedFeed = newRecords.concat(communityPosts);
 
 	let feed = unorderedFeed.sort((a, b) => {
 		const aDate = a.date || a.statusUpdateDate;
 		const bDate = b.date || b.statusUpdateDate;
-		return aDate - bDate;
+		return bDate - aDate;
 	});
 
 	output.feed = feed;
@@ -288,6 +361,11 @@ router.post("/community/vote", async (request, response) => {
 		: (message.severity = "error");
 	message.message = result.message;
 	output.messages.push(message);
+	output.record = result.record;
+	let communities = await CommunityModels.Community.communitiesWhereCitizen(
+		request.user._id
+	);
+	output.communities = communities;
 	response.json(output);
 });
 
@@ -304,6 +382,7 @@ router.post("/createproposal", async (request, response) => {
 		citizen: request.user,
 		proposal: {
 			title: request.body.title,
+			type: request.body.type,
 			body: request.body.body,
 			description: request.body.description,
 			effectiveDate: request.body.effectiveDate,
@@ -319,6 +398,7 @@ router.post("/createproposal", async (request, response) => {
 		: (message.severity = "error");
 	message.message = result.message;
 	output.messages.push(message);
+	response.json(output);
 });
 
 module.exports = router;

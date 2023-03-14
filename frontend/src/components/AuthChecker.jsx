@@ -1,8 +1,8 @@
 import { useContext, useEffect } from "react";
 //import { request } from "../utilities";
-import { AuthContext } from "../context/auth-context";
-import { RequestContext } from "../context/requests-context";
-import { EmailConfirmContext } from "../context/confirmed-email-context";
+import { AuthContext } from "../contexts/auth-context";
+import { RequestContext } from "../contexts/requests-context";
+import { EmailConfirmContext } from "../contexts/confirmed-email-context";
 
 export default function AuthChecker(props) {
 	const auth = useContext(AuthContext);
@@ -21,9 +21,9 @@ export default function AuthChecker(props) {
 				}
 				if (output.emailConfirm === true) emailConfirm.confirmEmail();
 				else emailConfirm.unconfirmEmail();
-				console.log(
+				/*console.log(
 					`/session-status report: output.authenticated: ${output.authenticated}, output.emailConfirm: ${output.emailConfirm}`
-				);
+				);*/
 			} catch (error) {
 				console.error("Error checking authentication status: ", error);
 			}

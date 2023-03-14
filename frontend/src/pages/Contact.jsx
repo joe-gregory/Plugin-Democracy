@@ -8,8 +8,9 @@ import {
 } from "@mui/material";
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
 
-import { RequestContext } from "../context/requests-context";
+import { RequestContext } from "../contexts/requests-context";
 import { useContext } from "react";
+import Image from "../assets/aboutCommunity3.png";
 
 export default function Contact() {
 	const request = useContext(RequestContext);
@@ -72,7 +73,7 @@ export default function Contact() {
 					id="message"
 					autoComplete="message"
 					multiline="true"
-					minRows="15"
+					minRows="10"
 				/>
 				<TextField
 					margin="normal"
@@ -93,6 +94,7 @@ export default function Contact() {
 				>
 					Send
 				</Button>
+				<img src={Image} style={{ width: "100vw" }} />
 			</Box>
 		</Container>
 	);

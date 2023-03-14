@@ -291,23 +291,26 @@ const communitySchema = new Schema(
 			getRecord: function (input) {
 				//search for records with _id, id or identifier
 				let record;
+				let success = false;
 				//search for records with input.record._id
-				if (input.record._id) {
+				if (!success && input.record._id) {
 					record = this.records.find(
 						(record) => record._id === input.record._id
 					);
-					if (!record) {
-						record = this.records.find(
-							(record) => record.id === input.record.id
-						);
-						if (!record) {
-							record = this.records.find(
-								(record) =>
-									record.identifier ===
-									input.record.identifier
-							);
-						}
-					}
+					if (record) success = true;
+				}
+				if (!success && input.record.id) {
+					record = this.records.find(
+						(record) => record.id === input.record.id
+					);
+					if (record) success = true;
+				}
+				if (!success && input.record.identifier) {
+					record = this.records.find(
+						(record) =>
+							record.identifier === input.record.identifier
+					);
+					if (record) success = true;
 				}
 
 				if (record) return record;
@@ -362,42 +365,42 @@ const communitySchema = new Schema(
 				let coneccion;
 				if (input.vote) {
 					input.vote.vote === "plug"
-						? (coneccion = "conectado")
-						: (coneccion = "desconectado");
+						? (coneccion = "plug")
+						: (coneccion = "unplug");
 				}
 				if (input.record) {
 					switch (input.record.status) {
 						case "proposal":
-							estatus = "propuesta";
+							estatus = "proposal";
 							break;
 						case "active":
-							estatus = "activo";
+							estatus = "active";
 							break;
 						case "inactive":
-							estatus = "inactivo";
+							estatus = "inactive";
 							break;
 						case "passed":
-							estatus = "mayoria";
+							estatus = "passed";
 							break;
 					}
 					switch (input.record.type) {
 						case "law":
-							tipo = "ley";
+							tipo = "law";
 							break;
 						case "role":
-							tipo = "rol";
+							tipo = "role";
 							break;
 						case "law2":
-							tipo = "ley sobre cambio al limite de propuestas";
+							tipo = "change to proposal's expiration limit";
 							break;
 						case "project":
-							tipo = "proyecto";
+							tipo = "project";
 							break;
 						case "permit":
-							tipo = "permiso";
+							tipo = "permit";
 							break;
 						case "badge":
-							tipo = "medalla";
+							tipo = "badge";
 							break;
 						default:
 							throw new Error(
@@ -409,36 +412,31 @@ const communitySchema = new Schema(
 				//filling post.body
 				switch (input.post.type) {
 					case "addResident":
-						post.body = `${input.citizen.fullName} se ha agregado como residente de la vivienda #${input.home.number}`;
+						post.body = `${input.citizen.fullName} has been added as a resident of home #${input.home.number}.`;
 						break;
 					case "removeResident":
 						if (input.home) {
-							post.body = `${input.citizen.fullName} se ha quitado como residente de la casa #${input.home.number}`;
+							post.body = `${input.citizen.fullName} has been removed as a resident of house #${input.home.number}`;
 						} else {
-							post.body = `${input.citizen.fullName} se ha quitado como residente de esta comunidad.`;
+							post.body = `${input.citizen.fullName} has been removed as a resident of this community`;
 						}
 						break;
 					case "addOwner":
-						post.body = `${input.citizen.fullName} se ha agregado como propietario de casa #${input.home.number}`;
+						post.body = `${input.citizen.fullName} has been added as an owner of home #${input.home.number}.`;
 						break;
 					case "removeOwner":
-						post.body = `${input.citizen.fullName} se ha quitado como propietario de casa #${input.home.number}`;
+						post.body = `${input.citizen.fullName} has been removed as owner of house #${input.home.number}.`;
 						break;
 					case "vote":
-						post.body = `${input.citizen.fullName} ha ${coneccion} su voto a `;
-						if (estatus === "propuesta")
-							post.body += `la propuesta para `;
+						post.body = `${input.citizen.fullName} has ${coneccion} their vote to `;
+						if (estatus === "proposal") post.body += `proposal `;
 						post.body += `${tipo} record #${input.record.identifier}`;
 						break;
 					case "createProposal":
-						post.body =
-							`Propuesta ${input.record.identifier} para un(a) nuevo(a) ${tipo} presentada por ${input.record.author.fullName}. ` +
-							`Titulo de la propuesta: ${input.record.title}. ` +
-							`Propuesta: ` +
-							`${input.record.body}`;
+						post.body = `Proposal ${input.record.identifier} for a new ${tipo} presented by ${input.record.author.fullName}. Proposal Title: ${input.record.title}. Proposal: ${input.record.body} `;
 						break;
 					case "updateRecord":
-						post.body = `${tipo} con numero de record #${input.record.identifier} cambio a estatus ${estatus}`;
+						post.body = `${tipo} with record number #${input.record.identifier} change to status: ${estatus}`;
 						break;
 					case "custom":
 						post.body = input.post.body;
@@ -1084,8 +1082,9 @@ const communitySchema = new Schema(
 				} else {
 					record.votes[voteIndex].vote = vote.vote;
 					record.votes[voteIndex].updatedAt = Date.now();
-					result.message = `Existing vote updated on record ${record.identifier}`;
+					result.message = `Existing ${record.votes[voteIndex].vote} vote updated on record ${record.identifier}`;
 				}
+				await this.updateRecord(record);
 				result.success = true;
 				result.record = record;
 				//save changes
@@ -1492,7 +1491,7 @@ async function createCommunity(communityRequest) {
 	});
 	//La primera y segunda ley se agregan a la comunidad automaticamente
 	let law1 = {
-		title: "Gobierno de la Comunidad",
+		title: "Government of the Community",
 		identifier: "000001",
 		number: 1,
 		type: "law",
@@ -1501,51 +1500,25 @@ async function createCommunity(communityRequest) {
 	};
 	if (community.votingUnit === "homes.owner") {
 		law1.body =
-			"La comunidad operará como una democracia directa, " +
-			"en la cual todos los propietarios tienen la oportunidad igual de participar " +
-			"en el proceso de toma de decisiones. Cualquier residente de la comunidad, incluyendo " +
-			"aquellos que no son propietarios, pueden crear propuestas para la comunidad, pero solo " +
-			"los propietarios tienen derecho a votar. Una mayoría de votos de los propietarios se " +
-			"considera como una propuesta aprobada.";
+			"This community will operate as a direct democracy, in which all owners have an equal opportunity to participate in the decision-making process. Any resident of the community, including non-owners, may create proposals for the community, but only owners have the right to vote. A majority of votes from owners is considered as an approved proposal.";
 		"\n\n" +
-			"En esta forma de democracia directa, los propietarios pueden en cualquier momento 'desconectar'" +
-			" su voto de una propuesta. Los votos pueden ser desconectados incluso de leyes, roles, permisos, " +
-			"distintivos o proyectos aprobados. Si una propuesta pierde votos pero todavía está dentro del límite " +
-			"de tiempo de propuesta establecido por esta constitución, entonces sigue siendo una propuesta y mantiene" +
-			" los votos 'conectados' a favor. Si una ley, rol, medalla, permiso o proyecto aprobado pierde la " +
-			"mayoría de votos después de ser aprobado, se vuelve inactivo. Una vez inactivo, todos los votos son " +
-			"desconectados y si los ciudadanos desean votar sobre una propuesta similar de nuevo, debe ser recreada." +
+			"In this form of direct democracy, owners can at any time 'disconnect' their vote from a proposal. Votes can be disconnected even from laws, roles, permissions, badges or approved projects. If a proposal loses votes but is still within the proposal time limit established by this constitution, then it remains a proposal and maintains the 'connected' votes in favor. If a law, role, badge, permission or approved project loses the majority of votes after being approved, it becomes inactive. Once inactive, all votes are disconnected, and if citizens wish to vote on a similar proposal again, it must be recreated" +
 			"\n\n" +
-			"La comunidad utilizará la plataforma Democracia Conectada para facilitar este proceso, incluyendo pero " +
-			"no limitado a la creación, discusión y votación de propuestas. La plataforma será considerada el medio " +
-			"oficial de llevar a cabo los negocios de la comunidad." +
+			"The community will use the platform 'Plugin Democracy' to facilitate this process, including but not limited to the creation, discussion, and voting of proposals. The platform will be considered the official means of conducting the community's business." +
 			"\n\n" +
-			"Al residir en la comunidad, se entenderá que todos los propietarios han leído, comprendido y aceptado " +
-			"cumplir con los términos y condiciones establecidos en esta ley.";
+			"By residing in the community, it shall be understood that all owners have read, understood, and accepted to comply with the terms and conditions established in this law.";
 	} else if (community.votingUnit === "community.citizens") {
 		law1.body =
-			"La comunidad operará como una democracia directa, en la cual todos los ciudadanos de la comunidad " +
-			"tienen la oportunidad igual de participar en el proceso de toma de decisiones. Cualquier residente de la comunidad" +
-			" puede crear propuestas para la comunidad, y todos los ciudadanos tienen derecho a votar. Un ciudadano no puede " +
-			"conectar o desconectar mas de un voto por una propuesta, ley, rol, medalla, permiso o proyecto. Una mayoría de votos " +
-			"de los ciudadanos se considera como una propuesta aprobada." +
+			"The community will operate as a direct democracy, in which all citizens of the community have an equal opportunity to participate in the decision-making process. Any resident of the community can create proposals for the community, and all citizens have the right to vote. A citizen cannot connect or disconnect more than one vote for a proposal, law, role, badge, permission, or project. A majority of votes from citizens is considered as an approved proposal." +
 			"\n\n" +
-			"En esta forma de democracia directa, los ciudadanos tienen la posibilidad de retirar su voto de una propuesta " +
-			"en cualquier momento, incluso después de que una propuesta haya sido aprobada. Si una propuesta pierde votos " +
-			"antes del vencimiento del plazo establecido en esta constitución, seguirá siendo una propuesta activa y los votos" +
-			" permanecerán conectados. Si una propuesta aprobada pierde la mayoría de los votos después de ser aprobada, sera " +
-			"declarada inactiva y todos los votos serán retirados. En caso de querer volver a presentar una propuesta similar, " +
-			"se deberá crear una nueva propuesta." +
+			"In this form of direct democracy, citizens have the possibility to withdraw their vote from a proposal at any time, even after a proposal has been approved. If a proposal loses votes before the expiration of the term established in this constitution, it will remain an active proposal and the votes will remain connected. If an approved proposal loses the majority of votes after being approved, it will be declared inactive and all votes will be withdrawn. In case of wanting to present a similar proposal again, a new proposal must be created." +
 			"\n\n" +
-			"La comunidad utilizará la plataforma de Democracia Conectada para facilitar este proceso, incluyendo " +
-			"pero no limitado a la creación, discusión y votación de propuestas. La plataforma será considerada el " +
-			"medio oficial de llevar a cabo los negocios de la comunidad." +
+			"The community will use the platform Democracia Conectada to facilitate this process, including but not limited to the creation, discussion, and voting of proposals. The platform will be considered the official means of conducting the business of the community." +
 			"\n\n" +
-			"Al residir en la comunidad, se entenderá que todos los ciudadanos han leído, comprendido y aceptado " +
-			"cumplir con los términos y condiciones establecidos en esta ley.";
+			"By residing in the community, it will be understood that all citizens have read, understood, and agreed to comply with the terms and conditions established in this law";
 	}
 	let law2 = {
-		title: "Expiración de las Propuestas",
+		title: "Expiration of Proposals",
 		identifier: "000002",
 		number: 2,
 		type: "law",
@@ -1553,37 +1526,15 @@ async function createCommunity(communityRequest) {
 		statusUpdateDate: Date.now(),
 	};
 	law2.body =
-		"Todas las propuestas presentadas por los ciudadanos tendrán una fecha de expiración de " +
-		"30 días a partir de la fecha de su publicación. Los ciudadanos pueden " +
-		"votar para modificar esta ley y cambiar el plazo para votar en las propuestas. Cualquier modificación " +
-		"debe ser aprobada por la mayoría de la comunidad. Si la modificación es aprobada, la nueva fecha de " +
-		"expiración entrará en vigor de inmediato.";
+		"All proposals submitted by citizens will have an expiration date of 30 days from the date of their publication. Citizens can vote to modify this law and change the deadline for voting on proposals. Any modification must be approved by the majority of the community. If the modification is approved, the new expiration date will take effect immediately.";
 
 	//add these laws to the community
 	community.records.push(law1);
 	community.records.push(law2);
 
-	//add citizen as temporary admin for community 90 days
-	/*
-	let recordRole = {
-		identifier: "000003",
-		title: communityRequest.title,
-		body: communityRequest.body,
-		citizen: communityRequest.citizen,
-		admin: true,
-		expirationDate: Date.now() + 90 * 24 * 60 * 60 * 1000,
-		statusUpdateDate: Date.now(),
-		type: "role",
-		status: "active",
-	};
-
-	community.records.push(recordRole);*/
-
 	//save community
 	try {
 		await community.save();
-		//communityRequest.status = "approved";
-		//await communityRequest.save();
 		output.success = true;
 		output.messages.push({
 			severity: "success",

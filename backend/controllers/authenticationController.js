@@ -220,7 +220,7 @@ const sendConfirmEmail = (citizen) => {
 	output.messages.push({
 		severity: "info",
 		message:
-			"Se envio un correo para confirmar su correo electronico. Favor de seguir el enlace que se le envio. Enlace expira en un dia.",
+			"An email has been sent to your inbox. Please follow the link to validate your account. Link expires in 1 day.",
 	});
 
 	return output;
@@ -252,19 +252,15 @@ const confirmEmail = (request, response) => {
 			});
 			return response.json(output);
 		}
-		//Message if citizen is already confirmed. During development reacts seems to run hook twice so this shows always
-		/*if (citizen.emailConfirm === true) {
-			output.success = false;
-			output.messages.push({
-				severity: "info",
-				message: "Este correo ya esta validado",
-			});
-			return response.json(output);
-		}*/
+
 		citizen.emailConfirm = true;
 
 		try {
 			citizen.save();
+			output.messages.push({
+				severity: "success",
+				message: "Email confirmed.",
+			});
 		} catch (error) {
 			output.success = false;
 			output.messages.push({

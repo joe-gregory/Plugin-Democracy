@@ -1,7 +1,7 @@
 import { Typography } from "@mui/material";
 import { useContext, useEffect } from "react";
 
-import { RequestContext } from "../context/requests-context";
+import { RequestContext } from "../contexts/requests-context";
 
 const TestMessages = () => {
 	const request = useContext(RequestContext);

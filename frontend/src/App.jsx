@@ -30,12 +30,14 @@ import NotFound404 from "./pages/NotFound404";
 import TestMessages from "./pages/TestMessages";
 
 //context
-import { AuthContext } from "./context/auth-context";
-import { MessagesContext } from "./context/messages-context";
-import { RequestContext } from "./context/requests-context";
-import { EmailConfirmContext } from "./context/confirmed-email-context";
-import { CitizenContext } from "./context/citizen-context";
-import { CommunitiesContext } from "./context/communities-context";
+import { AuthContext } from "./contexts/auth-context";
+import { MessagesContext } from "./contexts/messages-context";
+import { RequestContext } from "./contexts/requests-context";
+import { EmailConfirmContext } from "./contexts/confirmed-email-context";
+import { CitizenContext } from "./contexts/citizen-context";
+import { CommunitiesContext } from "./contexts/communities-context";
+import { UpdateContext } from "./contexts/update-context";
+import { PPContext } from "./contexts/pp-context";
 
 import { v4 as uuid } from "uuid";
 
@@ -45,6 +47,8 @@ function App() {
 	const [alertMessages, setAlertMessages] = useState([]);
 	const [citizen, setCitizen] = useState(undefined);
 	const [communities, setCommunities] = useState([]);
+	const [update, setUpdate] = useState(true);
+	const [pp, setPpupdate] = useState(true);
 
 	useEffect(() => {
 		async function getSession() {
@@ -184,7 +188,7 @@ function App() {
 		if (output.emailConfirm === true) confirmEmail();
 		else if (output.emailConfirm === false) unconfirmEmail();
 		//RR NavBar alert messages
-		if (output.messages) createAndSetMessage(output.messages);
+		if (output.messages) createAndAddMessage(output.messages);
 		//Citizen info
 		if (output.citizen) setCitizen(output.citizen);
 		//Communities info
@@ -194,144 +198,187 @@ function App() {
 		return output;
 	}
 
+	const updateUpdate = () => {
+		setUpdate(!update);
+	};
+
+	const ppUpdate = () => {
+		setPpupdate(!pp);
+	};
+
 	return (
 		<CssBaseline>
 			<RequestContext.Provider value={{ request: request }}>
-				<AuthContext.Provider
-					value={{
-						authenticated: authenticated,
-						login: login,
-						logout: logout,
-					}}
+				<UpdateContext.Provider
+					value={{ update: update, updateUpdate: updateUpdate }}
 				>
-					<CitizenContext.Provider value={{ citizen: citizen }}>
-						<CommunitiesContext.Provider
-							value={{ communities: communities }}
+					<AuthContext.Provider
+						value={{
+							authenticated: authenticated,
+							login: login,
+							logout: logout,
+						}}
+					>
+						<PPContext.Provider
+							value={{ pp: pp, ppUpdate: ppUpdate }}
 						>
-							<EmailConfirmContext.Provider
-								value={{
-									emailConfirm: emailConfirm,
-									confirmEmail: confirmEmail,
-									unconfirmEmail: unconfirmEmail,
-								}}
+							<CitizenContext.Provider
+								value={{ citizen: citizen }}
 							>
-								<AuthChecker />
-								<MessagesContext.Provider
-									value={{
-										messages: alertMessages,
-										setMessages: setMessages,
-										createAndAddMessage:
-											createAndAddMessage,
-										createAndSetMessage:
-											createAndSetMessage,
-										returnUUIDMessage: returnUUIDMessage,
-										clearMessages: clearMessages,
-									}}
+								<CommunitiesContext.Provider
+									value={{ communities: communities }}
 								>
-									<NavBar />
-									<Routes>
-										<Route path="/" element={<Home />} />
-										<Route
-											path="/community"
-											element={
-												authenticated &&
-												emailConfirm ? (
-													<Community />
-												) : authenticated &&
-												  !emailConfirm ? (
-													<Navigate to="/account" />
-												) : (
-													<Navigate to="/login" />
-												)
-											}
-										/>
-										<Route
-											path="/login"
-											element={
-												authenticated &&
-												emailConfirm ? (
-													<Navigate to="/community" />
-												) : authenticated &&
-												  !emailConfirm ? (
-													<Navigate to="/account" />
-												) : (
-													<LogIn />
-												)
-											}
-										/>
-										<Route
-											path="/signup"
-											element={
-												authenticated &&
-												emailConfirm ? (
-													<Navigate to="/community" />
-												) : authenticated &&
-												  !emailConfirm ? (
-													<Navigate to="/account" />
-												) : (
-													<SignUp />
-												)
-											}
-										/>
-										<Route
-											path="/verifyemail"
-											element={<VerifyEmail />}
-										/>
-										<Route
-											path="/account"
-											element={
-												authenticated ? (
-													<Account />
-												) : (
-													<Navigate to="/login" />
-												)
-											}
-										/>
-										<Route
-											path="/community/about"
-											element={
-												authenticated ? (
-													<AboutCommunity />
-												) : (
-													<Navigate to="/login" />
-												)
-											}
-										/>
-										<Route
-											path="/test-messages"
-											element={<TestMessages />}
-										/>
-										<Route
-											path="/contact"
-											element={<Contact />}
-										/>
-										<Route
-											path="/community/register"
-											element={<RegisterCommunity />}
-										/>
-										<Route
-											path="/community/join"
-											element={<JoinCommunity />}
-										/>
-										<Route
-											path="/admin"
-											element={<Admin />}
-										/>
-										<Route
-											path="/createproposal"
-											element={<CreateProposal />}
-										/>
-										<Route
-											path="*"
-											element={<NotFound404 />}
-										/>
-									</Routes>
-									<Footer />
-								</MessagesContext.Provider>
-							</EmailConfirmContext.Provider>
-						</CommunitiesContext.Provider>
-					</CitizenContext.Provider>
-				</AuthContext.Provider>
+									<EmailConfirmContext.Provider
+										value={{
+											emailConfirm: emailConfirm,
+											confirmEmail: confirmEmail,
+											unconfirmEmail: unconfirmEmail,
+										}}
+									>
+										<AuthChecker />
+										<MessagesContext.Provider
+											value={{
+												messages: alertMessages,
+												setMessages: setMessages,
+												createAndAddMessage:
+													createAndAddMessage,
+												createAndSetMessage:
+													createAndSetMessage,
+												returnUUIDMessage:
+													returnUUIDMessage,
+												clearMessages: clearMessages,
+											}}
+										>
+											<NavBar />
+											<Routes>
+												<Route
+													path="/"
+													element={<Home />}
+												/>
+												<Route
+													path="/community"
+													element={
+														authenticated &&
+														emailConfirm &&
+														communities.length >
+															0 ? (
+															<Community />
+														) : authenticated &&
+														  !emailConfirm ? (
+															<Navigate to="/account" />
+														) : authenticated &&
+														  emailConfirm &&
+														  communities.length ===
+																0 ? (
+															<Navigate to="/community/join" />
+														) : (
+															<Navigate to="/login" />
+														)
+													}
+												/>
+												<Route
+													path="/login"
+													element={
+														authenticated &&
+														emailConfirm ? (
+															<Navigate to="/community" />
+														) : authenticated &&
+														  !emailConfirm ? (
+															<Navigate to="/account" />
+														) : (
+															<LogIn />
+														)
+													}
+												/>
+												<Route
+													path="/signup"
+													element={
+														authenticated &&
+														emailConfirm ? (
+															<Navigate to="/community" />
+														) : authenticated &&
+														  !emailConfirm ? (
+															<Navigate to="/account" />
+														) : (
+															<SignUp />
+														)
+													}
+												/>
+												<Route
+													path="/account"
+													element={
+														authenticated ? (
+															<Account />
+														) : (
+															<Navigate to="/login" />
+														)
+													}
+												/>
+												<Route
+													path="/community/about"
+													element={
+														authenticated ? (
+															<AboutCommunity />
+														) : (
+															<Navigate to="/login" />
+														)
+													}
+												/>
+												<Route
+													path="/test-messages"
+													element={<TestMessages />}
+												/>
+												<Route
+													path="/contact"
+													element={<Contact />}
+												/>
+												<Route
+													path="/community/register"
+													element={
+														<RegisterCommunity />
+													}
+												/>
+												<Route
+													path="/community/join"
+													element={<JoinCommunity />}
+												/>
+												<Route
+													path="/admin"
+													element={
+														authenticated ? (
+															<Admin />
+														) : (
+															<Navigate to="/login" />
+														)
+													}
+												/>
+												<Route
+													path="/createproposal"
+													element={
+														authenticated &&
+														communities.length >
+															0 ? (
+															<CreateProposal />
+														) : authenticated ? (
+															<Navigate to="/community/join" />
+														) : (
+															<Navigate to="/login" />
+														)
+													}
+												/>
+												<Route
+													path="*"
+													element={<NotFound404 />}
+												/>
+											</Routes>
+											<Footer />
+										</MessagesContext.Provider>
+									</EmailConfirmContext.Provider>
+								</CommunitiesContext.Provider>
+							</CitizenContext.Provider>
+						</PPContext.Provider>
+					</AuthContext.Provider>
+				</UpdateContext.Provider>
 			</RequestContext.Provider>
 		</CssBaseline>
 	);

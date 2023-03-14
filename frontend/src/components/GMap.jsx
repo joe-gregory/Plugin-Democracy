@@ -6,7 +6,7 @@ const containerStyle = {
 	height: "400px",
 };
 
-const center = { lat: 40.7129987, lng: -74.0153496 };
+const center = { lat: 32.708338, lng: -117.156792 };
 
 export default function GMap({ apiKey }) {
 	const { isLoaded } = useJsApiLoader({

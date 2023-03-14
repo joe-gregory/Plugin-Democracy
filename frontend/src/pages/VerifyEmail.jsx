@@ -2,7 +2,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 
 import { useState, useContext, useEffect } from "react";
 
-import { RequestContext } from "../context/requests-context";
+import { RequestContext } from "../contexts/requests-context";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";

@@ -12,11 +12,11 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import CircularProgress from "@mui/material/CircularProgress";
 
-import { RequestContext } from "../context/requests-context";
+import { RequestContext } from "../contexts/requests-context";
 import Copyright from "../components/Copyright";
 import PowerOutlinedIcon from "@mui/icons-material/PowerOutlined";
 import { MuiTelInput, matchIsValidTel } from "mui-tel-input";
-import { MessagesContext } from "../context/messages-context";
+import { MessagesContext } from "../contexts/messages-context";
 
 export default function SignUp() {
 	const request = React.useContext(RequestContext);

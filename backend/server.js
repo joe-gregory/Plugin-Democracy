@@ -57,15 +57,6 @@ server.use(
 	})
 );
 
-//server.use(express.static("public")); //static files
-//flash message middleware
-/*
-PDserver.use((request, response, next) => {
-	response.locals.message = request.session.message;
-	delete request.session.message;
-	next();
-});
-*/
 //Passport & sessions
 server.use(passport.initialize());
 server.use(
@@ -171,30 +162,9 @@ server.use((request, response, next) => {
 	next();
 });
 server.use(passport.authenticate("session"));
-/*
-server.use(
-	//adding authenticated to every request
-	(request, response, next) => {
-		/*let output = {
-			authenticated: request.isAuthenticated(),
-			citize: request.user,
-		};
-		response = { ...response, ...output };////
-		response.authenticated = request.isAuthenticated();
-		response.citizen = request.user;
-		next();
-	}
-);*/
 
 //routes
 const openRoutes = require("./routes/openRoutes");
 server.use(openRoutes);
 const closedRoutes = require("./routes/closedRoutes");
 server.use(closedRoutes);
-
-/*
-PDserver.use(myCommunityRoutes);
-PDserver.use(errorsRoutes);
-const errorsRoutes = require('./routes/errorsRoutes');
-const myCommunityRoutes = require('./routes/myCommunityRoutes');
-*/

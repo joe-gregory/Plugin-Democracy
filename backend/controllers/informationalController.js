@@ -68,12 +68,12 @@ async function respondCommunitiesOfCitizen(request, response) {
 		}
 
 		for (nonAdminRoleRecord of community.nonAdminRoleRecords) {
-			let citizen = await CommunityModels.Citizen.findById(
+			/*let citizen = await CommunityModels.Citizen.findById(
 				nonAdminRoleRecord.citizen
 			).toJSON();
 			if (citizen) citizen.password = null;
 
-			nonAdminRoleRecord.citizen = citizen;
+			nonAdminRoleRecord.citizen = citizen;*/
 		}
 
 		output.communities.push(community.toJSON());
