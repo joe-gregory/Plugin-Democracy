@@ -1,5 +1,5 @@
 backend/node_modules/
-backend/keys.js
+backend/.env
 backend/demo.js
 backend/demoData.js
 backend/DDapp2.js
